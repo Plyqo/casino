@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Dodep Casino</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(45deg, #1a1a1a, #2a2a2a);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 50px;
+            background: rgba(0, 0, 0, 0.7);
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+        }
+
+        .casino-name {
+            font-family: 'Oswald', sans-serif;
+            font-size: 2.5em;
+            color: #ffd700;
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .balance {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.8em;
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .topup-btn {
+            background: linear-gradient(45deg, #ffd700, #ffaa00);
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            color: #1a1a1a;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+        }
+
+        .topup-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+        }
+
+        .games-container {
+            display: flex;
+            justify-content: center;
+            padding: 50px;
+        }
+
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 30px;
+            border-radius: 20px;
+            width: 300px;
+            text-align: center;
+            margin: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+            border: 2px solid transparent;
+        }
+
+        .game-card:hover {
+            transform: translateY(-10px);
+            border-color: #ffd700;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: linear-gradient(45deg, #2a2a2a, #1a1a1a);
+            padding: 30px;
+            border-radius: 20px;
+            width: 400px;
+            text-align: center;
+            position: relative;
+            animation: modalShow 0.3s;
+        }
+
+        @keyframes modalShow {
+            from {transform: scale(0.5); opacity: 0;}
+            to {transform: scale(1); opacity: 1;}
+        }
+
+        .close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 1em;
+        }
+
+        .submit-btn {
+            background: linear-gradient(45deg, #00cc00, #009900);
+            padding: 12px 40px;
+            border: none;
+            border-radius: 20px;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: 0.3s;
+        }
+
+        .submit-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
+        }
+
+        .mines-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 30px;
+            border-radius: 20px;
+            border: 2px solid #ffd700;
+            z-index: 1000;
+        }
+
+        .mines-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 60px);
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .mine-cell {
+            width: 60px;
+            height: 60px;
+            background: #2a2a2a;
+            border: 2px solid #ffd700;
+            border-radius: 8px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .mine-cell:hover {
+            background: #3a3a3a;
+        }
+
+        .mine-cell.revealed {
+            background: #1a1a1a;
+            cursor: default;
+        }
+
+        .mine-cell.mine {
+            background: #ff4444 !important;
+            animation: explode 0.5s;
+        }
+
+        @keyframes explode {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        .game-controls {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .bet-input {
+            padding: 10px;
+            margin: 10px;
+            width: 200px;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 8px;
+            color: white;
+        }
+
+        .multiplier-display {
+            font-size: 1.2em;
+            color: #ffd700;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="casino-name">DODEP CASINO</div>
+        <div class="balance">Баланс: $<span id="balance">1000</span></div>
+        <button class="topup-btn" onclick="openModal()">ПОПОЛНИТЬ</button>
+    </div>
+
+    <div class="games-container">
+        <div class="game-card" onclick="openMinesGame()">
+            <h2>МИНЫ</h2>
+            <p>Нажмите чтобы начать игру</p>
+        </div>
+    </div>
+
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h2>Пополнение баланса</h2>
+            <input type="number" id="amount" placeholder="Сумма пополнения">
+            <input type="password" id="code" placeholder="Секретный код">
+            <button class="submit-btn" onclick="topUpBalance()">Пополнить</button>
+        </div>
+    </div>
+
+    <div class="mines-container" id="minesGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="betAmount" placeholder="Ваша ставка">
+            <button class="submit-btn" onclick="startGame()">Начать игру</button>
+            <button class="topup-btn" onclick="cashOut()" style="margin-left: 10px;">Забрать</button>
+        </div>
+        <div class="multiplier-display">Множитель: <span id="multiplier">1x</span></div>
+        <div class="mines-grid" id="minesGrid"></div>
+        <div id="gameStatus"></div>
+    </div>
+
+    <script>
+        let balance = 1000;
+        let minesGame = {
+            isPlaying: false,
+            bet: 0,
+            multiplier: 1,
+            mines: [],
+            openedCells: 0,
+            cashoutRequested: false
+        };
+
+        function updateBalance() {
+            document.getElementById('balance').textContent = balance;
+        }
+
+        function openModal() {
+            document.getElementById('modal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('modal').style.display = 'none';
+        }
+
+        function topUpBalance() {
+            const amount = parseInt(document.getElementById('amount').value);
+            const code = document.getElementById('code').value;
+            
+            if (!amount || amount <= 0) {
+                alert('Введите корректную сумму!');
+                return;
+            }
+
+            if (code !== '1233') {
+                alert('Неверный секретный код!');
+                return;
+            }
+
+            balance += amount;
+            updateBalance();
+            closeModal();
+            alert(`Баланс успешно пополнен на $${amount}!`);
+        }
+
+        function openMinesGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('minesGame').style.display = 'block';
+            resetGame();
+        }
+
+        function resetGame() {
+            minesGame = {
+                isPlaying: false,
+                bet: 0,
+                multiplier: 1,
+                mines: [],
+                openedCells: 0,
+                cashoutRequested: false
+            };
+            document.getElementById('betAmount').value = '';
+            document.getElementById('gameStatus').innerHTML = '';
+            document.getElementById('multiplier').textContent = '1x';
+            generateGrid();
+        }
+
+        function generateGrid() {
+            const grid = document.getElementById('minesGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'mine-cell';
+                cell.setAttribute('data-index', i);
+                cell.onclick = () => openCell(i);
+                grid.appendChild(cell);
+            }
+        }
+
+        function startGame() {
+            const bet = parseInt(document.getElementById('betAmount').value);
+            
+            if (!bet || bet < 10 || bet > balance) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            minesGame.bet = bet;
+            minesGame.isPlaying = true;
+            balance -= bet;
+            updateBalance();
+            
+            minesGame.mines = [];
+            while (minesGame.mines.length < 5) {
+                const random = Math.floor(Math.random() * 25);
+                if (!minesGame.mines.includes(random)) {
+                    minesGame.mines.push(random);
+                }
+            }
+        }
+
+        function openCell(index) {
+            if (!minesGame.isPlaying || 
+                document.getElementById('minesGrid').children[index].classList.contains('revealed')) return;
+            
+            const cell = document.getElementById('minesGrid').children[index];
+            cell.classList.add('revealed');
+            
+            if (minesGame.mines.includes(index)) {
+                cell.classList.add('mine');
+                cell.innerHTML = '💣';
+                endGame(false);
+            } else {
+                minesGame.openedCells++;
+                minesGame.multiplier = (1 + (minesGame.openedCells * 0.2)).toFixed(2);
+                document.getElementById('multiplier').textContent = `${minesGame.multiplier}x`;
+                cell.innerHTML = '💎';
+            }
+        }
+
+        function cashOut() {
+            if (!minesGame.isPlaying) return;
+            
+            const winAmount = Math.floor(minesGame.bet * minesGame.multiplier);
+            balance += winAmount;
+            updateBalance();
+            endGame(true);
+            alert(`Вы успешно забрали $${winAmount}!`);
+        }
+
+        function endGame(won) {
+            minesGame.isPlaying = false;
+            revealAllMines();
+            
+            if (!won) {
+                document.getElementById('gameStatus').innerHTML = 
+                    '<p style="color: #ff4444">Вы проиграли!</p>';
+            }
+        }
+
+        function revealAllMines() {
+            minesGame.mines.forEach(index => {
+                const cell = document.getElementById('minesGrid').children[index];
+                if (!cell.classList.contains('mine')) {
+                    cell.classList.add('mine');
+                    cell.innerHTML = '💣';
+                }
+            });
+        }
+
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('modal')) {
+                closeModal();
+            }
+            if (event.target == document.getElementById('minesGame')) {
+                document.getElementById('minesGame').style.display = 'none';
+                resetGame();
+            }
+        }
+    </script>
+</body>
+</html>
