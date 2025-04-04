@@ -63,6 +63,8 @@
             display: flex;
             justify-content: center;
             padding: 50px;
+            gap: 30px;
+            flex-wrap: wrap;
         }
 
         .game-card {
@@ -71,7 +73,6 @@
             border-radius: 20px;
             width: 300px;
             text-align: center;
-            margin: 20px;
             cursor: pointer;
             transition: 0.3s;
             border: 2px solid transparent;
@@ -146,7 +147,7 @@
             box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
         }
 
-        .mines-container {
+        .mines-container, .tower-container {
             display: none;
             position: fixed;
             top: 50%;
@@ -220,18 +221,47 @@
             color: #ffd700;
             margin: 15px 0;
         }
+
+        .tower-floors {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        .floor {
+            padding: 15px 30px;
+            background: #2a2a2a;
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .floor:hover {
+            background: #3a3a3a;
+        }
+
+        .floor.active {
+            background: #00ff00;
+            color: #1a1a1a;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="casino-name">DODEP CASINO</div>
-        <div class="balance">Баланс: $<span id="balance">1000</span></div>
+        <div class="balance">Баланс: $<span id="balance">0</span></div>
         <button class="topup-btn" onclick="openModal()">ПОПОЛНИТЬ</button>
     </div>
 
     <div class="games-container">
         <div class="game-card" onclick="openMinesGame()">
-            <h2>МИНЫ</h2>
+            <h2>🕹️ МИНЫ</h2>
+            <p>Нажмите чтобы начать игру</p>
+        </div>
+        <div class="game-card" onclick="openTowerGame()">
+            <h2>🏰 БАШНЯ</h2>
             <p>Нажмите чтобы начать игру</p>
         </div>
     </div>
@@ -249,7 +279,7 @@
     <div class="mines-container" id="minesGame">
         <div class="game-controls">
             <input type="number" class="bet-input" id="betAmount" placeholder="Ваша ставка">
-            <button class="submit-btn" onclick="startGame()">Начать игру</button>
+            <button class="submit-btn" onclick="startMinesGame()">Начать игру</button>
             <button class="topup-btn" onclick="cashOut()" style="margin-left: 10px;">Забрать</button>
         </div>
         <div class="multiplier-display">Множитель: <span id="multiplier">1x</span></div>
@@ -257,19 +287,41 @@
         <div id="gameStatus"></div>
     </div>
 
+    <div class="tower-container" id="towerGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="towerBet" placeholder="Ваша ставка">
+            <button class="submit-btn" onclick="startTowerGame()">Начать игру</button>
+            <div class="multiplier-display">Текущий этаж: <span id="currentFloor">1</span></div>
+            <div class="multiplier-display">Множитель: <span id="towerMultiplier">1x</span></div>
+        </div>
+        <div class="tower-floors" id="towerFloors"></div>
+        <div id="towerStatus"></div>
+    </div>
+
     <script>
-        let balance = 1000;
-        let minesGame = {
+        // Локальное хранилище
+        let balance = localStorage.getItem('balance') ? parseInt(localStorage.getItem('balance')) : 1000;
+        document.getElementById('balance').textContent = balance;
+
+        let minesGame = JSON.parse(localStorage.getItem('minesGame')) || {
             isPlaying: false,
             bet: 0,
             multiplier: 1,
             mines: [],
-            openedCells: 0,
-            cashoutRequested: false
+            openedCells: 0
         };
 
+        let towerGame = JSON.parse(localStorage.getItem('towerGame')) || {
+            isPlaying: false,
+            bet: 0,
+            currentFloor: 1,
+            multiplier: 1
+        };
+
+        // Общие функции
         function updateBalance() {
             document.getElementById('balance').textContent = balance;
+            localStorage.setItem('balance', balance);
         }
 
         function openModal() {
@@ -300,28 +352,23 @@
             alert(`Баланс успешно пополнен на $${amount}!`);
         }
 
+        // Игра МИНЫ
         function openMinesGame() {
             if (balance < 10) {
                 alert('Минимальный баланс для игры: $10');
                 return;
             }
             document.getElementById('minesGame').style.display = 'block';
-            resetGame();
+            resetMinesGame();
         }
 
-        function resetGame() {
-            minesGame = {
-                isPlaying: false,
-                bet: 0,
-                multiplier: 1,
-                mines: [],
-                openedCells: 0,
-                cashoutRequested: false
-            };
+        function resetMinesGame() {
+            minesGame.isPlaying = false;
+            generateGrid();
             document.getElementById('betAmount').value = '';
             document.getElementById('gameStatus').innerHTML = '';
             document.getElementById('multiplier').textContent = '1x';
-            generateGrid();
+            localStorage.setItem('minesGame', JSON.stringify(minesGame));
         }
 
         function generateGrid() {
@@ -337,7 +384,7 @@
             }
         }
 
-        function startGame() {
+        function startMinesGame() {
             const bet = parseInt(document.getElementById('betAmount').value);
             
             if (!bet || bet < 10 || bet > balance) {
@@ -357,6 +404,7 @@
                     minesGame.mines.push(random);
                 }
             }
+            localStorage.setItem('minesGame', JSON.stringify(minesGame));
         }
 
         function openCell(index) {
@@ -375,6 +423,7 @@
                 minesGame.multiplier = (1 + (minesGame.openedCells * 0.2)).toFixed(2);
                 document.getElementById('multiplier').textContent = `${minesGame.multiplier}x`;
                 cell.innerHTML = '💎';
+                localStorage.setItem('minesGame', JSON.stringify(minesGame));
             }
         }
 
@@ -395,7 +444,9 @@
             if (!won) {
                 document.getElementById('gameStatus').innerHTML = 
                     '<p style="color: #ff4444">Вы проиграли!</p>';
+                setTimeout(resetMinesGame, 2000);
             }
+            localStorage.setItem('minesGame', JSON.stringify(minesGame));
         }
 
         function revealAllMines() {
@@ -408,13 +459,93 @@
             });
         }
 
+        // Игра БАШНЯ
+        function openTowerGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('towerGame').style.display = 'block';
+            resetTowerGame();
+        }
+
+        function resetTowerGame() {
+            towerGame.isPlaying = false;
+            generateFloors();
+            document.getElementById('towerBet').value = '';
+            document.getElementById('towerStatus').innerHTML = '';
+            document.getElementById('currentFloor').textContent = '1';
+            document.getElementById('towerMultiplier').textContent = '1x';
+            localStorage.setItem('towerGame', JSON.stringify(towerGame));
+        }
+
+        function generateFloors() {
+            const floors = document.getElementById('towerFloors');
+            floors.innerHTML = '';
+            
+            for (let i = 1; i <= 10; i++) {
+                const floor = document.createElement('div');
+                floor.className = 'floor';
+                floor.textContent = `Этаж ${i} (${(1 + i*0.5).toFixed(1)}x)`;
+                floor.onclick = () => selectFloor(i);
+                floors.appendChild(floor);
+            }
+        }
+
+        function startTowerGame() {
+            const bet = parseInt(document.getElementById('towerBet').value);
+            
+            if (!bet || bet < 10 || bet > balance) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            towerGame.bet = bet;
+            towerGame.isPlaying = true;
+            balance -= bet;
+            updateBalance();
+            towerGame.currentFloor = 1;
+            towerGame.multiplier = 1;
+            updateTowerDisplay();
+            localStorage.setItem('towerGame', JSON.stringify(towerGame));
+        }
+
+        function selectFloor(floor) {
+            if (!towerGame.isPlaying) return;
+            
+            const success = Math.random() < 0.8 - (floor * 0.07);
+            
+            if (success) {
+                towerGame.currentFloor = floor;
+                towerGame.multiplier = 1 + (floor * 0.5);
+                updateTowerDisplay();
+                document.getElementById('towerStatus').innerHTML = 
+                    `<p style="color: #00ff00">Этаж ${floor} пройден!</p>`;
+            } else {
+                balance += Math.floor(towerGame.bet * towerGame.multiplier);
+                updateBalance();
+                document.getElementById('towerStatus').innerHTML = 
+                    `<p style="color: #ff4444">Этаж ${floor} провален!</p>`;
+                resetTowerGame();
+            }
+            localStorage.setItem('towerGame', JSON.stringify(towerGame));
+        }
+
+        function updateTowerDisplay() {
+            document.getElementById('currentFloor').textContent = towerGame.currentFloor;
+            document.getElementById('towerMultiplier').textContent = `${towerGame.multiplier.toFixed(1)}x`;
+        }
+
+        // Общая логика закрытия окон
         window.onclick = function(event) {
             if (event.target == document.getElementById('modal')) {
                 closeModal();
             }
-            if (event.target == document.getElementById('minesGame')) {
-                document.getElementById('minesGame').style.display = 'none';
-                resetGame();
+            if (event.target == document.getElementById('minesGame') || 
+                event.target == document.getElementById('towerGame')) {
+                event.target.style.display = 'none';
+                resetMinesGame();
+                resetTowerGame();
             }
         }
     </script>
