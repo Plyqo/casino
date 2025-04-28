@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Neon Digital RPG</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Press+Start+2P&family=Ubuntu+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #00ff9d;
+            --secondary: #00b8ff;
+            --accent: #ff00aa;
+            --bg-dark: #0a0a1a;
+            --bg-light: #1a1a2e;
+            --text: #e0e0e0;
+            --warning: #ff5555;
+        }
+        
+        body {
+            font-family: 'Ubuntu Mono', monospace;
+            background: var(--bg-dark);
+            color: var(--text);
+            padding: 10px;
+            margin: 0;
+            line-height: 1.6;
+        }
+        
+        .container {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        @media (min-width: 768px) {
+            .container {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+        
+        .panel {
+            background: var(--bg-light);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(0, 255, 157, 0.2);
+        }
+        
+        h1, h2, h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--primary);
+            margin-top: 0;
+            text-shadow: 0 0 5px rgba(0, 255, 157, 0.5);
+        }
+        
+        h1 {
+            font-size: 1.8rem;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 10px;
+        }
+        
+        h2 {
+            font-size: 1.4rem;
+        }
+        
+        h3 {
+            font-size: 1.2rem;
+            color: var(--secondary);
+        }
+        
+        button {
+            background: linear-gradient(145deg, #1a1a2e, #2a2a3e);
+            color: var(--primary);
+            border: 1px solid var(--primary);
+            padding: 10px 15px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: 'Ubuntu Mono', monospace;
+            font-weight: bold;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        button:hover {
+            background: linear-gradient(145deg, #2a2a3e, #3a3a4e);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            border-color: #555;
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 10px;
+            font-size: 14px;
+        }
+        
+        .stat {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+            border-left: 3px solid var(--primary);
+        }
+        
+        .stat-value {
+            font-weight: bold;
+            color: var(--secondary);
+            font-size: 1.1rem;
+        }
+        
+        #combatLog {
+            height: 150px;
+            overflow-y: auto;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            margin-top: 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(0, 184, 255, 0.2);
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.7rem;
+        }
+        
+        #combatLog div {
+            margin-bottom: 5px;
+            padding-bottom: 5px;
+            border-bottom: 1px dotted rgba(255, 255, 255, 0.1);
+        }
+        
+        #events {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        #events div {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 4px;
+            border-left: 3px solid var(--secondary);
+        }
+        
+        #inventory {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .item {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid rgba(0, 255, 157, 0.1);
+            position: relative;
+        }
+        
+        .item-name {
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .item-stats {
+            font-size: 0.8rem;
+            color: var(--secondary);
+            margin-bottom: 8px;
+        }
+        
+        .shop-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid rgba(0, 184, 255, 0.2);
+        }
+        
+        .shop-item-name {
+            font-weight: bold;
+            color: var(--text);
+            margin-bottom: 5px;
+        }
+        
+        .shop-item-price {
+            color: var(--primary);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        
+        .energy-low {
+            color: var(--warning);
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .tutorial {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-light);
+            padding: 20px;
+            z-index: 100;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+            border: 2px solid var(--primary);
+        }
+        
+        .tutorial h3 {
+            color: var(--accent);
+            text-align: center;
+        }
+        
+        .tutorial-controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        .tutorial-next {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.2rem;
+        }
+        
+        #closeTutorial {
+            background: var(--accent);
+            color: white;
+            border: none;
+            float: right;
+        }
+        
+        .health-bar {
+            height: 10px;
+            background: rgba(255, 0, 0, 0.2);
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .health-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff5555, #ff0000);
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .energy-bar {
+            height: 10px;
+            background: rgba(0, 184, 255, 0.2);
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .energy-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00b8ff, #0088cc);
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        .boss-panel {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-light);
+            padding: 20px;
+            z-index: 100;
+            border-radius: 10px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 20px rgba(255, 0, 170, 0.5);
+            border: 2px solid var(--accent);
+        }
+        
+        .boss-option {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border-left: 4px solid var(--accent);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .boss-option:hover {
+            background: rgba(255, 0, 170, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .boss-option h4 {
+            color: var(--accent);
+            margin-top: 0;
+        }
+        
+        .boss-option.easy {
+            border-left-color: #00ff9d;
+        }
+        
+        .boss-option.medium {
+            border-left-color: #00b8ff;
+        }
+        
+        .boss-option.hard {
+            border-left-color: #ff5555;
+        }
+        
+        .rare-item {
+            border: 1px solid #00b8ff;
+            box-shadow: 0 0 10px rgba(0, 184, 255, 0.3);
+        }
+        
+        .epic-item {
+            border: 1px solid #aa00ff;
+            box-shadow: 0 0 10px rgba(170, 0, 255, 0.3);
+        }
+        
+        .legendary-item {
+            border: 1px solid #ffaa00;
+            box-shadow: 0 0 10px rgba(255, 170, 0, 0.3);
+        }
+        
+        .minigame-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--bg-light);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid var(--accent);
+            z-index: 1000;
+            text-align: center;
+        }
+        
+        .minigame-target {
+            width: 100px;
+            height: 100px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin: 20px auto;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        
+        .minigame-timer {
+            height: 5px;
+            background: var(--primary);
+            margin-top: 10px;
+            transition: width 1s linear;
+        }
+        
+        .magic-progress {
+            height: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .magic-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #aa00ff, #ff00aa);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .rest-cooldown {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 0 0 5px 5px;
+            overflow: hidden;
+        }
+        
+        .rest-cooldown-fill {
+            height: 100%;
+            background: var(--secondary);
+            width: 100%;
+            transition: width 1s linear;
+        }
+        
+        .xp-bar {
+            height: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            margin-top: 5px;
+            overflow: hidden;
+        }
+        
+        .xp-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #ffaa00, #ff5500);
+            width: 0%;
+            transition: width 0.3s;
+        }
+        
+        .location-selector {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+        }
+        
+        .location-btn {
+            padding: 8px 12px;
+            border-radius: 5px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .location-btn.active {
+            transform: translateY(-3px);
+            box-shadow: 0 0 10px currentColor;
+        }
+        
+        .easy-location {
+            background: rgba(0, 255, 157, 0.1);
+            border: 1px solid #00ff9d;
+            color: #00ff9d;
+        }
+        
+        .medium-location {
+            background: rgba(0, 184, 255, 0.1);
+            border: 1px solid #00b8ff;
+            color: #00b8ff;
+        }
+        
+        .hard-location {
+            background: rgba(255, 0, 170, 0.1);
+            border: 1px solid #ff00aa;
+            color: #ff00aa;
+        }
+        
+        .hell-location {
+            background: rgba(255, 85, 85, 0.1);
+            border: 1px solid #ff5555;
+            color: #ff5555;
+        }
+        
+        .sell-btn {
+            background: rgba(255, 85, 85, 0.2);
+            border: 1px solid #ff5555;
+            color: #ff5555;
+            padding: 5px;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            width: 100%;
+        }
+        
+        .magic-effect {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(170, 0, 255, 0.2);
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+    </style>
+</head>
+<body>
+    <div class="magic-effect" id="magicEffect"></div>
+    
+    <div class="tutorial" id="tutorial">
+        <button id="closeTutorial" onclick="closeTutorial()">X</button>
+        <h3>ЦИФРОВОЙ ГИД</h3>
+        <div id="tutorialText">Добро пожаловать в цифровой мир!</div>
+        <div class="tutorial-controls">
+            <button class="tutorial-next" onclick="nextTutorialStep()">➡️</button>
+        </div>
+    </div>
+
+    <div class="boss-panel" id="bossPanel">
+        <h3>ВЫЗВАТЬ БОССА</h3>
+        <p>Выберите уровень сложности:</p>
+        
+        <div class="boss-option easy" onclick="startBossFight(1)">
+            <h4>Обычный босс</h4>
+            <p>Стоимость: 500🧩</p>
+            <p>Награда: 150-300💰, 5-10🧩, редкий предмет</p>
+        </div>
+        
+        <div class="boss-option medium" onclick="startBossFight(2)">
+            <h4>Средний босс</h4>
+            <p>Стоимость: 1000🧩</p>
+            <p>Награда: 300-500💰, 10-15🧩, эпический предмет</p>
+        </div>
+        
+        <div class="boss-option hard" onclick="startBossFight(3)">
+            <h4>Первоклассный убийца</h4>
+            <p>Стоимость: 2500🧩</p>
+            <p>Награда: 500-1000💰, 15-25🧩, легендарный предмет</p>
+        </div>
+        
+        <button onclick="closeBossPanel()" style="margin-top: 15px;">Отмена</button>
+    </div>
+
+    <div class="minigame-container" id="minigameContainer">
+        <h3>МИНИ-ИГРА: НАНЕСЕНИЕ УДАРА</h3>
+        <p>Кликни по цели в нужный момент!</p>
+        <div class="minigame-target" id="minigameTarget" onclick="minigameClick()"></div>
+        <div class="minigame-timer" id="minigameTimer"></div>
+        <p id="minigameResult"></p>
+    </div>
+
+    <div class="container">
+        <div>
+            <div class="panel">
+                <h1>NEON DIGITAL RPG</h1>
+                <div class="location-selector">
+                    <button class="location-btn easy-location active" onclick="changeLocation(0)">Обычный мир</button>
+                    <button class="location-btn medium-location" onclick="changeLocation(1)">Подземелье</button>
+                    <button class="location-btn hard-location" onclick="changeLocation(2)">Иной мир</button>
+                    <button class="location-btn hell-location" onclick="changeLocation(3)">Ад</button>
+                </div>
+                <div class="grid">
+                    <div class="stat">
+                        <div>УРОВЕНЬ</div>
+                        <div class="stat-value" id="level">1</div>
+                        <div class="xp-bar">
+                            <div class="xp-fill" id="xpBar"></div>
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div>ЗДОРОВЬЕ</div>
+                        <div class="stat-value" id="hp">100/100</div>
+                        <div class="health-bar">
+                            <div class="health-fill" id="healthBar"></div>
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div>АТАКА</div>
+                        <div class="stat-value" id="atk">15</div>
+                    </div>
+                    <div class="stat">
+                        <div>ЗАЩИТА</div>
+                        <div class="stat-value" id="def">5</div>
+                    </div>
+                    <div class="stat">
+                        <div>ЗОЛОТО</div>
+                        <div class="stat-value" id="gold">50</div>
+                    </div>
+                    <div class="stat">
+                        <div>КОДЫ</div>
+                        <div class="stat-value" id="codes">0</div>
+                    </div>
+                    <div class="stat">
+                        <div>ЭНЕРГИЯ</div>
+                        <div class="stat-value" id="energy">100</div>
+                        <div class="energy-bar">
+                            <div class="energy-fill" id="energyBar"></div>
+                        </div>
+                    </div>
+                    <div class="stat">
+                        <div>МАГИЯ</div>
+                        <div class="stat-value" id="magicLevel">0</div>
+                        <div class="magic-progress">
+                            <div class="magic-progress-fill" id="magicProgress"></div>
+                        </div>
+                    </div>
+                </div>
+                <div id="combatLog"></div>
+            </div>
+            
+            <div class="panel">
+                <h2>ДЕЙСТВИЯ</h2>
+                <div class="grid">
+                    <button onclick="explore()">[1] Исследовать</button>
+                    <button onclick="craft()">[2] Крафт</button>
+                    <button onclick="openShop()">[3] Магазин</button>
+                    <button onclick="rest()" id="restButton">[4] Отдых
+                        <div class="rest-cooldown" id="restCooldown">
+                            <div class="rest-cooldown-fill" id="restCooldownFill"></div>
+                        </div>
+                    </button>
+                    <button onclick="openBossPanel()" style="background: var(--accent);">[5] Вызвать босса</button>
+                    <button onclick="useMagic()" id="magicButton" disabled>[6] Исп. магию</button>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <div class="panel" id="shopPanel" style="display:none">
+                <h2>ЦИФРОВОЙ МАРКЕТ</h2>
+                <div class="grid" id="shopItems"></div>
+            </div>
+            
+            <div class="panel">
+                <h2>ИНВЕНТАРЬ</h2>
+                <div id="inventory"></div>
+            </div>
+            
+            <div class="panel">
+                <h2>СИСТЕМНЫЙ ЖУРНАЛ</h2>
+                <div id="events"></div>
+            </div>
+        </div>
+    </div>
+
+<script>
+const game = {
+    player: {
+        level: 1,
+        xp: 0,
+        xpToNextLevel: 100,
+        hp: 100,
+        maxHp: 100,
+        atk: 15,
+        def: 5,
+        gold: 50,
+        codes: 0,
+        energy: 100,
+        magic: {
+            learned: false,
+            level: 0,
+            progress: 0,
+            learning: false,
+            learnEndTime: 0,
+            active: false,
+            endTime: 0,
+            bonusAtk: 0
+        },
+        inventory: [],
+        equipment: {
+            weapon: null,
+            armor: null,
+            artifact: null
+        },
+        restCooldown: 0,
+        lastRestTime: 0,
+        currentLocation: 0
+    },
+    locations: [
+        { name: "Обычный мир", difficulty: "easy", energyCost: 10 },
+        { name: "Подземелье", difficulty: "medium", energyCost: 15 },
+        { name: "Иной мир", difficulty: "hard", energyCost: 20 },
+        { name: "Ад", difficulty: "hell", energyCost: 30 }
+    ],
+    craftingRecipes: {
+        '1010+0101': {type: 'weapon', name: 'Меч 1010', atk: 20, rarity: 'rare', value: 150},
+        '1110+0011': {type: 'armor', name: 'Броня 1110', def: 15, rarity: 'rare', value: 150},
+        '1001+0110': {type: 'weapon', name: 'Кинжал 0110', atk: 25, rarity: 'epic', value: 300},
+        '1100+0011': {type: 'armor', name: 'Щит 0011', def: 20, rarity: 'epic', value: 300},
+        '1011+1101': {type: 'artifact', name: 'Артефакт 1101', bonus: '10% к атаке', rarity: 'legendary', value: 600},
+        '0000+1111': {type: 'weapon', name: 'Меч Равновесия', atk: 30, def: 10, rarity: 'epic', value: 400},
+        '0101+1010': {type: 'armor', name: 'Броня Гармонии', def: 25, hp: 20, rarity: 'epic', value: 400},
+        '1111+0000': {type: 'artifact', name: 'Ядро Хаоса', bonus: '+15% к урону', rarity: 'legendary', value: 800},
+        '1000+0111': {type: 'weapon', name: 'Лук Тьмы', atk: 35, rarity: 'epic', value: 350},
+        '0111+1000': {type: 'armor', name: 'Нагрудник Света', def: 30, rarity: 'epic', value: 350}
+    },
+    enemies: {
+        easy: [
+            {name: 'Вирус 0101', hp: 30, atk: 8, gold: 15, xp: 10, color: '#ff5555'},
+            {name: 'Червь 1110', hp: 45, atk: 12, gold: 25, xp: 20, color: '#ffaa00'},
+            {name: 'Троян 0010', hp: 60, atk: 18, gold: 40, xp: 35, color: '#ff00aa'},
+            {name: 'Ботнет 1101', hp: 80, atk: 22, gold: 60, xp: 50, color: '#aa00ff'},
+            {name: 'Руткит 1011', hp: 100, atk: 28, gold: 80, xp: 70, color: '#00aaff'},
+            {name: 'Шпион 0111', hp: 50, atk: 30, gold: 70, xp: 60, color: '#00ffaa'},
+            {name: 'Кейлогер 1000', hp: 120, atk: 25, gold: 90, xp: 80, color: '#ff5500'},
+            {name: 'Глитч 0001', hp: 40, atk: 15, gold: 20, xp: 15, color: '#55ff00'},
+            {name: 'Лаг 1010', hp: 55, atk: 10, gold: 30, xp: 25, color: '#ff00ff'},
+            {name: 'Баг 0100', hp: 70, atk: 20, gold: 50, xp: 40, color: '#00ffff'},
+            {name: 'Кракер 1100', hp: 90, atk: 25, gold: 70, xp: 60, color: '#ffff00'},
+            {name: 'Спам 0011', hp: 35, atk: 12, gold: 25, xp: 20, color: '#aa55ff'},
+            {name: 'Фишинг 0110', hp: 65, atk: 18, gold: 45, xp: 35, color: '#ffaa55'},
+            {name: 'Эксплойт 1001', hp: 85, atk: 22, gold: 65, xp: 55, color: '#55aaff'},
+            {name: 'ДДоС 1111', hp: 110, atk: 30, gold: 85, xp: 75, color: '#ff55aa'}
+        ],
+        medium: [
+            {name: 'Теневой Голем', hp: 150, atk: 35, gold: 120, xp: 100, color: '#555555', dropChance: 0.3},
+            {name: 'Каменный Страж', hp: 180, atk: 40, gold: 150, xp: 120, color: '#888888', dropChance: 0.3},
+            {name: 'Подземный Демон', hp: 200, atk: 45, gold: 180, xp: 140, color: '#aa0000', dropChance: 0.3},
+            {name: 'Кристальный Скелет', hp: 170, atk: 38, gold: 140, xp: 110, color: '#00aaaa', dropChance: 0.3},
+            {name: 'Темный Рыцарь', hp: 190, atk: 42, gold: 160, xp: 130, color: '#333333', dropChance: 0.3},
+            {name: 'Лавовый Червяк', hp: 160, atk: 37, gold: 130, xp: 105, color: '#ff5500', dropChance: 0.3},
+            {name: 'Призрачный Воин', hp: 140, atk: 33, gold: 110, xp: 95, color: '#aaaaaa', dropChance: 0.3},
+            {name: 'Ядовитый Паук', hp: 130, atk: 32, gold: 100, xp: 90, color: '#55aa00', dropChance: 0.3},
+            {name: 'Подземный Дракон', hp: 220, atk: 50, gold: 200, xp: 160, color: '#aa5500', dropChance: 0.4},
+            {name: 'Костяной Колдун', hp: 180, atk: 45, gold: 170, xp: 140, color: '#ffffff', dropChance: 0.4},
+            {name: 'Темный Элементаль', hp: 200, atk: 48, gold: 190, xp: 150, color: '#0000aa', dropChance: 0.4},
+            {name: 'Железный Голем', hp: 250, atk: 55, gold: 220, xp: 180, color: '#aaaaaa', dropChance: 0.4},
+            {name: 'Король Подземелья', hp: 300, atk: 60, gold: 250, xp: 200, color: '#ffaa00', dropChance: 0.5}
+        ],
+        hard: [
+            {name: 'Иномировой Ужас', hp: 300, atk: 60, gold: 250, xp: 200, color: '#aa00ff', dropChance: 0.5},
+            {name: 'Космический Левиафан', hp: 350, atk: 65, gold: 280, xp: 220, color: '#00aaff', dropChance: 0.5},
+            {name: 'Древний Странник', hp: 320, atk: 62, gold: 260, xp: 210, color: '#ff00aa', dropChance: 0.5},
+            {name: 'Звездный Пожиратель', hp: 380, atk: 70, gold: 300, xp: 240, color: '#ffff00', dropChance: 0.5},
+            {name: 'Темный Космонавт', hp: 310, atk: 63, gold: 270, xp: 215, color: '#00ffaa', dropChance: 0.5},
+            {name: 'Искаженный Ангел', hp: 340, atk: 68, gold: 290, xp: 230, color: '#ffaa00', dropChance: 0.5},
+            {name: 'Пространственный Разрыв', hp: 360, atk: 72, gold: 310, xp: 250, color: '#aa55ff', dropChance: 0.6},
+            {name: 'Хранитель Порога', hp: 400, atk: 75, gold: 350, xp: 280, color: '#55aaff', dropChance: 0.6},
+            {name: 'Безумный Пророк', hp: 330, atk: 66, gold: 280, xp: 225, color: '#ff55aa', dropChance: 0.6},
+            {name: 'Иномировой Вирус', hp: 370, atk: 73, gold: 320, xp: 260, color: '#55ffaa', dropChance: 0.6},
+            {name: 'Квантовый Призрак', hp: 390, atk: 78, gold: 340, xp: 270, color: '#aaff55', dropChance: 0.6},
+            {name: 'Темная Материя', hp: 420, atk: 80, gold: 370, xp: 300, color: '#000000', dropChance: 0.7},
+            {name: 'Абсолютный Нуль', hp: 450, atk: 85, gold: 400, xp: 330, color: '#ffffff', dropChance: 0.7},
+            {name: 'Черная Дыра', hp: 500, atk: 90, gold: 450, xp: 350, color: '#5500aa', dropChance: 0.7},
+            {name: 'Сверхновая', hp: 480, atk: 88, gold: 420, xp: 340, color: '#ff0055', dropChance: 0.7},
+            {name: 'Космический Дракон', hp: 550, atk: 95, gold: 500, xp: 400, color: '#00aaff', dropChance: 0.8},
+            {name: 'Повелитель Иного Мира', hp: 600, atk: 100, gold: 550, xp: 450, color: '#ff00ff', dropChance: 0.8}
+        ],
+        hell: [
+            {name: 'Адский Пес', hp: 600, atk: 100, gold: 500, xp: 400, color: '#ff5500', dropChance: 0.8},
+            {name: 'Гневный Демон', hp: 650, atk: 110, gold: 550, xp: 450, color: '#ff0000', dropChance: 0.8},
+            {name: 'Паладин Ада', hp: 700, atk: 115, gold: 600, xp: 500, color: '#aa0000', dropChance: 0.8},
+            {name: 'Лавовый Титан', hp: 750, atk: 120, gold: 650, xp: 550, color: '#ffaa00', dropChance: 0.8},
+            {name: 'Костяной Дракон', hp: 800, atk: 125, gold: 700, xp: 600, color: '#ffffff', dropChance: 0.8},
+            {name: 'Темный Властелин', hp: 850, atk: 130, gold: 750, xp: 650, color: '#000000', dropChance: 0.9},
+            {name: 'Князь Тьмы', hp: 900, atk: 135, gold: 800, xp: 700, color: '#5500aa', dropChance: 0.9},
+            {name: 'Адский Рыцарь', hp: 950, atk: 140, gold: 850, xp: 750, color: '#aa0000', dropChance: 0.9},
+            {name: 'Демон Бездны', hp: 1000, atk: 145, gold: 900, xp: 800, color: '#ff0055', dropChance: 0.9},
+            {name: 'Повелитель Боли', hp: 1100, atk: 150, gold: 1000, xp: 900, color: '#ff00ff', dropChance: 1.0},
+            {name: 'Стража Преисподней', hp: 1200, atk: 160, gold: 1100, xp: 1000, color: '#aa00ff', dropChance: 1.0},
+            {name: 'Дух Мщения', hp: 1300, atk: 170, gold: 1200, xp: 1100, color: '#00aaff', dropChance: 1.0},
+            {name: 'Тень Смерти', hp: 1400, atk: 180, gold: 1300, xp: 1200, color: '#000000', dropChance: 1.0},
+            {name: 'Огненный Колосс', hp: 1500, atk: 190, gold: 1400, xp: 1300, color: '#ff5500', dropChance: 1.0},
+            {name: 'Ледяной Палач', hp: 1600, atk: 200, gold: 1500, xp: 1400, color: '#00aaff', dropChance: 1.0},
+            {name: 'Кровавый Жнец', hp: 1700, atk: 210, gold: 1600, xp: 1500, color: '#ff0000', dropChance: 1.0},
+            {name: 'Душегуб', hp: 1800, atk: 220, gold: 1700, xp: 1600, color: '#aa0000', dropChance: 1.0},
+            {name: 'Костяной Император', hp: 1900, atk: 230, gold: 1800, xp: 1700, color: '#ffffff', dropChance: 1.0},
+            {name: 'Темный Архангел', hp: 2000, atk: 240, gold: 1900, xp: 1800, color: '#000000', dropChance: 1.0},
+            {name: 'Повелитель Демонов', hp: 2200, atk: 250, gold: 2000, xp: 2000, color: '#ff00aa', dropChance: 1.0},
+            {name: 'Самсара', hp: 2500, atk: 270, gold: 2200, xp: 2200, color: '#aa00ff', dropChance: 1.0},
+            {name: 'Люцифер', hp: 3000, atk: 300, gold: 2500, xp: 2500, color: '#ff0000', dropChance: 1.0},
+            {name: 'САТАНА', hp: 5000, atk: 400, gold: 5000, xp: 5000, color: '#aa0000', dropChance: 1.0}
+        ]
+    },
+    shopItems: [
+        {name: 'Лечение (+50HP)', costGold: 30, costCodes: 5, type: 'heal', icon: '❤️'},
+        {name: 'Код-фрагмент x5', costGold: 40, costCodes: 0, type: 'code', icon: '🧩'},
+        {name: 'Улучшение атаки', costGold: 100, costCodes: 20, type: 'atk', icon: '⚔️'},
+        {name: 'Улучшение защиты', costGold: 100, costCodes: 20, type: 'def', icon: '🛡️'},
+        {name: 'Энергия (+50🔋)', costGold: 40, costCodes: 10, type: 'energy', icon: '🔋'},
+        {name: 'Ремонт (полное HP)', costGold: 150, costCodes: 30, type: 'fullheal', icon: '💊'},
+        {name: 'Изучение магии', costGold: 500, costCodes: 500, type: 'learnMagic', icon: '🔮'},
+        {name: 'Улучшение магии', costGold: 1000, costCodes: 1000, type: 'upgradeMagic', icon: '✨'},
+        {name: 'Меч Начинающего', costGold: 200, costCodes: 50, type: 'weapon', atk: 15, rarity: 'common', icon: '⚔️'},
+        {name: 'Кожаная Броня', costGold: 150, costCodes: 40, type: 'armor', def: 10, rarity: 'common', icon: '🛡️'},
+        {name: 'Деревянный Щит', costGold: 100, costCodes: 30, type: 'armor', def: 8, rarity: 'common', icon: '🛡️'},
+        {name: 'Кинжал Тени', costGold: 300, costCodes: 100, type: 'weapon', atk: 25, rarity: 'rare', icon: '🗡️'},
+        {name: 'Стальной Меч', costGold: 400, costCodes: 150, type: 'weapon', atk: 30, rarity: 'rare', icon: '⚔️'},
+        {name: 'Мифриловая Броня', costGold: 500, costCodes: 200, type: 'armor', def: 25, rarity: 'rare', icon: '🛡️'}
+    ],
+    bossItems: {
+        rare: [
+            {type: 'weapon', name: 'Меч Босса', atk: 30, rarity: 'rare', value: 300},
+            {type: 'armor', name: 'Броня Босса', def: 25, rarity: 'rare', value: 300},
+            {type: 'artifact', name: 'Трофей Босса', bonus: '+15% к золоту', rarity: 'rare', value: 300}
+        ],
+        epic: [
+            {type: 'weapon', name: 'Эпический Меч', atk: 45, rarity: 'epic', value: 600},
+            {type: 'armor', name: 'Эпическая Броня', def: 35, rarity: 'epic', value: 600},
+            {type: 'artifact', name: 'Эпический Трофей', bonus: '+25% к опыту', rarity: 'epic', value: 600}
+        ],
+        legendary: [
+            {type: 'weapon', name: 'Легендарный Меч', atk: 65, rarity: 'legendary', value: 1200},
+            {type: 'armor', name: 'Легендарная Броня', def: 50, rarity: 'legendary', value: 1200},
+            {type: 'artifact', name: 'Легендарный Трофей', bonus: '+50% к атаке', rarity: 'legendary', value: 1200}
+        ]
+    },
+    lootItems: [
+        {type: 'weapon', name: 'Ржавый Меч', atk: 5, rarity: 'common', value: 50},
+        {type: 'weapon', name: 'Острый Кинжал', atk: 10, rarity: 'common', value: 100},
+        {type: 'weapon', name: 'Боевой Топор', atk: 15, rarity: 'common', value: 150},
+        {type: 'weapon', name: 'Длинный Лук', atk: 20, rarity: 'rare', value: 200},
+        {type: 'weapon', name: 'Посох Мага', atk: 25, magic: 10, rarity: 'rare', value: 250},
+        {type: 'weapon', name: 'Двуручный Меч', atk: 30, rarity: 'rare', value: 300},
+        {type: 'weapon', name: 'Арбалет Снайпера', atk: 35, rarity: 'epic', value: 350},
+        {type: 'weapon', name: 'Клинок Теней', atk: 40, rarity: 'epic', value: 400},
+        {type: 'weapon', name: 'Молот Грома', atk: 45, rarity: 'epic', value: 450},
+        {type: 'weapon', name: 'Коса Смерти', atk: 50, rarity: 'legendary', value: 500},
+        
+        {type: 'armor', name: 'Кожаный Доспех', def: 5, rarity: 'common', value: 50},
+        {type: 'armor', name: 'Кольчуга', def: 10, rarity: 'common', value: 100},
+        {type: 'armor', name: 'Чешуйчатая Броня', def: 15, rarity: 'common', value: 150},
+        {type: 'armor', name: 'Пластинчатый Доспех', def: 20, rarity: 'rare', value: 200},
+        {type: 'armor', name: 'Мифриловая Броня', def: 25, rarity: 'rare', value: 250},
+        {type: 'armor', name: 'Драконий Щит', def: 30, rarity: 'rare', value: 300},
+        {type: 'armor', name: 'Броня Гиганта', def: 35, rarity: 'epic', value: 350},
+        {type: 'armor', name: 'Доспех Валькирии', def: 40, rarity: 'epic', value: 400},
+        {type: 'armor', name: 'Адамантиновая Броня', def: 45, rarity: 'epic', value: 450},
+        {type: 'armor', name: 'Броня Небес', def: 50, rarity: 'legendary', value: 500},
+        
+        {type: 'artifact', name: 'Кольцо Силы', bonus: '+10% к атаке', rarity: 'rare', value: 200},
+        {type: 'artifact', name: 'Амулет Жизни', bonus: '+20 к здоровью', rarity: 'rare', value: 200},
+        {type: 'artifact', name: 'Перчатка Мага', bonus: '+15 к магии', rarity: 'rare', value: 200},
+        {type: 'artifact', name: 'Пояс Воина', bonus: '+10 к атаке и защите', rarity: 'epic', value: 400},
+        {type: 'artifact', name: 'Око Дракона', bonus: '+25% к золоту', rarity: 'epic', value: 400},
+        {type: 'artifact', name: 'Сфера Могущества', bonus: '+30% к опыту', rarity: 'epic', value: 400},
+        {type: 'artifact', name: 'Корона Короля', bonus: '+50% к атаке', rarity: 'legendary', value: 800},
+        {type: 'artifact', name: 'Плащ Бессмертия', bonus: '+100 к здоровью', rarity: 'legendary', value: 800},
+        {type: 'artifact', name: 'Жезл Всевластия', bonus: '+50 к магии', rarity: 'legendary', value: 800}
+    ],
+    minigame: {
+        active: false,
+        success: false,
+        damageMultiplier: 1,
+        timer: null
+    }
+};
+
+// Обучение
+let tutorialStep = 0;
+const tutorialSteps = [
+    "Добро пожаловать в цифровой мир!",
+    "Используй [Исследовать] для поиска врагов и ресурсов",
+    "Сражайся с врагами чтобы получить золото, коды и опыт",
+    "Открывай [Магазин] для покупки улучшений",
+    "Используй [Крафт] для создания снаряжения",
+    "Отдыхай [4] для восстановления энергии (перезарядка 30 сек)",
+    "Вызывай [Боссов] для получения редких предметов",
+    "Изучай магию в магазине и используй её в бою",
+    "В бою играй в мини-игру для нанесения критического урона",
+    "Готов к приключениям! Удачи, хакер!"
+];
+
+function nextTutorialStep() {
+    if(tutorialStep < tutorialSteps.length) {
+        document.getElementById('tutorialText').textContent = tutorialSteps[tutorialStep];
+        tutorialStep++;
+    } else {
+        closeTutorial();
+    }
+}
+
+function closeTutorial() {
+    document.getElementById('tutorial').style.display = 'none';
+    localStorage.setItem('tutorialCompleted', 'true');
+}
+
+// Мини-игра
+function startMinigame() {
+    game.minigame.active = true;
+    game.minigame.success = false;
+    game.minigame.damageMultiplier = 1;
+    document.getElementById('minigameContainer').style.display = 'block';
+    document.getElementById('minigameResult').textContent = '';
+    document.getElementById('minigameTimer').style.width = '100%';
+    document.getElementById('minigameTarget').style.transform = 'scale(1)';
+    document.getElementById('minigameTarget').style.boxShadow = 'none';
+    
+    // Сбрасываем таймер
+    if(game.minigame.timer) {
+        clearTimeout(game.minigame.timer);
+    }
+    
+    // Анимация таймера
+    setTimeout(() => {
+        document.getElementById('minigameTimer').style.width = '0%';
+    }, 10);
+    
+    // Случайное время для успешного удара (между 0.3 и 0.7 от общего времени)
+    const successTime = 300 + Math.random() * 400;
+    
+    game.minigame.timer = setTimeout(() => {
+        if (game.minigame.active) {
+            game.minigame.success = true;
+            document.getElementById('minigameTarget').style.transform = 'scale(1.2)';
+            document.getElementById('minigameTarget').style.boxShadow = '0 0 20px #00ff9d';
+        }
+    }, successTime);
+    
+    // Завершение мини-игры через 1 секунду
+    game.minigame.timer = setTimeout(() => {
+        if (game.minigame.active) {
+            endMinigame();
+        }
+    }, 1000);
+}
+
+function minigameClick() {
+    if(!game.minigame.active) return;
+    
+    if(game.minigame.success) {
+        game.minigame.damageMultiplier = 2;
+        document.getElementById('minigameResult').textContent = 'Критический удар! x2 урона';
+        document.getElementById('minigameResult').style.color = '#00ff9d';
+    } else {
+        game.minigame.damageMultiplier = 1;
+        document.getElementById('minigameResult').textContent = 'Обычный удар';
+        document.getElementById('minigameResult').style.color = '#ffffff';
+    }
+    
+    endMinigame();
+}
+
+function endMinigame() {
+    game.minigame.active = false;
+    if(game.minigame.timer) {
+        clearTimeout(game.minigame.timer);
+    }
+    
+    setTimeout(() => {
+        document.getElementById('minigameContainer').style.display = 'none';
+    }, 1000);
+}
+
+// Функции для работы с боссами
+function openBossPanel() {
+    document.getElementById('bossPanel').style.display = 'block';
+}
+
+function closeBossPanel() {
+    document.getElementById('bossPanel').style.display = 'none';
+}
+
+function startBossFight(difficulty) {
+    let requiredCodes = 0;
+    let bossStats = {};
+    let rewards = {};
+    
+    switch(difficulty) {
+        case 1: // Обычный
+            requiredCodes = 500;
+            bossStats = {
+                name: 'Обычный Босс',
+                hp: 150 + game.player.level * 15,
+                atk: 30 + game.player.level * 3,
+                color: '#00ff9d'
+            };
+            rewards = {
+                gold: Math.floor(Math.random() * 151) + 150,
+                codes: Math.floor(Math.random() * 6) + 5,
+                xp: 50,
+                rarity: 'rare'
+            };
+            break;
+            
+        case 2: // Средний
+            requiredCodes = 1000;
+            bossStats = {
+                name: 'Средний Босс',
+                hp: 250 + game.player.level * 20,
+                atk: 45 + game.player.level * 4,
+                color: '#00b8ff'
+            };
+            rewards = {
+                gold: Math.floor(Math.random() * 201) + 300,
+                codes: Math.floor(Math.random() * 6) + 10,
+                xp: 100,
+                rarity: 'epic'
+            };
+            break;
+            
+        case 3: // Первоклассный
+            requiredCodes = 2500;
+            bossStats = {
+                name: 'Первоклассный Убийца',
+                hp: 400 + game.player.level * 25,
+                atk: 60 + game.player.level * 5,
+                color: '#ff5555'
+            };
+            rewards = {
+                gold: Math.floor(Math.random() * 501) + 500,
+                codes: Math.floor(Math.random() * 11) + 15,
+                xp: 200,
+                rarity: 'legendary'
+            };
+            break;
+    }
+    
+    if(game.player.codes < requiredCodes) {
+        addEvent(`Недостаточно кодов! Нужно ${requiredCodes}🧩`, 'warning');
+        return;
+    }
+    
+    game.player.codes -= requiredCodes;
+    closeBossPanel();
+    
+    // Сохраняем награды для использования после победы
+    bossStats.rewards = rewards;
+    
+    // Начинаем бой с боссом
+    startCombat(bossStats);
+}
+
+// Основные функции игры
+function updateUI() {
+    document.getElementById('level').textContent = game.player.level;
+    document.getElementById('hp').textContent = `${game.player.hp}/${game.player.maxHp}`;
+    
+    // Учитываем бонус магии к атаке
+    const totalAtk = game.player.atk + (game.player.equipment.weapon?.atk || 0) + (game.player.magic.active ? game.player.magic.bonusAtk : 0);
+    document.getElementById('atk').textContent = totalAtk;
+    
+    document.getElementById('def').textContent = game.player.def + (game.player.equipment.armor?.def || 0);
+    document.getElementById('gold').textContent = game.player.gold;
+    document.getElementById('codes').textContent = game.player.codes;
+    document.getElementById('energy').textContent = game.player.energy;
+    document.getElementById('magicLevel').textContent = game.player.magic.level;
+    
+    // Обновляем полоски
+    document.getElementById('healthBar').style.width = `${(game.player.hp / game.player.maxHp) * 100}%`;
+    document.getElementById('energyBar').style.width = `${game.player.energy}%`;
+    document.getElementById('xpBar').style.width = `${(game.player.xp / game.player.xpToNextLevel) * 100}%`;
+    document.getElementById('magicProgress').style.width = `${game.player.magic.progress}%`;
+    
+    // Обновляем кнопку магии
+    const magicButton = document.getElementById('magicButton');
+    if(game.player.magic.learned) {
+        magicButton.disabled = game.player.energy < 30 || game.player.magic.level === 0;
+        magicButton.textContent = `[6] Магия (Ур.${game.player.magic.level})`;
+    } else {
+        magicButton.disabled = true;
+        magicButton.textContent = '[6] Магия (Не изучена)';
+    }
+    
+    // Обновляем кнопку отдыха
+    const restButton = document.getElementById('restButton');
+    const restCooldownFill = document.getElementById('restCooldownFill');
+    const now = Date.now();
+    const cooldownLeft = Math.max(0, 30000 - (now - game.player.lastRestTime));
+    
+    if(cooldownLeft > 0) {
+        restButton.disabled = true;
+        restCooldownFill.style.width = `${(cooldownLeft / 30000) * 100}%`;
+    } else {
+        restButton.disabled = false;
+        restCooldownFill.style.width = '0%';
+    }
+    
+    // Подсвечиваем низкую энергию
+    if(game.player.energy < 20) {
+        document.getElementById('energy').classList.add('energy-low');
+    } else {
+        document.getElementById('energy').classList.remove('energy-low');
+    }
+    
+    renderInventory();
+    
+    // Обновляем активные эффекты магии
+    if(game.player.magic.active && Date.now() >= game.player.magic.endTime) {
+        endMagicEffect();
+    }
+}
+
+function changeLocation(locationIndex) {
+    game.player.currentLocation = locationIndex;
+    
+    // Обновляем активные кнопки локаций
+    document.querySelectorAll('.location-btn').forEach((btn, index) => {
+        if(index === locationIndex) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    addEvent(`Вы переместились в локацию: ${game.locations[locationIndex].name}`, 'info');
+}
+
+function explore() {
+    const location = game.locations[game.player.currentLocation];
+    
+    if(game.player.energy < location.energyCost) {
+        addEvent('Недостаточно энергии!', 'warning');
+        return;
+    }
+    
+    game.player.energy -= location.energyCost;
+    
+    if(Math.random() < 0.7) {
+        startCombat();
+    } else {
+        const goldFound = Math.floor(Math.random() * (20 + game.player.currentLocation * 20)) + 5;
+        const codesFound = Math.random() > 0.7 ? (2 + game.player.currentLocation) : (1 + Math.floor(game.player.currentLocation / 2));
+        const xpFound = Math.floor(Math.random() * (10 + game.player.currentLocation * 10)) + 5;
+        
+        game.player.gold += goldFound;
+        game.player.codes += codesFound;
+        game.player.xp += xpFound;
+        
+        addEvent(`Найдены ресурсы: +${goldFound}💰 +${codesFound}🧩 +${xpFound}XP`, 'success');
+        checkLevelUp();
+    }
+    updateUI();
+    nextTutorialStep();
+}
+
+function startCombat(enemy) {
+    if(!enemy) {
+        let enemyPool;
+        switch(game.player.currentLocation) {
+            case 0: enemyPool = game.enemies.easy; break;
+            case 1: enemyPool = game.enemies.medium; break;
+            case 2: enemyPool = game.enemies.hard; break;
+            case 3: enemyPool = game.enemies.hell; break;
+            default: enemyPool = game.enemies.easy;
+        }
+        
+        const enemyLevel = Math.min(game.player.level, enemyPool.length);
+        enemy = {...enemyPool[Math.floor(Math.random() * enemyLevel)]};
+    }
+    
+    addEvent(`Обнаружен враг: <span style="color:${enemy.color}">${enemy.name}</span>`, 'combat');
+    
+    const combatInterval = setInterval(() => {
+        // Запускаем мини-игру перед каждым ударом
+        startMinigame();
+        
+        // Ждем завершения мини-игры
+        const checkMinigame = setInterval(() => {
+            if(!game.minigame.active) {
+                clearInterval(checkMinigame);
+                
+                const playerAtk = game.player.atk + (game.player.equipment.weapon?.atk || 0) + (game.player.magic.active ? game.player.magic.bonusAtk : 0);
+                const playerDef = game.player.def + (game.player.equipment.armor?.def || 0);
+                
+                // Применяем множитель урона из мини-игры
+                const playerDamage = Math.max(1, (playerAtk - Math.floor(enemy.atk * 0.3)) * game.minigame.damageMultiplier);
+                const enemyDamage = Math.max(1, enemy.atk - Math.floor(playerDef * 0.5));
+                
+                enemy.hp -= playerDamage;
+                game.player.hp -= enemyDamage;
+                
+                addEvent(`Вы атакуете: -${playerDamage}⚔️ (<span style="color:${enemy.color}">${enemy.hp}❤️</span>)`, 'combat');
+                addEvent(`<span style="color:${enemy.color}">${enemy.name}</span> атакует: -${enemyDamage}💢`, 'combat');
+                
+                if(game.player.hp <= 0) {
+                    const goldLost = Math.floor(game.player.gold * 0.2);
+                    game.player.gold = Math.max(0, game.player.gold - goldLost);
+                    game.player.hp = Math.floor(game.player.maxHp * 0.3);
+                    addEvent(`ПОРАЖЕНИЕ! Потеряно ${goldLost}💰`, 'danger');
+                    clearInterval(combatInterval);
+                }
+                
+                if(enemy.hp <= 0) {
+                    // Проверяем, был ли это босс
+                    if(enemy.rewards) {
+                        game.player.gold += enemy.rewards.gold;
+                        game.player.codes += enemy.rewards.codes;
+                        game.player.xp += enemy.rewards.xp;
+                        
+                        // Добавляем редкий предмет за победу над боссом
+                        const bossItems = game.bossItems[enemy.rewards.rarity];
+                        const randomBossItem = bossItems[Math.floor(Math.random() * bossItems.length)];
+                        game.player.inventory.push(randomBossItem);
+                        
+                        let rarityColor;
+                        switch(enemy.rewards.rarity) {
+                            case 'rare': rarityColor = '#00b8ff'; break;
+                            case 'epic': rarityColor = '#aa00ff'; break;
+                            case 'legendary': rarityColor = '#ffaa00'; break;
+                        }
+                        
+                        addEvent(`Победа над боссом! +${enemy.rewards.gold}💰 +${enemy.rewards.codes}🧩 +${enemy.rewards.xp}XP`, 'success');
+                        addEvent(`Получен <span style="color:${rarityColor}">${randomBossItem.name}</span>`, 'success');
+                    } else {
+                        game.player.gold += enemy.gold;
+                        game.player.codes += 2 + game.player.currentLocation;
+                        game.player.xp += enemy.xp;
+                        addEvent(`Победа! +${enemy.gold}💰 +${2 + game.player.currentLocation}🧩 +${enemy.xp}XP`, 'success');
+                        
+                        // Проверяем, выпал ли предмет (для средних и сложных локаций)
+                        if(game.player.currentLocation >= 2 && Math.random() < (enemy.dropChance || 0.5)) {
+                            const randomItem = game.lootItems[Math.floor(Math.random() * game.lootItems.length)];
+                            game.player.inventory.push(randomItem);
+                            
+                            let rarityColor;
+                            switch(randomItem.rarity) {
+                                case 'rare': rarityColor = '#00b8ff'; break;
+                                case 'epic': rarityColor = '#aa00ff'; break;
+                                case 'legendary': rarityColor = '#ffaa00'; break;
+                                default: rarityColor = '#00ff9d';
+                            }
+                            
+                            addEvent(`Получен предмет: <span style="color:${rarityColor}">${randomItem.name}</span>`, 'success');
+                        }
+                    }
+                    
+                    checkLevelUp();
+                    clearInterval(combatInterval);
+                }
+                
+                updateUI();
+            }
+        }, 100);
+    }, 1500);
+}
+
+function useMagic() {
+    if(!game.player.magic.learned || game.player.magic.level === 0) {
+        addEvent('Магия не изучена или уровень слишком низкий!', 'warning');
+        return;
+    }
+    
+    if(game.player.energy < 30) {
+        addEvent('Недостаточно энергии для использования магии!', 'warning');
+        return;
+    }
+    
+    game.player.energy -= 30;
+    
+    // Устанавливаем бонус магии (10% от базовой атаки за уровень)
+    game.player.magic.bonusAtk = Math.floor(game.player.atk * 0.1 * game.player.magic.level);
+    game.player.magic.active = true;
+    game.player.magic.endTime = Date.now() + 120000; // 2 минуты
+    
+    // Восстанавливаем немного здоровья (20% от максимального)
+    const healAmount = Math.floor(game.player.maxHp * 0.2);
+    game.player.hp = Math.min(game.player.maxHp, game.player.hp + healAmount);
+    
+    // Визуальный эффект магии
+    document.getElementById('magicEffect').style.opacity = '1';
+    setTimeout(() => {
+        document.getElementById('magicEffect').style.opacity = '0';
+    }, 1000);
+    
+    addEvent(`Магия активирована! +${game.player.magic.bonusAtk} к атаке на 2 минуты и +${healAmount}❤️`, 'magic');
+    
+    updateUI();
+    
+    // Запускаем таймер для окончания эффекта магии
+    setTimeout(() => {
+        if(game.player.magic.active && Date.now() >= game.player.magic.endTime) {
+            endMagicEffect();
+        }
+    }, 120000);
+}
+
+function endMagicEffect() {
+    if(game.player.magic.active) {
+        game.player.magic.active = false;
+        game.player.magic.bonusAtk = 0;
+        addEvent('Эффект магии закончился', 'info');
+        updateUI();
+    }
+}
+
+function craft() {
+    if(game.player.codes < 2) {
+        addEvent('Нужно минимум 2 кода для крафта!', 'warning');
+        return;
+    }
+    
+    const code1 = prompt('Введите первый код (4 цифры 0/1):');
+    const code2 = prompt('Введите второй код (4 цифры 0/1):');
+    
+    if(code1 && code2 && code1.length === 4 && code2.length === 4 && 
+       /^[01]+$/.test(code1) && /^[01]+$/.test(code2)) {
+        game.player.codes -= 2;
+        const recipeKey = `${code1}+${code2}`;
+        if(game.craftingRecipes[recipeKey]) {
+            const item = game.craftingRecipes[recipeKey];
+            game.player.inventory.push(item);
+            
+            let rarityColor;
+            switch(item.rarity) {
+                case 'rare': rarityColor = '#00b8ff'; break;
+                case 'epic': rarityColor = '#aa00ff'; break;
+                case 'legendary': rarityColor = '#ffaa00'; break;
+                default: rarityColor = '#00ff9d';
+            }
+            
+            addEvent(`Создан <span style="color:${rarityColor}">${item.name}</span>!`, 'success');
+        } else {
+            // Случайный предмет при неудачном крафте
+            const randomItems = [
+                {type: 'weapon', name: 'Сломанный меч', atk: 5, rarity: 'common', value: 30},
+                {type: 'armor', name: 'Дырявый щит', def: 3, rarity: 'common', value: 30},
+                {type: 'artifact', name: 'Осколок кода', bonus: '+1 ко всему', rarity: 'common', value: 30}
+            ];
+            const randomItem = randomItems[Math.floor(Math.random() * randomItems.length)];
+            game.player.inventory.push(randomItem);
+            addEvent('Неизвестная комбинация! Получен случайный предмет.', 'info');
+        }
+    } else {
+        addEvent('Используйте только 0 и 1 (4 символа)!', 'warning');
+    }
+    updateUI();
+}
+
+function openShop() {
+    document.getElementById('shopPanel').style.display = 'block';
+    document.getElementById('shopItems').innerHTML = game.shopItems.map(item => `
+        <div class="shop-item">
+            <div class="shop-item-name">${item.icon} ${item.name}</div>
+            <div class="shop-item-price">${item.costGold}💰 ${item.costCodes ? `+ ${item.costCodes}🧩` : ''}</div>
+            <button onclick="buyItem(${game.shopItems.indexOf(item)})" 
+                ${game.player.gold < item.costGold || game.player.codes < item.costCodes ? 'disabled' : ''}>
+                Купить
+            </button>
+        </div>
+    `).join('');
+}
+
+function buyItem(index) {
+    const item = game.shopItems[index];
+    if(!item) return;
+    
+    if(game.player.gold >= item.costGold && game.player.codes >= item.costCodes) {
+        game.player.gold -= item.costGold;
+        game.player.codes -= item.costCodes;
+        
+        switch(item.type) {
+            case 'heal': 
+                game.player.hp = Math.min(game.player.maxHp, game.player.hp + 50);
+                addEvent(`Использовано ${item.name}`, 'heal');
+                break;
+            case 'code':
+                game.player.codes += 5;
+                addEvent(`Получено 5 кодов`, 'success');
+                break;
+            case 'atk':
+                game.player.atk += 5;
+                addEvent(`Атака увеличена на 5`, 'upgrade');
+                break;
+            case 'def':
+                game.player.def += 5;
+                addEvent(`Защита увеличена на 5`, 'upgrade');
+                break;
+            case 'energy':
+                game.player.energy += 50;
+                addEvent(`Энергия восстановлена`, 'energy');
+                break;
+            case 'fullheal':
+                game.player.hp = game.player.maxHp;
+                addEvent(`Полное восстановление здоровья`, 'heal');
+                break;
+            case 'learnMagic':
+                if(!game.player.magic.learned) {
+                    game.player.magic.learned = true;
+                    game.player.magic.level = 1;
+                    game.player.magic.progress = 0;
+                    game.player.magic.learning = true;
+                    game.player.magic.learnEndTime = Date.now() + 300000; // 5 минут
+                    addEvent(`Начато изучение магии! Завершится через 5 минут.`, 'magic');
+                    
+                    // Запускаем таймер обучения магии
+                    const magicLearningInterval = setInterval(() => {
+                        if(Date.now() >= game.player.magic.learnEndTime) {
+                            game.player.magic.learning = false;
+                            game.player.magic.progress = 100;
+                            addEvent(`Магия изучена! Теперь вы можете использовать магические атаки.`, 'magic');
+                            updateUI();
+                            clearInterval(magicLearningInterval);
+                        } else {
+                            const timeLeft = game.player.magic.learnEndTime - Date.now();
+                            game.player.magic.progress = 100 - (timeLeft / 300000 * 100);
+                            updateUI();
+                        }
+                    }, 1000);
+                }
+                break;
+            case 'upgradeMagic':
+                if(game.player.magic.learned) {
+                    game.player.magic.level++;
+                    addEvent(`Уровень магии повышен до ${game.player.magic.level}`, 'magic');
+                } else {
+                    addEvent(`Сначала изучите магию!`, 'warning');
+                }
+                break;
+            case 'weapon':
+            case 'armor':
+            case 'artifact':
+                game.player.inventory.push(item);
+                addEvent(`Куплен ${item.name}`, 'success');
+                break;
+        }
+        updateUI();
+    } else {
+        addEvent('Недостаточно ресурсов!', 'warning');
+    }
+}
+
+function rest() {
+    const now = Date.now();
+    const cooldownLeft = Math.max(0, 30000 - (now - game.player.lastRestTime));
+    
+    if(cooldownLeft > 0) {
+        addEvent(`Отдых на перезарядке! Осталось ${Math.ceil(cooldownLeft/1000)} сек.`, 'warning');
+        return;
+    }
+    
+    game.player.energy = Math.min(100, game.player.energy + 50);
+    game.player.lastRestTime = now;
+    addEvent('Вы отдохнули (+50🔋). Перезарядка: 30 сек.', 'energy');
+    updateUI();
+}
+
+function checkLevelUp() {
+    if(game.player.xp >= game.player.xpToNextLevel) {
+        game.player.level++;
+        game.player.xp -= game.player.xpToNextLevel;
+        game.player.xpToNextLevel = Math.floor(game.player.xpToNextLevel * 1.5);
+        game.player.maxHp += 20;
+        game.player.atk += 3;
+        game.player.def += 2;
+        game.player.hp = game.player.maxHp;
+        game.player.energy = 100;
+        addEvent(`Уровень повышен! [${game.player.level}]`, 'levelup');
+        
+        // Новые враги и предметы на высоких уровнях
+        if(game.player.level % 3 === 0) {
+            const newEnemy = {
+                name: `Босс Lv.${game.player.level}`,
+                hp: 150 + game.player.level * 10,
+                atk: 30 + game.player.level * 2,
+                gold: 100 + game.player.level * 10,
+                xp: 100,
+                color: '#ff00aa'
+            };
+            game.enemies.easy.push(newEnemy);
+            addEvent(`Появился новый враг: <span style="color:#ff00aa">${newEnemy.name}</span>`, 'danger');
+        }
+    }
+}
+
+function renderInventory() {
+    const inv = document.getElementById('inventory');
+    inv.innerHTML = game.player.inventory.map((item, index) => {
+        let rarityClass = '';
+        let rarityColor = '';
+        
+        if(item.rarity) {
+            switch(item.rarity) {
+                case 'rare':
+                    rarityClass = 'rare-item';
+                    rarityColor = '#00b8ff';
+                    break;
+                case 'epic':
+                    rarityClass = 'epic-item';
+                    rarityColor = '#aa00ff';
+                    break;
+                case 'legendary':
+                    rarityClass = 'legendary-item';
+                    rarityColor = '#ffaa00';
+                    break;
+            }
+        }
+        
+        return `
+        <div class="item ${rarityClass}" style="border-color: ${rarityColor || 'rgba(0, 255, 157, 0.1)'}">
+            <div class="item-name" style="color: ${rarityColor || '#00ff9d'}">${item.name}</div>
+            <div class="item-stats">
+                ${item.atk ? `⚔️ Атака: +${item.atk}<br>` : ''}
+                ${item.def ? `🛡️ Защита: +${item.def}<br>` : ''}
+                ${item.bonus ? `✨ ${item.bonus}<br>` : ''}
+                ${item.value ? `💰 Цена: ${item.value}` : ''}
+            </div>
+            <button onclick="equip(${index})">Экипировать</button>
+            <button class="sell-btn" onclick="sellItem(${index})">Продать</button>
+        </div>
+        `;
+    }).join('');
+}
+
+function equip(index) {
+    const item = game.player.inventory[index];
+    if(!item) return;
+    
+    if(item.type === 'weapon' || item.type === 'armor' || item.type === 'artifact') {
+        game.player.equipment[item.type] = item;
+        
+        let rarityColor;
+        switch(item.rarity) {
+            case 'rare': rarityColor = '#00b8ff'; break;
+            case 'epic': rarityColor = '#aa00ff'; break;
+            case 'legendary': rarityColor = '#ffaa00'; break;
+            default: rarityColor = '#00ff9d';
+        }
+        
+        addEvent(`Экипирован <span style="color:${rarityColor}">${item.name}</span>`, 'success');
+    }
+    updateUI();
+}
+
+function sellItem(index) {
+    const item = game.player.inventory[index];
+    if(!item || !item.value) return;
+    
+    const sellPrice = Math.floor(item.value * 0.7); // 70% от стоимости
+    game.player.gold += sellPrice;
+    game.player.inventory.splice(index, 1);
+    
+    addEvent(`Продан ${item.name} за ${sellPrice}💰`, 'success');
+    updateUI();
+}
+
+function addEvent(msg, type) {
+    const eventsDiv = document.getElementById('events');
+    const combatLog = document.getElementById('combatLog');
+    
+    const event = document.createElement('div');
+    event.innerHTML = `[${new Date().toLocaleTimeString().slice(0,5)}] ${msg}`;
+    
+    // Добавляем класс в зависимости от типа события
+    if(type === 'combat') {
+        combatLog.appendChild(event);
+        if(combatLog.children.length > 5) combatLog.removeChild(combatLog.children[0]);
+    } else {
+        event.classList.add(type || 'info');
+        eventsDiv.prepend(event);
+        if(eventsDiv.children.length > 8) eventsDiv.removeChild(eventsDiv.lastChild);
+    }
+}
+
+// Сохранение и загрузка игры
+function saveGame() {
+    localStorage.setItem('neonDigitalRPG', JSON.stringify(game));
+    addEvent('Игра сохранена', 'success');
+}
+
+function loadGame() {
+    const savedGame = localStorage.getItem('neonDigitalRPG');
+    if(savedGame) {
+        Object.assign(game, JSON.parse(savedGame));
+        addEvent('Игра загружена', 'success');
+        updateUI();
+    }
+}
+
+// Инициализация игры
+window.onload = function() {
+    if(!localStorage.getItem('tutorialCompleted')) {
+        document.getElementById('tutorial').style.display = 'block';
+    } else {
+        document.getElementById('tutorial').style.display = 'none';
+    }
+    
+    // Загружаем игру при старте
+    loadGame();
+    
+    // Автосохранение каждые 30 секунд
+    setInterval(saveGame, 30000);
+    
+    // Игровой цикл для проверки обучения магии
+    setInterval(() => {
+        if(game.player.magic.learning && Date.now() >= game.player.magic.learnEndTime) {
+            game.player.magic.learning = false;
+            game.player.magic.progress = 100;
+            addEvent(`Магия изучена! Теперь вы можете использовать магические атаки.`, 'magic');
+            updateUI();
+        }
+        
+        // Проверяем окончание эффекта магии
+        if(game.player.magic.active && Date.now() >= game.player.magic.endTime) {
+            endMagicEffect();
+        }
+    }, 1000);
+    
+    updateUI();
+}
+
+// Сохраняем игру при закрытии вкладки
+window.addEventListener('beforeunload', saveGame);
+</script>
+</body>
+  </html>
