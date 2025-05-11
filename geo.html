@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Сокровища моего города</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #game-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        #map {
+            flex-grow: 1;
+            z-index: 1;
+        }
+        #ui {
+            padding: 10px;
+            background: #f0f0f0;
+            border-top: 1px solid #ccc;
+            z-index: 2;
+        }
+        #treasures {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        .treasure-icon {
+            width: 30px;
+            height: 30px;
+            background-color: gold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            opacity: 0.3;
+        }
+        .treasure-icon.found {
+            opacity: 1;
+            box-shadow: 0 0 5px gold;
+        }
+        .marker-icon {
+            background: red;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div id="game-container">
+        <div id="map"></div>
+        <div id="ui">
+            <h2>Сокровища моего города</h2>
+            <p>Доберитесь до всех точек на карте, чтобы собрать сокровища!</p>
+            <div id="distance">Дистанция до ближайшего сокровища: -</div>
+            <div id="treasures"></div>
+            <button id="start-btn">Начать игру</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+    <script>
+        // Конфигурация игры
+        const gameConfig = {
+            treasures: [
+                {id: 1, name: "Золотая монета", found: false},
+                {id: 2, name: "Старинный свиток", found: false},
+                {id: 3, name: "Драгоценный камень", found: false},
+                {id: 4, name: "Загадочный артефакт", found: false},
+                {id: 5, name: "Сундук с сокровищами", found: false}
+            ],
+            collectionRadius: 50 // метров
+        };
+
+        // Элементы DOM
+        const mapElement = document.getElementById('map');
+        const distanceElement = document.getElementById('distance');
+        const treasuresElement = document.getElementById('treasures');
+        const startBtn = document.getElementById('start-btn');
+
+        // Переменные игры
+        let map;
+        let userMarker;
+        let treasureMarkers = [];
+        let watchId;
+        let userPosition = null;
+
+        // Инициализация игры
+        function initGame() {
+            // Создаем карту (центр будет установлен при получении геолокации)
+            map = L.map('map').setView([0, 0], 15);
+            
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+
+            // Создаем UI для сокровищ
+            renderTreasuresUI();
+
+            // Запрашиваем геолокацию
+            startGeolocation();
+            
+            // Размещаем сокровища вокруг пользователя (в реальной игре можно задать фиксированные точки)
+            placeTreasures();
+            
+            startBtn.textContent = "Перезапустить игру";
+        }
+
+        // Рендер UI сокровищ
+        function renderTreasuresUI() {
+            treasuresElement.innerHTML = '';
+            gameConfig.treasures.forEach(treasure => {
+                const treasureEl = document.createElement('div');
+                treasureEl.className = `treasure-icon ${treasure.found ? 'found' : ''}`;
+                treasureEl.textContent = treasure.id;
+                treasureEl.title = treasure.name;
+                treasuresElement.appendChild(treasureEl);
+            });
+        }
+
+        // Размещение сокровищ на карте
+        function placeTreasures() {
+            // Очищаем старые маркеры
+            treasureMarkers.forEach(marker => map.removeLayer(marker));
+            treasureMarkers = [];
+            
+            if (!userPosition) return;
+
+            // Размещаем сокровища в радиусе ~1 км от пользователя
+            gameConfig.treasures.forEach(treasure => {
+                if (!treasure.found) {
+                    // Генерируем случайное смещение (в градусах)
+                    const offsetLat = (Math.random() - 0.5) * 0.01;
+                    const offsetLng = (Math.random() - 0.5) * 0.01;
+                    
+                    const treasurePos = [
+                        userPosition.lat + offsetLat,
+                        userPosition.lng + offsetLng
+                    ];
+                    
+                    const marker = L.marker(treasurePos, {
+                        icon: L.divIcon({
+                            className: 'marker-icon',
+                            html: treasure.id
+                        })
+                    }).addTo(map);
+                    
+                    marker.bindPopup(`<b>${treasure.name}</b><br>Идите к этой точке, чтобы собрать сокровище!`);
+                    
+                    treasureMarkers.push({
+                        marker: marker,
+                        treasure: treasure,
+                        position: treasurePos
+                    });
+                }
+            });
+        }
+
+        // Запуск отслеживания геолокации
+        function startGeolocation() {
+            if (watchId) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+            
+            watchId = navigator.geolocation.watchPosition(
+                position => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    
+                    userPosition = pos;
+                    
+                    // Обновляем позицию пользователя на карте
+                    if (!userMarker) {
+                        userMarker = L.marker([pos.lat, pos.lng]).addTo(map);
+                        userMarker.bindPopup("<b>Вы здесь!</b>").openPopup();
+                        map.setView([pos.lat, pos.lng], 15);
+                    } else {
+                        userMarker.setLatLng([pos.lat, pos.lng]);
+                    }
+                    
+                    // Проверяем, рядом ли сокровища
+                    checkTreasuresProximity(pos);
+                },
+                error => {
+                    console.error("Ошибка геолокации:", error);
+                    alert("Не удалось получить ваше местоположение. Убедитесь, что вы разрешили доступ к геолокации.");
+                },
+                {
+                    enableHighAccuracy: true,
+                    maximumAge: 10000,
+                    timeout: 5000
+                }
+            );
+        }
+
+        // Проверка близости к сокровищам
+        function checkTreasuresProximity(userPos) {
+            let minDistance = Infinity;
+            
+            treasureMarkers.forEach((item, index) => {
+                if (!item.treasure.found) {
+                    const distance = calculateDistance(
+                        userPos.lat, userPos.lng,
+                        item.position[0], item.position[1]
+                    );
+                    
+                    // Обновляем минимальную дистанцию
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                    }
+                    
+                    // Проверяем, достаточно ли близко к сокровищу
+                    if (distance <= gameConfig.collectionRadius) {
+                        // Собираем сокровище!
+                        item.treasure.found = true;
+                        map.removeLayer(item.marker);
+                        treasureMarkers.splice(index, 1);
+                        
+                        alert(`Вы нашли ${item.treasure.name}!`);
+                        renderTreasuresUI();
+                        
+                        // Проверяем, все ли сокровища собраны
+                        checkGameCompletion();
+                    }
+                }
+            });
+            
+            // Обновляем UI с дистанцией
+            distanceElement.textContent = minDistance === Infinity ? 
+                "Все сокровища собраны!" : 
+                `Дистанция до ближайшего сокровища: ${Math.round(minDistance)} м`;
+        }
+
+        // Проверка завершения игры
+        function checkGameCompletion() {
+            const allFound = gameConfig.treasures.every(t => t.found);
+            if (allFound) {
+                alert("Поздравляем! Вы собрали все сокровища города!");
+                distanceElement.textContent = "Все сокровища собраны!";
+            }
+        }
+
+        // Расчет расстояния между двумя точками в метрах (формула гаверсинусов)
+        function calculateDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // радиус Земли в метрах
+            const φ1 = lat1 * Math.PI/180;
+            const φ2 = lat2 * Math.PI/180;
+            const Δφ = (lat2-lat1) * Math.PI/180;
+            const Δλ = (lon2-lon1) * Math.PI/180;
+
+            const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ/2) * Math.sin(Δλ/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+
+            return R * c;
+        }
+
+        // Обработчик кнопки старта
+        startBtn.addEventListener('click', () => {
+            // Сброс игры
+            gameConfig.treasures.forEach(t => t.found = false);
+            if (userMarker) map.removeLayer(userMarker);
+            userMarker = null;
+            userPosition = null;
+            treasureMarkers.forEach(m => map.removeLayer(m.marker));
+            treasureMarkers = [];
+            
+            initGame();
+        });
+
+        // Проверяем поддержку геолокации
+        if (!navigator.geolocation) {
+            alert("Ваш браузер не поддерживает геолокацию, игра невозможна.");
+            startBtn.disabled = true;
+        }
+    </script>
+</body>
+</html>
