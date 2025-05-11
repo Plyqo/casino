@@ -33,6 +33,7 @@
             display: flex;
             gap: 10px;
             margin-top: 10px;
+            flex-wrap: wrap;
         }
         .treasure-icon {
             width: 30px;
@@ -60,6 +61,11 @@
             color: white;
             font-weight: bold;
         }
+        #hint {
+            margin-top: 10px;
+            font-style: italic;
+            color: #666;
+        }
     </style>
 </head>
 <body>
@@ -67,8 +73,9 @@
         <div id="map"></div>
         <div id="ui">
             <h2>Сокровища моего города</h2>
-            <p>Доберитесь до всех точек на карте, чтобы собрать сокровища!</p>
+            <p>Доберитесь до всех точек на карте, чтобы собрать сокровища! Каждое сокровище находится примерно в 1 км от вас.</p>
             <div id="distance">Дистанция до ближайшего сокровища: -</div>
+            <div id="hint"></div>
             <div id="treasures"></div>
             <button id="start-btn">Начать игру</button>
         </div>
@@ -85,12 +92,14 @@
                 {id: 4, name: "Загадочный артефакт", found: false},
                 {id: 5, name: "Сундук с сокровищами", found: false}
             ],
-            collectionRadius: 50 // метров
+            collectionRadius: 50, // метров
+            treasureDistance: 1000 // метров (1 км)
         };
 
         // Элементы DOM
         const mapElement = document.getElementById('map');
         const distanceElement = document.getElementById('distance');
+        const hintElement = document.getElementById('hint');
         const treasuresElement = document.getElementById('treasures');
         const startBtn = document.getElementById('start-btn');
 
@@ -112,12 +121,9 @@
 
             // Создаем UI для сокровищ
             renderTreasuresUI();
-
+            
             // Запрашиваем геолокацию
             startGeolocation();
-            
-            // Размещаем сокровища вокруг пользователя (в реальной игре можно задать фиксированные точки)
-            placeTreasures();
             
             startBtn.textContent = "Перезапустить игру";
         }
@@ -134,27 +140,29 @@
             });
         }
 
-        // Размещение сокровищ на карте
+        // Размещение сокровищ на карте (примерно в 1 км от игрока)
         function placeTreasures() {
             // Очищаем старые маркеры
-            treasureMarkers.forEach(marker => map.removeLayer(marker));
+            treasureMarkers.forEach(item => map.removeLayer(item.marker));
             treasureMarkers = [];
             
             if (!userPosition) return;
 
-            // Размещаем сокровища в радиусе ~1 км от пользователя
+            // Размещаем сокровища на расстоянии ~1 км от игрока
             gameConfig.treasures.forEach(treasure => {
                 if (!treasure.found) {
-                    // Генерируем случайное смещение (в градусах)
-                    const offsetLat = (Math.random() - 0.5) * 0.01;
-                    const offsetLng = (Math.random() - 0.5) * 0.01;
+                    // Генерируем случайный азимут (направление) в градусах
+                    const azimuth = Math.random() * 360;
                     
-                    const treasurePos = [
-                        userPosition.lat + offsetLat,
-                        userPosition.lng + offsetLng
-                    ];
+                    // Вычисляем новую точку в 1 км от игрока в случайном направлении
+                    const treasurePos = calculateDestinationPoint(
+                        userPosition.lat,
+                        userPosition.lng,
+                        azimuth,
+                        gameConfig.treasureDistance
+                    );
                     
-                    const marker = L.marker(treasurePos, {
+                    const marker = L.marker([treasurePos.lat, treasurePos.lng], {
                         icon: L.divIcon({
                             className: 'marker-icon',
                             html: treasure.id
@@ -166,10 +174,58 @@
                     treasureMarkers.push({
                         marker: marker,
                         treasure: treasure,
-                        position: treasurePos
+                        position: [treasurePos.lat, treasurePos.lng]
                     });
                 }
             });
+            
+            // Обновляем подсказку
+            updateHint();
+        }
+
+        // Обновление подсказки о направлении
+        function updateHint() {
+            if (!userPosition || treasureMarkers.length === 0) {
+                hintElement.textContent = "";
+                return;
+            }
+            
+            // Находим ближайшее сокровище
+            let closestTreasure = null;
+            let minDistance = Infinity;
+            
+            treasureMarkers.forEach(item => {
+                const distance = calculateDistance(
+                    userPosition.lat, userPosition.lng,
+                    item.position[0], item.position[1]
+                );
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestTreasure = item;
+                }
+            });
+            
+            if (closestTreasure) {
+                const direction = getDirection(
+                    userPosition.lat, userPosition.lng,
+                    closestTreasure.position[0], closestTreasure.position[1]
+                );
+                
+                hintElement.textContent = `Ближайшее сокровище (${closestTreasure.treasure.name}) находится ${direction}, примерно ${Math.round(minDistance)} м от вас`;
+            }
+        }
+
+        // Получение направления (север, юго-запад и т.д.)
+        function getDirection(lat1, lng1, lat2, lng2) {
+            const dy = lat2 - lat1;
+            const dx = Math.cos(Math.PI * lat1 / 180) * (lng2 - lng1);
+            const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+            
+            const directions = ['север', 'северо-восток', 'восток', 'юго-восток', 
+                               'юг', 'юго-запад', 'запад', 'северо-запад'];
+            const index = Math.round(((angle % 360) / 45)) % 8;
+            return directions[(index + 8) % 8];
         }
 
         // Запуск отслеживания геолокации
@@ -192,12 +248,18 @@
                         userMarker = L.marker([pos.lat, pos.lng]).addTo(map);
                         userMarker.bindPopup("<b>Вы здесь!</b>").openPopup();
                         map.setView([pos.lat, pos.lng], 15);
+                        
+                        // При первом получении позиции размещаем сокровища
+                        placeTreasures();
                     } else {
                         userMarker.setLatLng([pos.lat, pos.lng]);
                     }
                     
                     // Проверяем, рядом ли сокровища
                     checkTreasuresProximity(pos);
+                    
+                    // Обновляем подсказку
+                    updateHint();
                 },
                 error => {
                     console.error("Ошибка геолокации:", error);
@@ -255,6 +317,7 @@
             if (allFound) {
                 alert("Поздравляем! Вы собрали все сокровища города!");
                 distanceElement.textContent = "Все сокровища собраны!";
+                hintElement.textContent = "";
             }
         }
 
@@ -274,6 +337,27 @@
             return R * c;
         }
 
+        // Расчет точки назначения (в метрах от начальной точки)
+        function calculateDestinationPoint(lat, lng, azimuth, distance) {
+            const R = 6371e3; // радиус Земли в метрах
+            const brng = azimuth * Math.PI / 180; // преобразуем в радианы
+            const φ1 = lat * Math.PI / 180;
+            const λ1 = lng * Math.PI / 180;
+            
+            const φ2 = Math.asin(Math.sin(φ1) * Math.cos(distance / R) + 
+                      Math.cos(φ1) * Math.sin(distance / R) * Math.cos(brng));
+            
+            const λ2 = λ1 + Math.atan2(
+                Math.sin(brng) * Math.sin(distance / R) * Math.cos(φ1),
+                Math.cos(distance / R) - Math.sin(φ1) * Math.sin(φ2)
+            );
+            
+            return {
+                lat: φ2 * 180 / Math.PI,
+                lng: λ2 * 180 / Math.PI
+            };
+        }
+
         // Обработчик кнопки старта
         startBtn.addEventListener('click', () => {
             // Сброс игры
@@ -281,7 +365,7 @@
             if (userMarker) map.removeLayer(userMarker);
             userMarker = null;
             userPosition = null;
-            treasureMarkers.forEach(m => map.removeLayer(m.marker));
+            treasureMarkers.forEach(item => map.removeLayer(item.marker));
             treasureMarkers = [];
             
             initGame();
