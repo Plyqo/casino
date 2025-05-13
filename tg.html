@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram User Info</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f2f5;
+        }
+
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .user-info {
+            margin: 1rem 0;
+            padding: 1rem;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .error {
+            color: #dc3545;
+            margin: 1rem 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ваш профиль Telegram</h1>
+        <div class="user-info">
+            <p>Имя пользователя: <span id="username">...</span></p>
+            <p>Имя: <span id="first-name">...</span></p>
+            <p>Фамилия: <span id="last-name">...</span></p>
+        </div>
+        <div id="error" class="error"></div>
+        <button onclick="Telegram.WebApp.close()">Закрыть приложение</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Проверяем инициализацию WebApp
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                // Получаем данные пользователя
+                const user = Telegram.WebApp.initDataUnsafe.user;
+                
+                if (user) {
+                    // Отображаем информацию о пользователе
+                    document.getElementById('username').textContent = user.username || 'не указан';
+                    document.getElementById('first-name').textContent = user.first_name || 'не указано';
+                    document.getElementById('last-name').textContent = user.last_name || 'не указана';
+                } else {
+                    showError('Информация о пользователе недоступна');
+                }
+                
+                // Расширяем приложение на весь экран
+                Telegram.WebApp.expand();
+            } else {
+                showError('Приложение должно быть запущено через Telegram!');
+            }
+        });
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+        }
+    </script>
+</body>
+</html>
