@@ -657,7 +657,7 @@
             bet: 0,
             autoSpin: false,
             spinning: false,
-            symbols: ['🍒', '🍋', '🍊', '🍇', '🍉', 'BAR', '7']
+            symbols: ['🍒', '🍋', '🍊', '🍇', '🍉', '🅱️', '7️⃣']
         };
 
         let blackjackGame = {
@@ -770,7 +770,7 @@
             } else {
                 minesGame.openedCells++;
                 // Уменьшенный множитель
-                minesGame.multiplier = (1 + (minesGame.openedCells * 0.15)).toFixed(2);
+                minesGame.multiplier = (1 + (minesGame.openedCells * 0.05)).toFixed(2);
                 document.getElementById('multiplier').textContent = `${minesGame.multiplier}x`;
                 cell.innerHTML = '💎';
                 localStorage.setItem('minesGame', JSON.stringify(minesGame));
