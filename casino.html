@@ -76,12 +76,34 @@
             cursor: pointer;
             transition: 0.3s;
             border: 2px solid transparent;
+            position: relative;
         }
 
         .game-card:hover {
             transform: translateY(-10px);
             border-color: #ffd700;
             box-shadow: 0 0 30px rgba(255, 215, 0, 0.2);
+        }
+
+        .game-tooltip {
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100%);
+            background: rgba(0, 0, 0, 0.9);
+            padding: 15px;
+            border-radius: 10px;
+            width: 280px;
+            z-index: 10;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s;
+            border: 1px solid #ffd700;
+        }
+
+        .game-card:hover .game-tooltip {
+            opacity: 1;
+            visibility: visible;
         }
 
         .modal {
@@ -147,7 +169,12 @@
             box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
         }
 
-        .mines-container, .tower-container {
+        .mines-container, 
+        .tower-container,
+        .roulette-container,
+        .dice-container,
+        .slots-container,
+        .blackjack-container {
             display: none;
             position: fixed;
             top: 50%;
@@ -158,6 +185,9 @@
             border-radius: 20px;
             border: 2px solid #ffd700;
             z-index: 1000;
+            max-width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
         }
 
         .mines-grid {
@@ -246,6 +276,143 @@
             background: #00ff00;
             color: #1a1a1a;
         }
+
+        /* Рулетка */
+        .roulette-wheel {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: #1a1a1a;
+            margin: 20px auto;
+            position: relative;
+            border: 5px solid #ffd700;
+        }
+
+        .roulette-ball {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+
+        .roulette-number {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            text-align: center;
+            line-height: 30px;
+            border-radius: 50%;
+            font-weight: bold;
+        }
+
+        .roulette-bets {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .bet-option {
+            padding: 8px 15px;
+            background: #2a2a2a;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .bet-option:hover {
+            background: #3a3a3a;
+        }
+
+        .bet-option.selected {
+            background: #ffd700;
+            color: #1a1a1a;
+        }
+
+        /* Кости */
+        .dice-area {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .dice {
+            width: 80px;
+            height: 80px;
+            background: white;
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            color: black;
+        }
+
+        /* Слоты */
+        .slots-reels {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            justify-content: center;
+        }
+
+        .reel {
+            width: 80px;
+            height: 120px;
+            background: white;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .reel-item {
+            width: 100%;
+            height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            position: absolute;
+        }
+
+        /* Блэкджек */
+        .blackjack-area {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .blackjack-cards {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .card {
+            width: 60px;
+            height: 90px;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: black;
+            font-weight: bold;
+        }
+
+        .blackjack-controls {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -259,10 +426,77 @@
         <div class="game-card" onclick="openMinesGame()">
             <h2>🕹️ МИНЫ</h2>
             <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Мины":</h3>
+                <p>1. Сделайте ставку и начните игру</p>
+                <p>2. Открывайте клетки, чтобы увеличить множитель</p>
+                <p>3. Если откроете мину - проиграете ставку</p>
+                <p>4. В любой момент можно забрать выигрыш</p>
+                <p>Шанс выигрыша уменьшен, множители снижены</p>
+            </div>
         </div>
         <div class="game-card" onclick="openTowerGame()">
             <h2>🏰 БАШНЯ</h2>
             <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Башня":</h3>
+                <p>1. Сделайте ставку и начните игру</p>
+                <p>2. Выбирайте этажи для подъема</p>
+                <p>3. Чем выше этаж, тем больше множитель</p>
+                <p>4. Если не пройдете этаж - получите текущий выигрыш</p>
+                <p>Шанс прохождения этажей уменьшен</p>
+            </div>
+        </div>
+        <div class="game-card" onclick="openRouletteGame()">
+            <h2>🎡 РУЛЕТКА</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Рулетка":</h3>
+                <p>1. Сделайте ставку и выберите тип ставки</p>
+                <p>2. Красное/Черное: x2</p>
+                <p>3. Четное/Нечетное: x2</p>
+                <p>4. Конкретное число: x36</p>
+                <p>5. Нажмите "Крутить", чтобы запустить рулетку</p>
+            </div>
+        </div>
+        <div class="game-card" onclick="openDiceGame()">
+            <h2>🎲 КОСТИ</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Кости":</h3>
+                <p>1. Сделайте ставку и выберите число (1-6)</p>
+                <p>2. Бросьте кости - если ваше число выпадет:</p>
+                <p>- 1 раз: x2</p>
+                <p>- 2 раза: x5</p>
+                <p>- 3 раза: x20</p>
+                <p>Можно играть долго, делая много ставок</p>
+            </div>
+        </div>
+        <div class="game-card" onclick="openSlotsGame()">
+            <h2>🎰 СЛОТЫ</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Слоты":</h3>
+                <p>1. Сделайте ставку и нажмите "Крутить"</p>
+                <p>2. Если выпадут 3 одинаковых символа:</p>
+                <p>- 7: x20</p>
+                <p>- BAR: x10</p>
+                <p>- Вишня: x5</p>
+                <p>- Лимон: x3</p>
+                <p>Автоматическое вращение доступно</p>
+            </div>
+        </div>
+        <div class="game-card" onclick="openBlackjackGame()">
+            <h2>🃏 БЛЭКДЖЕК</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Блэкджек":</h3>
+                <p>1. Сделайте ставку и начните игру</p>
+                <p>2. Цель - набрать 21 очко или ближе к нему</p>
+                <p>3. Можно брать карты или остановиться</p>
+                <p>4. Победа: x2 (если 21 - x3)</p>
+                <p>Игра с дилером, можно играть долго</p>
+            </div>
         </div>
     </div>
 
@@ -298,6 +532,93 @@
         <div id="towerStatus"></div>
     </div>
 
+    <div class="roulette-container" id="rouletteGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="rouletteBet" placeholder="Ваша ставка">
+            <button class="submit-btn" onclick="placeRouletteBet()">Сделать ставку</button>
+            <button class="topup-btn" onclick="spinRoulette()" style="margin-left: 10px;">Крутить</button>
+        </div>
+        <div class="multiplier-display">Ставка: <span id="rouletteBetType">Не выбрана</span></div>
+        <div class="multiplier-display">Выигрыш: <span id="rouletteWin">0</span></div>
+        
+        <div class="roulette-wheel">
+            <div class="roulette-ball"></div>
+        </div>
+        
+        <div class="roulette-bets" id="rouletteBets">
+            <div class="bet-option" onclick="selectRouletteBet('red')">Красное (x2)</div>
+            <div class="bet-option" onclick="selectRouletteBet('black')">Черное (x2)</div>
+            <div class="bet-option" onclick="selectRouletteBet('even')">Четное (x2)</div>
+            <div class="bet-option" onclick="selectRouletteBet('odd')">Нечетное (x2)</div>
+            <div class="bet-option" onclick="selectRouletteBet('1-18')">1-18 (x2)</div>
+            <div class="bet-option" onclick="selectRouletteBet('19-36')">19-36 (x2)</div>
+            <div class="bet-option" onclick="selectRouletteBet('0')">0 (x36)</div>
+        </div>
+        <div id="rouletteStatus"></div>
+    </div>
+
+    <div class="dice-container" id="diceGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="diceBet" placeholder="Ваша ставка">
+            <input type="number" class="bet-input" id="diceNumber" placeholder="Число (1-6)" min="1" max="6">
+            <button class="submit-btn" onclick="startDiceGame()">Бросить кости</button>
+        </div>
+        <div class="multiplier-display">Выпадет: <span id="dicePrediction">Не выбрано</span></div>
+        <div class="multiplier-display">Множитель: <span id="diceMultiplier">0x</span></div>
+        
+        <div class="dice-area" id="diceArea">
+            <div class="dice">?</div>
+            <div class="dice">?</div>
+            <div class="dice">?</div>
+        </div>
+        <div id="diceStatus"></div>
+    </div>
+
+    <div class="slots-container" id="slotsGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="slotsBet" placeholder="Ваша ставка">
+            <button class="submit-btn" onclick="spinSlots()">Крутить</button>
+            <button class="topup-btn" onclick="toggleAutoSpin()" style="margin-left: 10px;">Авто (Вкл/Выкл)</button>
+        </div>
+        <div class="multiplier-display">Выигрыш: <span id="slotsWin">0</span></div>
+        
+        <div class="slots-reels" id="slotsReels">
+            <div class="reel">
+                <div class="reel-item">?</div>
+            </div>
+            <div class="reel">
+                <div class="reel-item">?</div>
+            </div>
+            <div class="reel">
+                <div class="reel-item">?</div>
+            </div>
+        </div>
+        <div id="slotsStatus"></div>
+    </div>
+
+    <div class="blackjack-container" id="blackjackGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="blackjackBet" placeholder="Ваша ставка">
+            <button class="submit-btn" onclick="startBlackjack()">Начать игру</button>
+        </div>
+        <div class="multiplier-display">Дилер: <span id="dealerScore">0</span></div>
+        <div class="multiplier-display">Вы: <span id="playerScore">0</span></div>
+        
+        <div class="blackjack-area">
+            <h3>Карты дилера:</h3>
+            <div class="blackjack-cards" id="dealerCards"></div>
+            
+            <h3>Ваши карты:</h3>
+            <div class="blackjack-cards" id="playerCards"></div>
+            
+            <div class="blackjack-controls" id="blackjackControls">
+                <button class="submit-btn" onclick="hit()">Взять</button>
+                <button class="topup-btn" onclick="stand()" style="margin-left: 10px;">Стоп</button>
+            </div>
+        </div>
+        <div id="blackjackStatus"></div>
+    </div>
+
     <script>
         // Локальное хранилище
         let balance = localStorage.getItem('balance') ? parseInt(localStorage.getItem('balance')) : 1000;
@@ -316,6 +637,34 @@
             bet: 0,
             currentFloor: 1,
             multiplier: 1
+        };
+
+        let rouletteGame = {
+            bet: 0,
+            betType: null,
+            numbers: [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26],
+            colors: ['green', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black'],
+            spinning: false
+        };
+
+        let diceGame = {
+            bet: 0,
+            selectedNumber: null,
+            rolling: false
+        };
+
+        let slotsGame = {
+            bet: 0,
+            autoSpin: false,
+            spinning: false,
+            symbols: ['🍒', '🍋', '🍊', '🍇', '🍉', 'BAR', '7']
+        };
+
+        let blackjackGame = {
+            bet: 0,
+            playerHand: [],
+            dealerHand: [],
+            gameStarted: false
         };
 
         // Общие функции
@@ -420,7 +769,8 @@
                 endGame(false);
             } else {
                 minesGame.openedCells++;
-                minesGame.multiplier = (1 + (minesGame.openedCells * 0.2)).toFixed(2);
+                // Уменьшенный множитель
+                minesGame.multiplier = (1 + (minesGame.openedCells * 0.15)).toFixed(2);
                 document.getElementById('multiplier').textContent = `${minesGame.multiplier}x`;
                 cell.innerHTML = '💎';
                 localStorage.setItem('minesGame', JSON.stringify(minesGame));
@@ -486,7 +836,7 @@
             for (let i = 1; i <= 10; i++) {
                 const floor = document.createElement('div');
                 floor.className = 'floor';
-                floor.textContent = `Этаж ${i} (${(1 + i*0.5).toFixed(1)}x)`;
+                floor.textContent = `Этаж ${i} (${(1 + i*0.4).toFixed(1)}x)`;
                 floor.onclick = () => selectFloor(i);
                 floors.appendChild(floor);
             }
@@ -513,11 +863,12 @@
         function selectFloor(floor) {
             if (!towerGame.isPlaying) return;
             
-            const success = Math.random() < 0.8 - (floor * 0.07);
+            // Уменьшенный шанс успеха
+            const success = Math.random() < 0.7 - (floor * 0.08);
             
             if (success) {
                 towerGame.currentFloor = floor;
-                towerGame.multiplier = 1 + (floor * 0.5);
+                towerGame.multiplier = 1 + (floor * 0.4);
                 updateTowerDisplay();
                 document.getElementById('towerStatus').innerHTML = 
                     `<p style="color: #00ff00">Этаж ${floor} пройден!</p>`;
@@ -536,18 +887,554 @@
             document.getElementById('towerMultiplier').textContent = `${towerGame.multiplier.toFixed(1)}x`;
         }
 
+        // Игра РУЛЕТКА
+        function openRouletteGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('rouletteGame').style.display = 'block';
+            resetRouletteGame();
+        }
+
+        function resetRouletteGame() {
+            rouletteGame.bet = 0;
+            rouletteGame.betType = null;
+            document.getElementById('rouletteBet').value = '';
+            document.getElementById('rouletteBetType').textContent = 'Не выбрана';
+            document.getElementById('rouletteWin').textContent = '0';
+            document.getElementById('rouletteStatus').innerHTML = '';
+            
+            // Сброс выбранных ставок
+            document.querySelectorAll('.bet-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+        }
+
+        function selectRouletteBet(type) {
+            rouletteGame.betType = type;
+            document.getElementById('rouletteBetType').textContent = getBetTypeName(type);
+            
+            // Подсветка выбранной ставки
+            document.querySelectorAll('.bet-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            event.target.classList.add('selected');
+        }
+
+        function getBetTypeName(type) {
+            const names = {
+                'red': 'Красное (x2)',
+                'black': 'Черное (x2)',
+                'even': 'Четное (x2)',
+                'odd': 'Нечетное (x2)',
+                '1-18': '1-18 (x2)',
+                '19-36': '19-36 (x2)',
+                '0': '0 (x36)'
+            };
+            return names[type] || 'Неизвестная ставка';
+        }
+
+        function placeRouletteBet() {
+            const bet = parseInt(document.getElementById('rouletteBet').value);
+            
+            if (!bet || bet < 10 || bet > balance) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            if (!rouletteGame.betType) {
+                alert('Выберите тип ставки!');
+                return;
+            }
+            
+            rouletteGame.bet = bet;
+            balance -= bet;
+            updateBalance();
+            document.getElementById('rouletteStatus').innerHTML = 
+                `<p>Ставка $${bet} принята на ${getBetTypeName(rouletteGame.betType)}</p>`;
+        }
+
+        function spinRoulette() {
+            if (!rouletteGame.bet || rouletteGame.spinning) return;
+            
+            rouletteGame.spinning = true;
+            const wheel = document.querySelector('.roulette-wheel');
+            const ball = document.querySelector('.roulette-ball');
+            
+            // Анимация вращения
+            let spins = 0;
+            const maxSpins = 3 + Math.floor(Math.random() * 3);
+            const spinInterval = setInterval(() => {
+                spins++;
+                const rotation = spins * 360;
+                wheel.style.transform = `rotate(${rotation}deg)`;
+                
+                if (spins >= maxSpins) {
+                    clearInterval(spinInterval);
+                    setTimeout(() => {
+                        finishRouletteSpin();
+                    }, 1000);
+                }
+            }, 100);
+        }
+
+        function finishRouletteSpin() {
+            const winningNumber = Math.floor(Math.random() * 37); // 0-36
+            const winningColor = rouletteGame.colors[rouletteGame.numbers.indexOf(winningNumber)];
+            
+            let winMultiplier = 0;
+            let winMessage = `Выпало: ${winningNumber} (${winningColor})`;
+            
+            // Проверка выигрыша
+            switch(rouletteGame.betType) {
+                case 'red':
+                    if (winningColor === 'red') winMultiplier = 2;
+                    break;
+                case 'black':
+                    if (winningColor === 'black') winMultiplier = 2;
+                    break;
+                case 'even':
+                    if (winningNumber !== 0 && winningNumber % 2 === 0) winMultiplier = 2;
+                    break;
+                case 'odd':
+                    if (winningNumber % 2 === 1) winMultiplier = 2;
+                    break;
+                case '1-18':
+                    if (winningNumber >= 1 && winningNumber <= 18) winMultiplier = 2;
+                    break;
+                case '19-36':
+                    if (winningNumber >= 19 && winningNumber <= 36) winMultiplier = 2;
+                    break;
+                case '0':
+                    if (winningNumber === 0) winMultiplier = 36;
+                    break;
+            }
+            
+            if (winMultiplier > 0) {
+                const winAmount = rouletteGame.bet * winMultiplier;
+                balance += winAmount;
+                updateBalance();
+                winMessage += ` - Вы выиграли $${winAmount}!`;
+            } else {
+                winMessage += ` - Вы проиграли $${rouletteGame.bet}.`;
+            }
+            
+            document.getElementById('rouletteWin').textContent = winMultiplier > 0 ? 
+                `$${rouletteGame.bet * winMultiplier}` : '0';
+            document.getElementById('rouletteStatus').innerHTML = `<p>${winMessage}</p>`;
+            
+            rouletteGame.spinning = false;
+            rouletteGame.bet = 0;
+        }
+
+        // Игра КОСТИ
+        function openDiceGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('diceGame').style.display = 'block';
+            resetDiceGame();
+        }
+
+        function resetDiceGame() {
+            diceGame.bet = 0;
+            diceGame.selectedNumber = null;
+            document.getElementById('diceBet').value = '';
+            document.getElementById('diceNumber').value = '';
+            document.getElementById('dicePrediction').textContent = 'Не выбрано';
+            document.getElementById('diceMultiplier').textContent = '0x';
+            document.getElementById('diceStatus').innerHTML = '';
+            
+            const dice = document.querySelectorAll('.dice');
+            dice.forEach(die => {
+                die.textContent = '?';
+            });
+        }
+
+        function startDiceGame() {
+            const bet = parseInt(document.getElementById('diceBet').value);
+            const number = parseInt(document.getElementById('diceNumber').value);
+            
+            if (!bet || bet < 10 || bet > balance) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            if (!number || number < 1 || number > 6) {
+                alert('Выберите число от 1 до 6!');
+                return;
+            }
+            
+            diceGame.bet = bet;
+            diceGame.selectedNumber = number;
+            balance -= bet;
+            updateBalance();
+            
+            document.getElementById('dicePrediction').textContent = number;
+            document.getElementById('diceStatus').innerHTML = `<p>Ставка $${bet} принята на число ${number}</p>`;
+            
+            rollDice();
+        }
+
+        function rollDice() {
+            if (diceGame.rolling) return;
+            
+            diceGame.rolling = true;
+            const dice = document.querySelectorAll('.dice');
+            let rolls = 0;
+            const maxRolls = 10 + Math.floor(Math.random() * 10);
+            
+            const rollInterval = setInterval(() => {
+                rolls++;
+                dice.forEach(die => {
+                    die.textContent = Math.floor(Math.random() * 6) + 1;
+                });
+                
+                if (rolls >= maxRolls) {
+                    clearInterval(rollInterval);
+                    setTimeout(() => {
+                        finishDiceRoll();
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        function finishDiceRoll() {
+            const dice = document.querySelectorAll('.dice');
+            const results = Array.from(dice).map(die => parseInt(die.textContent));
+            const matches = results.filter(num => num === diceGame.selectedNumber).length;
+            
+            let winMultiplier = 0;
+            if (matches === 1) winMultiplier = 2;
+            if (matches === 2) winMultiplier = 5;
+            if (matches === 3) winMultiplier = 20;
+            
+            if (winMultiplier > 0) {
+                const winAmount = diceGame.bet * winMultiplier;
+                balance += winAmount;
+                updateBalance();
+                document.getElementById('diceStatus').innerHTML = 
+                    `<p style="color: #00ff00">Выпало ${matches} раз(а) - Вы выиграли $${winAmount}!</p>`;
+            } else {
+                document.getElementById('diceStatus').innerHTML = 
+                    `<p style="color: #ff4444">Не выпало ни разу - Вы проиграли $${diceGame.bet}.</p>`;
+            }
+            
+            document.getElementById('diceMultiplier').textContent = `${winMultiplier}x`;
+            diceGame.rolling = false;
+            diceGame.bet = 0;
+        }
+
+        // Игра СЛОТЫ
+        function openSlotsGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('slotsGame').style.display = 'block';
+            resetSlotsGame();
+        }
+
+        function resetSlotsGame() {
+            slotsGame.bet = 0;
+            slotsGame.autoSpin = false;
+            document.getElementById('slotsBet').value = '';
+            document.getElementById('slotsWin').textContent = '0';
+            document.getElementById('slotsStatus').innerHTML = '';
+            
+            const reels = document.querySelectorAll('.reel-item');
+            reels.forEach(reel => {
+                reel.textContent = '?';
+            });
+        }
+
+        function toggleAutoSpin() {
+            slotsGame.autoSpin = !slotsGame.autoSpin;
+            if (slotsGame.autoSpin && slotsGame.bet > 0) {
+                spinSlots();
+            }
+        }
+
+        function spinSlots() {
+            const bet = parseInt(document.getElementById('slotsBet').value);
+            
+            if (!slotsGame.autoSpin && (!bet || bet < 10 || bet > balance)) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            if (slotsGame.spinning) return;
+            
+            if (!slotsGame.autoSpin || slotsGame.bet === 0) {
+                slotsGame.bet = bet;
+                balance -= bet;
+                updateBalance();
+            }
+            
+            slotsGame.spinning = true;
+            const reels = document.querySelectorAll('.reel-item');
+            let spins = 0;
+            const maxSpins = 10 + Math.floor(Math.random() * 10);
+            
+            const spinInterval = setInterval(() => {
+                spins++;
+                reels.forEach(reel => {
+                    const randomSymbol = slotsGame.symbols[Math.floor(Math.random() * slotsGame.symbols.length)];
+                    reel.textContent = randomSymbol;
+                });
+                
+                if (spins >= maxSpins) {
+                    clearInterval(spinInterval);
+                    setTimeout(() => {
+                        finishSlotsSpin();
+                    }, 500);
+                }
+            }, 100);
+        }
+
+        function finishSlotsSpin() {
+            const reels = document.querySelectorAll('.reel-item');
+            const symbols = Array.from(reels).map(reel => reel.textContent);
+            
+            // Проверка выигрыша
+            let winMultiplier = 0;
+            if (symbols[0] === symbols[1] && symbols[1] === symbols[2]) {
+                switch(symbols[0]) {
+                    case '7': winMultiplier = 20; break;
+                    case 'BAR': winMultiplier = 10; break;
+                    case '🍒': winMultiplier = 5; break;
+                    default: winMultiplier = 3;
+                }
+            }
+            
+            if (winMultiplier > 0) {
+                const winAmount = slotsGame.bet * winMultiplier;
+                balance += winAmount;
+                updateBalance();
+                document.getElementById('slotsWin').textContent = winAmount;
+                document.getElementById('slotsStatus').innerHTML = 
+                    `<p style="color: #00ff00">${symbols.join(' ')} - Вы выиграли $${winAmount}!</p>`;
+            } else {
+                document.getElementById('slotsStatus').innerHTML = 
+                    `<p style="color: #ff4444">${symbols.join(' ')} - Вы проиграли $${slotsGame.bet}.</p>`;
+            }
+            
+            slotsGame.spinning = false;
+            
+            if (slotsGame.autoSpin) {
+                setTimeout(spinSlots, 1000);
+            } else {
+                slotsGame.bet = 0;
+            }
+        }
+
+        // Игра БЛЭКДЖЕК
+        function openBlackjackGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('blackjackGame').style.display = 'block';
+            resetBlackjackGame();
+        }
+
+        function resetBlackjackGame() {
+            blackjackGame.bet = 0;
+            blackjackGame.playerHand = [];
+            blackjackGame.dealerHand = [];
+            blackjackGame.gameStarted = false;
+            document.getElementById('blackjackBet').value = '';
+            document.getElementById('dealerScore').textContent = '0';
+            document.getElementById('playerScore').textContent = '0';
+            document.getElementById('blackjackStatus').innerHTML = '';
+            
+            document.getElementById('dealerCards').innerHTML = '';
+            document.getElementById('playerCards').innerHTML = '';
+            
+            document.getElementById('blackjackControls').style.display = 'none';
+        }
+
+        function startBlackjack() {
+            const bet = parseInt(document.getElementById('blackjackBet').value);
+            
+            if (!bet || bet < 10 || bet > balance) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            blackjackGame.bet = bet;
+            balance -= bet;
+            updateBalance();
+            blackjackGame.gameStarted = true;
+            
+            // Раздача карт
+            blackjackGame.playerHand = [getRandomCard(), getRandomCard()];
+            blackjackGame.dealerHand = [getRandomCard(), getRandomCard()];
+            
+            updateBlackjackDisplay();
+            document.getElementById('blackjackControls').style.display = 'flex';
+            
+            // Проверка на блэкджек
+            if (calculateScore(blackjackGame.playerHand) === 21) {
+                endBlackjackGame(true);
+            }
+        }
+
+        function getRandomCard() {
+            const cards = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+            return cards[Math.floor(Math.random() * cards.length)];
+        }
+
+        function calculateScore(hand) {
+            let score = 0;
+            let aces = 0;
+            
+            for (const card of hand) {
+                if (card === 'A') {
+                    score += 11;
+                    aces++;
+                } else if (['K', 'Q', 'J'].includes(card)) {
+                    score += 10;
+                } else {
+                    score += parseInt(card);
+                }
+            }
+            
+            // Учитываем тузы как 1, если перебор
+            while (score > 21 && aces > 0) {
+                score -= 10;
+                aces--;
+            }
+            
+            return score;
+        }
+
+        function updateBlackjackDisplay() {
+            const dealerCards = document.getElementById('dealerCards');
+            const playerCards = document.getElementById('playerCards');
+            
+            dealerCards.innerHTML = '';
+            playerCards.innerHTML = '';
+            
+            // Показываем только одну карту дилера, пока игра не закончена
+            if (blackjackGame.gameStarted) {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.textContent = blackjackGame.dealerHand[0];
+                dealerCards.appendChild(card);
+                
+                const hiddenCard = document.createElement('div');
+                hiddenCard.className = 'card';
+                hiddenCard.textContent = '?';
+                dealerCards.appendChild(hiddenCard);
+            } else {
+                blackjackGame.dealerHand.forEach(cardValue => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.textContent = cardValue;
+                    dealerCards.appendChild(card);
+                });
+            }
+            
+            // Показываем все карты игрока
+            blackjackGame.playerHand.forEach(cardValue => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.textContent = cardValue;
+                playerCards.appendChild(card);
+            });
+            
+            // Обновляем счет
+            document.getElementById('playerScore').textContent = calculateScore(blackjackGame.playerHand);
+            
+            if (!blackjackGame.gameStarted) {
+                document.getElementById('dealerScore').textContent = calculateScore(blackjackGame.dealerHand);
+            }
+        }
+
+        function hit() {
+            if (!blackjackGame.gameStarted) return;
+            
+            blackjackGame.playerHand.push(getRandomCard());
+            updateBlackjackDisplay();
+            
+            const playerScore = calculateScore(blackjackGame.playerHand);
+            if (playerScore > 21) {
+                endBlackjackGame(false);
+            }
+        }
+
+        function stand() {
+            if (!blackjackGame.gameStarted) return;
+            
+            blackjackGame.gameStarted = false;
+            
+            // Дилер добирает карты до 17
+            while (calculateScore(blackjackGame.dealerHand) < 17) {
+                blackjackGame.dealerHand.push(getRandomCard());
+            }
+            
+            updateBlackjackDisplay();
+            
+            const dealerScore = calculateScore(blackjackGame.dealerHand);
+            const playerScore = calculateScore(blackjackGame.playerHand);
+            
+            if (dealerScore > 21 || playerScore > dealerScore) {
+                endBlackjackGame(true);
+            } else if (playerScore < dealerScore) {
+                endBlackjackGame(false);
+            } else {
+                // Ничья
+                balance += blackjackGame.bet;
+                updateBalance();
+                document.getElementById('blackjackStatus').innerHTML = 
+                    '<p style="color: #ffd700">Ничья! Ваша ставка возвращена.</p>';
+            }
+        }
+
+        function endBlackjackGame(playerWon) {
+            blackjackGame.gameStarted = false;
+            updateBlackjackDisplay();
+            
+            if (playerWon) {
+                const playerScore = calculateScore(blackjackGame.playerHand);
+                const winMultiplier = playerScore === 21 ? 3 : 2;
+                const winAmount = blackjackGame.bet * winMultiplier;
+                
+                balance += winAmount;
+                updateBalance();
+                document.getElementById('blackjackStatus').innerHTML = 
+                    `<p style="color: #00ff00">Вы выиграли $${winAmount}!</p>`;
+            } else {
+                document.getElementById('blackjackStatus').innerHTML = 
+                    '<p style="color: #ff4444">Вы проиграли!</p>';
+            }
+            
+            document.getElementById('blackjackControls').style.display = 'none';
+        }
+
         // Общая логика закрытия окон
         window.onclick = function(event) {
             if (event.target == document.getElementById('modal')) {
                 closeModal();
             }
-            if (event.target == document.getElementById('minesGame') || 
-                event.target == document.getElementById('towerGame')) {
+            if (event.target.classList.contains('mines-container') || 
+                event.target.classList.contains('tower-container') ||
+                event.target.classList.contains('roulette-container') ||
+                event.target.classList.contains('dice-container') ||
+                event.target.classList.contains('slots-container') ||
+                event.target.classList.contains('blackjack-container')) {
                 event.target.style.display = 'none';
                 resetMinesGame();
                 resetTowerGame();
+                resetRouletteGame();
+                resetDiceGame();
+                resetSlotsGame();
+                resetBlackjackGame();
             }
         }
     </script>
 </body>
-</html>
+                    </html>
