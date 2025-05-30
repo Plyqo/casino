@@ -24,6 +24,7 @@
             padding: 20px 50px;
             background: rgba(0, 0, 0, 0.7);
             box-shadow: 0 0 20px rgba(255, 215, 0, 0.3);
+            position: relative;
         }
 
         .casino-name {
@@ -42,7 +43,12 @@
             text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
         }
 
-        .topup-btn {
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .topup-btn, .shop-btn, .inventory-btn {
             background: linear-gradient(45deg, #ffd700, #ffaa00);
             padding: 12px 30px;
             border: none;
@@ -54,7 +60,7 @@
             box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
         }
 
-        .topup-btn:hover {
+        .topup-btn:hover, .shop-btn:hover, .inventory-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
         }
@@ -116,13 +122,17 @@
             background: rgba(0, 0, 0, 0.8);
             justify-content: center;
             align-items: center;
+            z-index: 1000;
         }
 
         .modal-content {
             background: linear-gradient(45deg, #2a2a2a, #1a1a1a);
             padding: 30px;
             border-radius: 20px;
-            width: 400px;
+            width: 80%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
             text-align: center;
             position: relative;
             animation: modalShow 0.3s;
@@ -169,12 +179,8 @@
             box-shadow: 0 0 15px rgba(0, 255, 0, 0.3);
         }
 
-        .mines-container, 
-        .tower-container,
-        .roulette-container,
-        .dice-container,
-        .slots-container,
-        .blackjack-container {
+        /* Стили для игр */
+        .game-container {
             display: none;
             position: fixed;
             top: 50%;
@@ -190,94 +196,69 @@
             overflow-y: auto;
         }
 
-        .mines-grid {
+        /* Стили для магазина */
+        .shop-items {
             display: grid;
-            grid-template-columns: repeat(5, 60px);
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .mine-cell {
-            width: 60px;
-            height: 60px;
-            background: #2a2a2a;
-            border: 2px solid #ffd700;
-            border-radius: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-size: 1.5em;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-
-        .mine-cell:hover {
-            background: #3a3a3a;
-        }
-
-        .mine-cell.revealed {
-            background: #1a1a1a;
-            cursor: default;
-        }
-
-        .mine-cell.mine {
-            background: #ff4444 !important;
-            animation: explode 0.5s;
-        }
-
-        @keyframes explode {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-
-        .game-controls {
-            text-align: center;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
             margin-top: 20px;
         }
 
-        .bet-input {
-            padding: 10px;
-            margin: 10px;
-            width: 200px;
+        .shop-item {
             background: rgba(255, 255, 255, 0.1);
-            border: none;
-            border-radius: 8px;
-            color: white;
-        }
-
-        .multiplier-display {
-            font-size: 1.2em;
-            color: #ffd700;
-            margin: 15px 0;
-        }
-
-        .tower-floors {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin: 20px 0;
-        }
-
-        .floor {
-            padding: 15px 30px;
-            background: #2a2a2a;
-            border: 2px solid #00ff00;
-            border-radius: 8px;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            transition: 0.3s;
             cursor: pointer;
-            transition: 0.2s;
         }
 
-        .floor:hover {
-            background: #3a3a3a;
+        .shop-item:hover {
+            transform: scale(1.05);
+            background: rgba(255, 255, 255, 0.2);
         }
 
-        .floor.active {
-            background: #00ff00;
-            color: #1a1a1a;
+        .shop-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
         }
 
-        /* Рулетка */
+        .shop-item button {
+            background: linear-gradient(45deg, #ffd700, #ffaa00);
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+
+        /* Стили для инвентаря */
+        .inventory-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .inventory-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .inventory-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+
+        /* Стили для рулетки */
         .roulette-wheel {
             width: 300px;
             height: 300px;
@@ -298,16 +279,6 @@
             left: 50%;
             transform: translate(-50%, -50%);
             z-index: 2;
-        }
-
-        .roulette-number {
-            position: absolute;
-            width: 30px;
-            height: 30px;
-            text-align: center;
-            line-height: 30px;
-            border-radius: 50%;
-            font-weight: bold;
         }
 
         .roulette-bets {
@@ -335,7 +306,7 @@
             color: #1a1a1a;
         }
 
-        /* Кости */
+        /* Стили для костей */
         .dice-area {
             display: flex;
             justify-content: center;
@@ -355,7 +326,7 @@
             color: black;
         }
 
-        /* Слоты */
+        /* Стили для слотов */
         .slots-reels {
             display: flex;
             gap: 10px;
@@ -382,7 +353,7 @@
             position: absolute;
         }
 
-        /* Блэкджек */
+        /* Стили для блэкджека */
         .blackjack-area {
             display: flex;
             flex-direction: column;
@@ -413,16 +384,199 @@
             gap: 10px;
             justify-content: center;
         }
+
+        /* Стили для новых игр */
+        /* Покер */
+        .poker-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .poker-cards {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .poker-card {
+            width: 80px;
+            height: 120px;
+            background: white;
+            border-radius: 5px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: black;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .poker-card.selected {
+            transform: translateY(-10px);
+            box-shadow: 0 0 10px gold;
+        }
+
+        .poker-controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        /* Крестики-нолики */
+        .tic-tac-toe-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 100px);
+            grid-template-rows: repeat(3, 100px);
+            gap: 5px;
+            margin: 20px auto;
+        }
+
+        .tic-tac-toe-cell {
+            background: #2a2a2a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3em;
+            cursor: pointer;
+        }
+
+        /* Викторина */
+        .quiz-question {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+        }
+
+        .quiz-answers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .quiz-answer {
+            padding: 15px;
+            background: #2a2a2a;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .quiz-answer:hover {
+            background: #3a3a3a;
+        }
+
+        /* Лотерея */
+        .lottery-numbers {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .lottery-number {
+            width: 50px;
+            height: 50px;
+            background: white;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: black;
+            font-weight: bold;
+        }
+
+        /* Виртуальные скачки */
+        .race-track {
+            width: 100%;
+            height: 200px;
+            background: #1a1a1a;
+            margin: 20px 0;
+            position: relative;
+            overflow: hidden;
+            border: 2px solid #ffd700;
+        }
+
+        .horse {
+            width: 50px;
+            height: 50px;
+            position: absolute;
+            left: 10px;
+            transition: left 0.1s linear;
+            font-size: 2em;
+        }
+
+        /* Виртуальный футбол */
+        .football-field {
+            width: 400px;
+            height: 250px;
+            background: #009900;
+            margin: 20px auto;
+            position: relative;
+            border: 2px solid white;
+        }
+
+        .football-player {
+            width: 30px;
+            height: 30px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            font-size: 1.5em;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .football-ball {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        /* Виртуальный баскетбол */
+        .basketball-court {
+            width: 300px;
+            height: 200px;
+            background: #cc7722;
+            margin: 20px auto;
+            position: relative;
+            border: 2px solid white;
+        }
+
+        .basketball-hoop {
+            width: 60px;
+            height: 5px;
+            background: red;
+            position: absolute;
+            top: 20px;
+            right: 50px;
+        }
+
+        .basketball-ball {
+            width: 20px;
+            height: 20px;
+            background: orange;
+            border-radius: 50%;
+            position: absolute;
+        }
     </style>
 </head>
 <body>
     <div class="header">
         <div class="casino-name">DODEP CASINO</div>
         <div class="balance">Баланс: $<span id="balance">0</span></div>
-        <button class="topup-btn" onclick="openModal()">ПОПОЛНИТЬ</button>
+        <div class="header-buttons">
+            <button class="shop-btn" onclick="openShop()">МАГАЗИН</button>
+            <button class="inventory-btn" onclick="openInventory()">МОИ ВЛАДЕНИЯ</button>
+            <button class="topup-btn" onclick="openModal()">ПОПОЛНИТЬ</button>
+        </div>
     </div>
 
     <div class="games-container">
+        <!-- Основные игры -->
         <div class="game-card" onclick="openMinesGame()">
             <h2>🕹️ МИНЫ</h2>
             <p>Нажмите чтобы начать игру</p>
@@ -483,7 +637,6 @@
                 <p>- BAR: x10</p>
                 <p>- Вишня: x5</p>
                 <p>- Лимон: x3</p>
-                <p>Автоматическое вращение доступно</p>
             </div>
         </div>
         <div class="game-card" onclick="openBlackjackGame()">
@@ -498,8 +651,102 @@
                 <p>Игра с дилером, можно играть долго</p>
             </div>
         </div>
+        
+        <!-- Новые игры -->
+        <div class="game-card" onclick="openPokerGame()">
+            <h2>♠️ ПОКЕР</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Покер":</h3>
+                <p>1. Сделайте ставку и начните игру</p>
+                <p>2. Получите 5 карт</p>
+                <p>3. Выберите карты для замены</p>
+                <p>4. Получите новые карты вместо замененных</p>
+                <p>5. Выигрыш зависит от комбинации</p>
+                <p>Можно играть много раундов</p>
+            </div>
+        </div>
+        <div class="game-card" onclick="openTicTacToeGame()">
+            <h2>❌⭕ КРЕСТИКИ-НОЛИКИ</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Крестики-нолики":</h3>
+                <p>1. Сделайте ставку и начните игру</p>
+                <p>2. Игра против компьютера</p>
+                <p>3. Победа: x2 ставки</p>
+                <p>4. Ничья: возврат ставки</p>
+                <p>5. Проигрыш: потеря ставки</p>
+                <p>Можно играть много партий</p>
+            </div>
+        </div>
+        <div class="game-card" onclick="openQuizGame()">
+            <h2>📚 ВИКТОРИНА</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Викторина":</h3>
+                <p>1. Сделайте ставку и начните игру</p>
+                <p>2. Ответьте на 10 вопросов</p>
+                <p>3. За каждый правильный ответ +10% к ставке</p>
+                <p>4. За 10 правильных ответов: x2 ставки</p>
+                <p>Можно играть много раундов</p>
+            </div>
+        </div>
+        <div class="game-card" onclick="openLotteryGame()">
+            <h2>🎫 ЛОТЕРЕЯ</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Лотерея":</h3>
+                <p>1. Сделайте ставку и выберите 6 чисел</p>
+                <p>2. Если угадаете:</p>
+                <p>- 3 числа: x2</p>
+                <p>- 4 числа: x10</p>
+                <p>- 5 чисел: x50</p>
+                <p>- 6 чисел: x1000</p>
+                <p>Можно играть много тиражей</p>
+            </div>
+        </div>
+        <div class="game-card" onclick="openRaceGame()">
+            <h2>🏇 СКАЧКИ</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Скачки":</h3>
+                <p>1. Сделайте ставку и выберите лошадь</p>
+                <p>2. Наблюдайте за гонкой</p>
+                <p>3. Если ваша лошадь придет первой: x5</p>
+                <p>4. Второй: x2</p>
+                <p>5. Третьей: возврат ставки</p>
+                <p>Реалистичная симуляция скачек</p>
+            </div>
+        </div>
+        <div class="game-card" onclick="openFootballGame()">
+            <h2>⚽ ФУТБОЛ</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Футбол":</h3>
+                <p>1. Сделайте ставку и выберите команду</p>
+                <p>2. Наблюдайте за матчем</p>
+                <p>3. Если ваша команда выиграет: x3</p>
+                <p>4. Ничья: возврат ставки</p>
+                <p>5. Проигрыш: потеря ставки</p>
+                <p>Реалистичная симуляция матча</p>
+            </div>
+        </div>
+        <div class="game-card" onclick="openBasketballGame()">
+            <h2>🏀 БАСКЕТБОЛ</h2>
+            <p>Нажмите чтобы начать игру</p>
+            <div class="game-tooltip">
+                <h3>Правила игры "Баскетбол":</h3>
+                <p>1. Сделайте ставку и выберите команду</p>
+                <p>2. Наблюдайте за матчем</p>
+                <p>3. Если ваша команда выиграет: x3</p>
+                <p>4. Ничья: возврат ставки</p>
+                <p>5. Проигрыш: потеря ставки</p>
+                <p>Реалистичная симуляция матча</p>
+            </div>
+        </div>
     </div>
 
+    <!-- Модальное окно пополнения баланса -->
     <div id="modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="closeModal()">&times;</span>
@@ -510,7 +757,30 @@
         </div>
     </div>
 
-    <div class="mines-container" id="minesGame">
+    <!-- Модальное окно магазина -->
+    <div id="shopModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeShop()">&times;</span>
+            <h2>МАГАЗИН</h2>
+            <div class="shop-items" id="shopItems">
+                <!-- Товары будут добавлены через JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно инвентаря -->
+    <div id="inventoryModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeInventory()">&times;</span>
+            <h2>МОИ ВЛАДЕНИЯ</h2>
+            <div class="inventory-items" id="inventoryItems">
+                <!-- Купленные предметы будут добавлены через JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Окна игр -->
+    <div class="game-container" id="minesGame">
         <div class="game-controls">
             <input type="number" class="bet-input" id="betAmount" placeholder="Ваша ставка">
             <button class="submit-btn" onclick="startMinesGame()">Начать игру</button>
@@ -521,7 +791,7 @@
         <div id="gameStatus"></div>
     </div>
 
-    <div class="tower-container" id="towerGame">
+    <div class="game-container" id="towerGame">
         <div class="game-controls">
             <input type="number" class="bet-input" id="towerBet" placeholder="Ваша ставка">
             <button class="submit-btn" onclick="startTowerGame()">Начать игру</button>
@@ -532,7 +802,7 @@
         <div id="towerStatus"></div>
     </div>
 
-    <div class="roulette-container" id="rouletteGame">
+    <div class="game-container" id="rouletteGame">
         <div class="game-controls">
             <input type="number" class="bet-input" id="rouletteBet" placeholder="Ваша ставка">
             <button class="submit-btn" onclick="placeRouletteBet()">Сделать ставку</button>
@@ -557,7 +827,7 @@
         <div id="rouletteStatus"></div>
     </div>
 
-    <div class="dice-container" id="diceGame">
+    <div class="game-container" id="diceGame">
         <div class="game-controls">
             <input type="number" class="bet-input" id="diceBet" placeholder="Ваша ставка">
             <input type="number" class="bet-input" id="diceNumber" placeholder="Число (1-6)" min="1" max="6">
@@ -574,11 +844,10 @@
         <div id="diceStatus"></div>
     </div>
 
-    <div class="slots-container" id="slotsGame">
+    <div class="game-container" id="slotsGame">
         <div class="game-controls">
             <input type="number" class="bet-input" id="slotsBet" placeholder="Ваша ставка">
             <button class="submit-btn" onclick="spinSlots()">Крутить</button>
-            <button class="topup-btn" onclick="toggleAutoSpin()" style="margin-left: 10px;">Авто (Вкл/Выкл)</button>
         </div>
         <div class="multiplier-display">Выигрыш: <span id="slotsWin">0</span></div>
         
@@ -596,7 +865,7 @@
         <div id="slotsStatus"></div>
     </div>
 
-    <div class="blackjack-container" id="blackjackGame">
+    <div class="game-container" id="blackjackGame">
         <div class="game-controls">
             <input type="number" class="bet-input" id="blackjackBet" placeholder="Ваша ставка">
             <button class="submit-btn" onclick="startBlackjack()">Начать игру</button>
@@ -619,53 +888,154 @@
         <div id="blackjackStatus"></div>
     </div>
 
+    <!-- Новые игры -->
+    <div class="game-container" id="pokerGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="pokerBet" placeholder="Ваша ставка">
+            <button class="submit-btn" onclick="startPokerGame()">Начать игру</button>
+        </div>
+        <div class="multiplier-display">Комбинация: <span id="pokerHand">-</span></div>
+        <div class="multiplier-display">Множитель: <span id="pokerMultiplier">0x</span></div>
+        
+        <div class="poker-area">
+            <div class="poker-cards" id="pokerCards"></div>
+            <div class="poker-controls" id="pokerControls">
+                <button class="submit-btn" onclick="drawPokerCards()">Заменить выбранные</button>
+            </div>
+        </div>
+        <div id="pokerStatus"></div>
+    </div>
+
+    <div class="game-container" id="ticTacToeGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="ticTacToeBet" placeholder="Ваша ставка">
+            <button class="submit-btn" onclick="startTicTacToeGame()">Начать игру</button>
+        </div>
+        <div class="multiplier-display">Ход: <span id="ticTacToeTurn">Ваш</span></div>
+        
+        <div class="tic-tac-toe-grid" id="ticTacToeGrid"></div>
+        <div id="ticTacToeStatus"></div>
+    </div>
+
+    <div class="game-container" id="quizGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="quizBet" placeholder="Ваша ставка">
+            <button class="submit-btn" onclick="startQuizGame()">Начать игру</button>
+        </div>
+        <div class="multiplier-display">Вопрос: <span id="quizProgress">0/10</span></div>
+        <div class="multiplier-display">Множитель: <span id="quizMultiplier">1x</span></div>
+        
+        <div class="quiz-area" id="quizArea">
+            <div class="quiz-question" id="quizQuestion"></div>
+            <div class="quiz-answers" id="quizAnswers"></div>
+        </div>
+        <div id="quizStatus"></div>
+    </div>
+
+    <div class="game-container" id="lotteryGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="lotteryBet" placeholder="Ваша ставка">
+            <button class="submit-btn" onclick="startLotteryGame()">Начать игру</button>
+        </div>
+        <div class="multiplier-display">Ваши числа: <span id="lotteryUserNumbers"></span></div>
+        <div class="multiplier-display">Выигрышные: <span id="lotteryWinNumbers"></span></div>
+        <div class="multiplier-display">Совпадений: <span id="lotteryMatches">0</span></div>
+        
+        <div class="lottery-numbers" id="lotteryNumbers"></div>
+        <div id="lotteryStatus"></div>
+    </div>
+
+    <div class="game-container" id="raceGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="raceBet" placeholder="Ваша ставка">
+            <select id="raceHorse" class="bet-input">
+                <option value="1">Лошадь 1</option>
+                <option value="2">Лошадь 2</option>
+                <option value="3">Лошадь 3</option>
+                <option value="4">Лошадь 4</option>
+                <option value="5">Лошадь 5</option>
+            </select>
+            <button class="submit-btn" onclick="startRaceGame()">Начать забег</button>
+        </div>
+        <div class="multiplier-display">Выбранная лошадь: <span id="selectedHorse">-</span></div>
+        <div class="multiplier-display">Позиция: <span id="horsePosition">-</span></div>
+        
+        <div class="race-track" id="raceTrack">
+            <div class="horse" id="horse1">🐎</div>
+            <div class="horse" id="horse2">🐎</div>
+            <div class="horse" id="horse3">🐎</div>
+            <div class="horse" id="horse4">🐎</div>
+            <div class="horse" id="horse5">🐎</div>
+        </div>
+        <div id="raceStatus"></div>
+    </div>
+
+    <div class="game-container" id="footballGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="footballBet" placeholder="Ваша ставка">
+            <select id="footballTeam" class="bet-input">
+                <option value="1">Команда A</option>
+                <option value="2">Команда B</option>
+            </select>
+            <button class="submit-btn" onclick="startFootballGame()">Начать матч</button>
+        </div>
+        <div class="multiplier-display">Счет: <span id="footballScore">0:0</span></div>
+        <div class="multiplier-display">Время: <span id="footballTime">0'</span></div>
+        
+        <div class="football-field" id="footballField">
+            <div class="football-player" style="top: 50px; left: 100px;">A1</div>
+            <div class="football-player" style="top: 100px; left: 150px;">A2</div>
+            <div class="football-ball" style="top: 120px; left: 160px;"></div>
+            <div class="football-player" style="top: 150px; left: 250px;">B1</div>
+            <div class="football-player" style="top: 80px; left: 300px;">B2</div>
+        </div>
+        <div id="footballStatus"></div>
+    </div>
+
+    <div class="game-container" id="basketballGame">
+        <div class="game-controls">
+            <input type="number" class="bet-input" id="basketballBet" placeholder="Ваша ставка">
+            <select id="basketballTeam" class="bet-input">
+                <option value="1">Команда A</option>
+                <option value="2">Команда B</option>
+            </select>
+            <button class="submit-btn" onclick="startBasketballGame()">Начать матч</button>
+        </div>
+        <div class="multiplier-display">Счет: <span id="basketballScore">0:0</span></div>
+        <div class="multiplier-display">Время: <span id="basketballTime">0'</span></div>
+        
+        <div class="basketball-court" id="basketballCourt">
+            <div class="basketball-hoop"></div>
+            <div class="basketball-ball" style="top: 100px; left: 150px;"></div>
+        </div>
+        <div id="basketballStatus"></div>
+    </div>
+
     <script>
         // Локальное хранилище
         let balance = localStorage.getItem('balance') ? parseInt(localStorage.getItem('balance')) : 1000;
         document.getElementById('balance').textContent = balance;
 
-        let minesGame = JSON.parse(localStorage.getItem('minesGame')) || {
-            isPlaying: false,
-            bet: 0,
-            multiplier: 1,
-            mines: [],
-            openedCells: 0
-        };
-
-        let towerGame = JSON.parse(localStorage.getItem('towerGame')) || {
-            isPlaying: false,
-            bet: 0,
-            currentFloor: 1,
-            multiplier: 1
-        };
-
-        let rouletteGame = {
-            bet: 0,
-            betType: null,
-            numbers: [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26],
-            colors: ['green', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black'],
-            spinning: false
-        };
-
-        let diceGame = {
-            bet: 0,
-            selectedNumber: null,
-            rolling: false
-        };
-
-        let slotsGame = {
-            bet: 0,
-            autoSpin: false,
-            spinning: false,
-            symbols: ['🍒', '🍋', '🍊', '🍇', '🍉', '🅱️', '7️⃣']
-        };
-
-        let blackjackGame = {
-            bet: 0,
-            playerHand: [],
-            dealerHand: [],
-            gameStarted: false
-        };
+        // Инвентарь
+        let inventory = JSON.parse(localStorage.getItem('inventory')) || [];
+        
+        // Магазин
+        const shopItems = [
+            { id: 1, name: "Маленький дом", price: 50000, image: "https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=200" },
+            { id: 2, name: "Квартира", price: 100000, image: "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=200" },
+            { id: 3, name: "Вилла", price: 500000, image: "https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=200" },
+            { id: 4, name: "Кот", price: 10000, image: "https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?w=200" },
+            { id: 5, name: "Собака", price: 15000, image: "https://images.unsplash.com/photo-1586671267731-da2cf3ceeb80?w=200" },
+            { id: 6, name: "Лошадь", price: 50000, image: "https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=200" },
+            { id: 7, name: "Велосипед", price: 5000, image: "https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=200" },
+            { id: 8, name: "Автомобиль", price: 200000, image: "https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?w=200" },
+            { id: 9, name: "Яхта", price: 1000000, image: "https://images.unsplash.com/photo-1504851149312-7a075b496cc7?w=200" },
+            { id: 10, name: "Самолет", price: 5000000, image: "https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=200" },
+            { id: 11, name: "Кафе", price: 300000, image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=200" },
+            { id: 12, name: "Ресторан", price: 700000, image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=200" },
+            { id: 13, name: "Отель", price: 2000000, image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=200" },
+            { id: 14, name: "Остров", price: 10000000, image: "https://images.unsplash.com/photo-1505228395891-9a51e7e86bf6?w=200" }
+        ];
 
         // Общие функции
         function updateBalance() {
@@ -701,115 +1071,99 @@
             alert(`Баланс успешно пополнен на $${amount}!`);
         }
 
-        // Игра МИНЫ
-        function openMinesGame() {
-            if (balance < 10) {
-                alert('Минимальный баланс для игры: $10');
-                return;
-            }
-            document.getElementById('minesGame').style.display = 'block';
-            resetMinesGame();
-        }
-
-        function resetMinesGame() {
-            minesGame.isPlaying = false;
-            generateGrid();
-            document.getElementById('betAmount').value = '';
-            document.getElementById('gameStatus').innerHTML = '';
-            document.getElementById('multiplier').textContent = '1x';
-            localStorage.setItem('minesGame', JSON.stringify(minesGame));
-        }
-
-        function generateGrid() {
-            const grid = document.getElementById('minesGrid');
-            grid.innerHTML = '';
+        // Магазин
+        function openShop() {
+            const shopItemsContainer = document.getElementById('shopItems');
+            shopItemsContainer.innerHTML = '';
             
-            for (let i = 0; i < 25; i++) {
-                const cell = document.createElement('div');
-                cell.className = 'mine-cell';
-                cell.setAttribute('data-index', i);
-                cell.onclick = () => openCell(i);
-                grid.appendChild(cell);
-            }
+            shopItems.forEach(item => {
+                const shopItem = document.createElement('div');
+                shopItem.className = 'shop-item';
+                shopItem.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <h3>${item.name}</h3>
+                    <p>Цена: $${item.price}</p>
+                    <button onclick="buyItem(${item.id})">Купить</button>
+                `;
+                shopItemsContainer.appendChild(shopItem);
+            });
+            
+            document.getElementById('shopModal').style.display = 'flex';
         }
 
-        function startMinesGame() {
-            const bet = parseInt(document.getElementById('betAmount').value);
+        function closeShop() {
+            document.getElementById('shopModal').style.display = 'none';
+        }
+
+        function buyItem(itemId) {
+            const item = shopItems.find(i => i.id === itemId);
             
-            if (!bet || bet < 10 || bet > balance) {
-                alert('Введите корректную ставку (мин. $10)');
+            if (!item) {
+                alert('Товар не найден!');
                 return;
             }
             
-            minesGame.bet = bet;
-            minesGame.isPlaying = true;
-            balance -= bet;
+            if (balance < item.price) {
+                alert('Недостаточно средств!');
+                return;
+            }
+            
+            if (inventory.some(i => i.id === itemId)) {
+                alert('У вас уже есть этот предмет!');
+                return;
+            }
+            
+            balance -= item.price;
             updateBalance();
             
-            minesGame.mines = [];
-            while (minesGame.mines.length < 5) {
-                const random = Math.floor(Math.random() * 25);
-                if (!minesGame.mines.includes(random)) {
-                    minesGame.mines.push(random);
-                }
+            inventory.push(item);
+            localStorage.setItem('inventory', JSON.stringify(inventory));
+            
+            alert(`Вы успешно купили ${item.name} за $${item.price}!`);
+            updateInventory();
+        }
+
+        // Инвентарь
+        function openInventory() {
+            updateInventory();
+            document.getElementById('inventoryModal').style.display = 'flex';
+        }
+
+        function closeInventory() {
+            document.getElementById('inventoryModal').style.display = 'none';
+        }
+
+        function updateInventory() {
+            const inventoryContainer = document.getElementById('inventoryItems');
+            inventoryContainer.innerHTML = '';
+            
+            if (inventory.length === 0) {
+                inventoryContainer.innerHTML = '<p>Ваш инвентарь пуст</p>';
+                return;
             }
-            localStorage.setItem('minesGame', JSON.stringify(minesGame));
-        }
-
-        function openCell(index) {
-            if (!minesGame.isPlaying || 
-                document.getElementById('minesGrid').children[index].classList.contains('revealed')) return;
             
-            const cell = document.getElementById('minesGrid').children[index];
-            cell.classList.add('revealed');
-            
-            if (minesGame.mines.includes(index)) {
-                cell.classList.add('mine');
-                cell.innerHTML = '💣';
-                endGame(false);
-            } else {
-                minesGame.openedCells++;
-                // Уменьшенный множитель
-                minesGame.multiplier = (1 + (minesGame.openedCells * 0.05)).toFixed(2);
-                document.getElementById('multiplier').textContent = `${minesGame.multiplier}x`;
-                cell.innerHTML = '💎';
-                localStorage.setItem('minesGame', JSON.stringify(minesGame));
-            }
-        }
-
-        function cashOut() {
-            if (!minesGame.isPlaying) return;
-            
-            const winAmount = Math.floor(minesGame.bet * minesGame.multiplier);
-            balance += winAmount;
-            updateBalance();
-            endGame(true);
-            alert(`Вы успешно забрали $${winAmount}!`);
-        }
-
-        function endGame(won) {
-            minesGame.isPlaying = false;
-            revealAllMines();
-            
-            if (!won) {
-                document.getElementById('gameStatus').innerHTML = 
-                    '<p style="color: #ff4444">Вы проиграли!</p>';
-                setTimeout(resetMinesGame, 2000);
-            }
-            localStorage.setItem('minesGame', JSON.stringify(minesGame));
-        }
-
-        function revealAllMines() {
-            minesGame.mines.forEach(index => {
-                const cell = document.getElementById('minesGrid').children[index];
-                if (!cell.classList.contains('mine')) {
-                    cell.classList.add('mine');
-                    cell.innerHTML = '💣';
-                }
+            inventory.forEach(item => {
+                const inventoryItem = document.createElement('div');
+                inventoryItem.className = 'inventory-item';
+                inventoryItem.innerHTML = `
+                    <img src="${item.image}" alt="${item.name}">
+                    <h3>${item.name}</h3>
+                `;
+                inventoryContainer.appendChild(inventoryItem);
             });
         }
 
+        // Игра МИНЫ
+     
+
         // Игра БАШНЯ
+        let towerGame = {
+            isPlaying: false,
+            bet: 0,
+            currentFloor: 1,
+            multiplier: 1
+        };
+
         function openTowerGame() {
             if (balance < 10) {
                 alert('Минимальный баланс для игры: $10');
@@ -826,7 +1180,6 @@
             document.getElementById('towerStatus').innerHTML = '';
             document.getElementById('currentFloor').textContent = '1';
             document.getElementById('towerMultiplier').textContent = '1x';
-            localStorage.setItem('towerGame', JSON.stringify(towerGame));
         }
 
         function generateFloors() {
@@ -857,13 +1210,11 @@
             towerGame.currentFloor = 1;
             towerGame.multiplier = 1;
             updateTowerDisplay();
-            localStorage.setItem('towerGame', JSON.stringify(towerGame));
         }
 
         function selectFloor(floor) {
             if (!towerGame.isPlaying) return;
             
-            // Уменьшенный шанс успеха
             const success = Math.random() < 0.7 - (floor * 0.08);
             
             if (success) {
@@ -879,7 +1230,6 @@
                     `<p style="color: #ff4444">Этаж ${floor} провален!</p>`;
                 resetTowerGame();
             }
-            localStorage.setItem('towerGame', JSON.stringify(towerGame));
         }
 
         function updateTowerDisplay() {
@@ -888,6 +1238,14 @@
         }
 
         // Игра РУЛЕТКА
+        let rouletteGame = {
+            bet: 0,
+            betType: null,
+            numbers: [0, 32, 15, 19, 4, 21, 2, 25, 17, 34, 6, 27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33, 1, 20, 14, 31, 9, 22, 18, 29, 7, 28, 12, 35, 3, 26],
+            colors: ['green', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black', 'red', 'black'],
+            spinning: false
+        };
+
         function openRouletteGame() {
             if (balance < 10) {
                 alert('Минимальный баланс для игры: $10');
@@ -905,7 +1263,6 @@
             document.getElementById('rouletteWin').textContent = '0';
             document.getElementById('rouletteStatus').innerHTML = '';
             
-            // Сброс выбранных ставок
             document.querySelectorAll('.bet-option').forEach(option => {
                 option.classList.remove('selected');
             });
@@ -915,7 +1272,6 @@
             rouletteGame.betType = type;
             document.getElementById('rouletteBetType').textContent = getBetTypeName(type);
             
-            // Подсветка выбранной ставки
             document.querySelectorAll('.bet-option').forEach(option => {
                 option.classList.remove('selected');
             });
@@ -962,7 +1318,6 @@
             const wheel = document.querySelector('.roulette-wheel');
             const ball = document.querySelector('.roulette-ball');
             
-            // Анимация вращения
             let spins = 0;
             const maxSpins = 3 + Math.floor(Math.random() * 3);
             const spinInterval = setInterval(() => {
@@ -980,13 +1335,12 @@
         }
 
         function finishRouletteSpin() {
-            const winningNumber = Math.floor(Math.random() * 37); // 0-36
+            const winningNumber = Math.floor(Math.random() * 37);
             const winningColor = rouletteGame.colors[rouletteGame.numbers.indexOf(winningNumber)];
             
             let winMultiplier = 0;
             let winMessage = `Выпало: ${winningNumber} (${winningColor})`;
             
-            // Проверка выигрыша
             switch(rouletteGame.betType) {
                 case 'red':
                     if (winningColor === 'red') winMultiplier = 2;
@@ -1029,6 +1383,12 @@
         }
 
         // Игра КОСТИ
+        let diceGame = {
+            bet: 0,
+            selectedNumber: null,
+            rolling: false
+        };
+
         function openDiceGame() {
             if (balance < 10) {
                 alert('Минимальный баланс для игры: $10');
@@ -1128,6 +1488,12 @@
         }
 
         // Игра СЛОТЫ
+        let slotsGame = {
+            bet: 0,
+            spinning: false,
+            symbols: ['🍒', '🍋', '🍊', '🍇', '🍉', 'BAR', '7']
+        };
+
         function openSlotsGame() {
             if (balance < 10) {
                 alert('Минимальный баланс для игры: $10');
@@ -1139,7 +1505,6 @@
 
         function resetSlotsGame() {
             slotsGame.bet = 0;
-            slotsGame.autoSpin = false;
             document.getElementById('slotsBet').value = '';
             document.getElementById('slotsWin').textContent = '0';
             document.getElementById('slotsStatus').innerHTML = '';
@@ -1150,28 +1515,17 @@
             });
         }
 
-        function toggleAutoSpin() {
-            slotsGame.autoSpin = !slotsGame.autoSpin;
-            if (slotsGame.autoSpin && slotsGame.bet > 0) {
-                spinSlots();
-            }
-        }
-
         function spinSlots() {
             const bet = parseInt(document.getElementById('slotsBet').value);
             
-            if (!slotsGame.autoSpin && (!bet || bet < 10 || bet > balance)) {
+            if (!bet || bet < 10 || bet > balance || slotsGame.spinning) {
                 alert('Введите корректную ставку (мин. $10)');
                 return;
             }
             
-            if (slotsGame.spinning) return;
-            
-            if (!slotsGame.autoSpin || slotsGame.bet === 0) {
-                slotsGame.bet = bet;
-                balance -= bet;
-                updateBalance();
-            }
+            slotsGame.bet = bet;
+            balance -= bet;
+            updateBalance();
             
             slotsGame.spinning = true;
             const reels = document.querySelectorAll('.reel-item');
@@ -1198,7 +1552,6 @@
             const reels = document.querySelectorAll('.reel-item');
             const symbols = Array.from(reels).map(reel => reel.textContent);
             
-            // Проверка выигрыша
             let winMultiplier = 0;
             if (symbols[0] === symbols[1] && symbols[1] === symbols[2]) {
                 switch(symbols[0]) {
@@ -1222,15 +1575,17 @@
             }
             
             slotsGame.spinning = false;
-            
-            if (slotsGame.autoSpin) {
-                setTimeout(spinSlots, 1000);
-            } else {
-                slotsGame.bet = 0;
-            }
+            slotsGame.bet = 0;
         }
 
         // Игра БЛЭКДЖЕК
+        let blackjackGame = {
+            bet: 0,
+            playerHand: [],
+            dealerHand: [],
+            gameStarted: false
+        };
+
         function openBlackjackGame() {
             if (balance < 10) {
                 alert('Минимальный баланс для игры: $10');
@@ -1269,14 +1624,12 @@
             updateBalance();
             blackjackGame.gameStarted = true;
             
-            // Раздача карт
             blackjackGame.playerHand = [getRandomCard(), getRandomCard()];
             blackjackGame.dealerHand = [getRandomCard(), getRandomCard()];
             
             updateBlackjackDisplay();
             document.getElementById('blackjackControls').style.display = 'flex';
             
-            // Проверка на блэкджек
             if (calculateScore(blackjackGame.playerHand) === 21) {
                 endBlackjackGame(true);
             }
@@ -1302,7 +1655,6 @@
                 }
             }
             
-            // Учитываем тузы как 1, если перебор
             while (score > 21 && aces > 0) {
                 score -= 10;
                 aces--;
@@ -1318,7 +1670,6 @@
             dealerCards.innerHTML = '';
             playerCards.innerHTML = '';
             
-            // Показываем только одну карту дилера, пока игра не закончена
             if (blackjackGame.gameStarted) {
                 const card = document.createElement('div');
                 card.className = 'card';
@@ -1338,7 +1689,6 @@
                 });
             }
             
-            // Показываем все карты игрока
             blackjackGame.playerHand.forEach(cardValue => {
                 const card = document.createElement('div');
                 card.className = 'card';
@@ -1346,7 +1696,6 @@
                 playerCards.appendChild(card);
             });
             
-            // Обновляем счет
             document.getElementById('playerScore').textContent = calculateScore(blackjackGame.playerHand);
             
             if (!blackjackGame.gameStarted) {
@@ -1371,7 +1720,6 @@
             
             blackjackGame.gameStarted = false;
             
-            // Дилер добирает карты до 17
             while (calculateScore(blackjackGame.dealerHand) < 17) {
                 blackjackGame.dealerHand.push(getRandomCard());
             }
@@ -1386,7 +1734,6 @@
             } else if (playerScore < dealerScore) {
                 endBlackjackGame(false);
             } else {
-                // Ничья
                 balance += blackjackGame.bet;
                 updateBalance();
                 document.getElementById('blackjackStatus').innerHTML = 
@@ -1415,17 +1762,682 @@
             document.getElementById('blackjackControls').style.display = 'none';
         }
 
+        // Игра ПОКЕР
+
+        // Игра КРЕСТИКИ-НОЛИКИ
+        let ticTacToeGame = {
+            bet: 0,
+            board: ['', '', '', '', '', '', '', '', ''],
+            currentPlayer: 'X',
+            gameStarted: false
+        };
+
+        function openTicTacToeGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('ticTacToeGame').style.display = 'block';
+            resetTicTacToeGame();
+        }
+
+        function resetTicTacToeGame() {
+            ticTacToeGame.bet = 0;
+            ticTacToeGame.board = ['', '', '', '', '', '', '', '', ''];
+            ticTacToeGame.currentPlayer = 'X';
+            ticTacToeGame.gameStarted = false;
+            document.getElementById('ticTacToeBet').value = '';
+            document.getElementById('ticTacToeTurn').textContent = 'Ваш';
+            document.getElementById('ticTacToeStatus').innerHTML = '';
+            
+            const grid = document.getElementById('ticTacToeGrid');
+            grid.innerHTML = '';
+            
+            for (let i = 0; i < 9; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'tic-tac-toe-cell';
+                cell.setAttribute('data-index', i);
+                cell.onclick = () => makeMove(i);
+                grid.appendChild(cell);
+            }
+        }
+
+        function startTicTacToeGame() {
+            const bet = parseInt(document.getElementById('ticTacToeBet').value);
+            
+            if (!bet || bet < 10 || bet > balance) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            ticTacToeGame.bet = bet;
+            balance -= bet;
+            updateBalance();
+            ticTacToeGame.gameStarted = true;
+            
+            document.getElementById('ticTacToeTurn').textContent = 'Ваш';
+        }
+
+        function makeMove(index) {
+            if (!ticTacToeGame.gameStarted || ticTacToeGame.board[index] !== '' || 
+                ticTacToeGame.currentPlayer !== 'X') return;
+            
+            ticTacToeGame.board[index] = 'X';
+            updateTicTacToeBoard();
+            
+            if (checkWinner('X')) {
+                endTicTacToeGame('X');
+                return;
+            }
+            
+            if (isBoardFull()) {
+                endTicTacToeGame('draw');
+                return;
+            }
+            
+            ticTacToeGame.currentPlayer = 'O';
+            document.getElementById('ticTacToeTurn').textContent = 'Компьютер';
+            
+            setTimeout(computerMove, 1000);
+        }
+
+        function computerMove() {
+            if (!ticTacToeGame.gameStarted || ticTacToeGame.currentPlayer !== 'O') return;
+            
+            // Простой ИИ: сначала пытается выиграть, затем блокирует игрока, затем случайный ход
+            let move = findWinningMove('O');
+            if (move === -1) move = findWinningMove('X');
+            if (move === -1) {
+                const emptyCells = [];
+                ticTacToeGame.board.forEach((cell, index) => {
+                    if (cell === '') emptyCells.push(index);
+                });
+                move = emptyCells[Math.floor(Math.random() * emptyCells.length)];
+            }
+            
+            ticTacToeGame.board[move] = 'O';
+            updateTicTacToeBoard();
+            
+            if (checkWinner('O')) {
+                endTicTacToeGame('O');
+                return;
+            }
+            
+            if (isBoardFull()) {
+                endTicTacToeGame('draw');
+                return;
+            }
+            
+            ticTacToeGame.currentPlayer = 'X';
+            document.getElementById('ticTacToeTurn').textContent = 'Ваш';
+        }
+
+        function findWinningMove(player) {
+            const lines = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+                [0, 4, 8], [2, 4, 6]             // diagonals
+            ];
+            
+            for (const line of lines) {
+                const [a, b, c] = line;
+                if (ticTacToeGame.board[a] === player && ticTacToeGame.board[b] === player && ticTacToeGame.board[c] === '') {
+                    return c;
+                }
+                if (ticTacToeGame.board[a] === player && ticTacToeGame.board[c] === player && ticTacToeGame.board[b] === '') {
+                    return b;
+                }
+                if (ticTacToeGame.board[b] === player && ticTacToeGame.board[c] === player && ticTacToeGame.board[a] === '') {
+                    return a;
+                }
+            }
+            
+            return -1;
+        }
+
+        function checkWinner(player) {
+            const lines = [
+                [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+                [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+                [0, 4, 8], [2, 4, 6]             // diagonals
+            ];
+            
+            for (const line of lines) {
+                const [a, b, c] = line;
+                if (ticTacToeGame.board[a] === player && ticTacToeGame.board[b] === player && ticTacToeGame.board[c] === player) {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+
+        function isBoardFull() {
+            return ticTacToeGame.board.every(cell => cell !== '');
+        }
+
+        function updateTicTacToeBoard() {
+            const cells = document.querySelectorAll('.tic-tac-toe-cell');
+            ticTacToeGame.board.forEach((cell, index) => {
+                cells[index].textContent = cell;
+            });
+        }
+
+        function endTicTacToeGame(result) {
+            ticTacToeGame.gameStarted = false;
+            
+            if (result === 'X') {
+                const winAmount = ticTacToeGame.bet * 2;
+                balance += winAmount;
+                updateBalance();
+                document.getElementById('ticTacToeStatus').innerHTML = 
+                    '<p style="color: #00ff00">Вы выиграли! +$' + winAmount + '</p>';
+            } else if (result === 'O') {
+                document.getElementById('ticTacToeStatus').innerHTML = 
+                    '<p style="color: #ff4444">Вы проиграли!</p>';
+            } else {
+                balance += ticTacToeGame.bet;
+                updateBalance();
+                document.getElementById('ticTacToeStatus').innerHTML = 
+                    '<p style="color: #ffd700">Ничья! Ставка возвращена.</p>';
+            }
+        }
+
+        // Игра ВИКТОРИНА
+      
+        // Игра ЛОТЕРЕЯ
+        let lotteryGame = {
+            bet: 0,
+            userNumbers: [],
+            winNumbers: [],
+            gameStarted: false
+        };
+
+        function openLotteryGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('lotteryGame').style.display = 'block';
+            resetLotteryGame();
+        }
+
+        function resetLotteryGame() {
+            lotteryGame.bet = 0;
+            lotteryGame.userNumbers = [];
+            lotteryGame.winNumbers = [];
+            lotteryGame.gameStarted = false;
+            document.getElementById('lotteryBet').value = '';
+            document.getElementById('lotteryUserNumbers').textContent = '';
+            document.getElementById('lotteryWinNumbers').textContent = '';
+            document.getElementById('lotteryMatches').textContent = '0';
+            document.getElementById('lotteryStatus').innerHTML = '';
+            
+            const numbersContainer = document.getElementById('lotteryNumbers');
+            numbersContainer.innerHTML = '';
+            
+            for (let i = 1; i <= 49; i++) {
+                const number = document.createElement('div');
+                number.className = 'lottery-number';
+                number.textContent = i;
+                number.onclick = () => selectLotteryNumber(i);
+                numbersContainer.appendChild(number);
+            }
+        }
+
+        function startLotteryGame() {
+            const bet = parseInt(document.getElementById('lotteryBet').value);
+            
+            if (!bet || bet < 10 || bet > balance) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            if (lotteryGame.userNumbers.length !== 6) {
+                alert('Выберите 6 чисел!');
+                return;
+            }
+            
+            lotteryGame.bet = bet;
+            balance -= bet;
+            updateBalance();
+            lotteryGame.gameStarted = true;
+            
+            drawLotteryNumbers();
+        }
+
+        function selectLotteryNumber(number) {
+            if (lotteryGame.gameStarted) return;
+            
+            const index = lotteryGame.userNumbers.indexOf(number);
+            if (index === -1) {
+                if (lotteryGame.userNumbers.length < 6) {
+                    lotteryGame.userNumbers.push(number);
+                }
+            } else {
+                lotteryGame.userNumbers.splice(index, 1);
+            }
+            
+            updateLotteryDisplay();
+        }
+
+        function updateLotteryDisplay() {
+            document.getElementById('lotteryUserNumbers').textContent = lotteryGame.userNumbers.join(', ');
+            
+            const numbers = document.querySelectorAll('.lottery-number');
+            numbers.forEach(num => {
+                if (lotteryGame.userNumbers.includes(parseInt(num.textContent))) {
+                    num.style.background = '#ffd700';
+                    num.style.color = '#1a1a1a';
+                } else {
+                    num.style.background = 'white';
+                    num.style.color = 'black';
+                }
+            });
+        }
+
+        function drawLotteryNumbers() {
+            lotteryGame.winNumbers = [];
+            while (lotteryGame.winNumbers.length < 6) {
+                const num = Math.floor(Math.random() * 49) + 1;
+                if (!lotteryGame.winNumbers.includes(num)) {
+                    lotteryGame.winNumbers.push(num);
+                }
+            }
+            
+            document.getElementById('lotteryWinNumbers').textContent = lotteryGame.winNumbers.join(', ');
+            
+            const matches = lotteryGame.userNumbers.filter(num => lotteryGame.winNumbers.includes(num)).length;
+            document.getElementById('lotteryMatches').textContent = matches;
+            
+            let winMultiplier = 0;
+            if (matches === 3) winMultiplier = 2;
+            if (matches === 4) winMultiplier = 10;
+            if (matches === 5) winMultiplier = 50;
+            if (matches === 6) winMultiplier = 1000;
+            
+            if (winMultiplier > 0) {
+                const winAmount = lotteryGame.bet * winMultiplier;
+                balance += winAmount;
+                updateBalance();
+                document.getElementById('lotteryStatus').innerHTML = 
+                    `<p style="color: #00ff00">Вы угадали ${matches} чисел! Выигрыш: $${winAmount} (x${winMultiplier})</p>`;
+            } else {
+                document.getElementById('lotteryStatus').innerHTML = 
+                    `<p style="color: #ff4444">Вы угадали только ${matches} чисел. Попробуйте еще раз!</p>`;
+            }
+            
+            lotteryGame.gameStarted = false;
+        }
+
+        // Игра СКАЧКИ
+        let raceGame = {
+            bet: 0,
+            selectedHorse: 0,
+            horses: [],
+            raceStarted: false
+        };
+
+        function openRaceGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('raceGame').style.display = 'block';
+            resetRaceGame();
+        }
+
+        function resetRaceGame() {
+            raceGame.bet = 0;
+            raceGame.selectedHorse = 0;
+            raceGame.horses = [
+                { id: 1, position: 0, speed: 0 },
+                { id: 2, position: 0, speed: 0 },
+                { id: 3, position: 0, speed: 0 },
+                { id: 4, position: 0, speed: 0 },
+                { id: 5, position: 0, speed: 0 }
+            ];
+            raceGame.raceStarted = false;
+            document.getElementById('raceBet').value = '';
+            document.getElementById('raceHorse').value = '1';
+            document.getElementById('selectedHorse').textContent = '-';
+            document.getElementById('horsePosition').textContent = '-';
+            document.getElementById('raceStatus').innerHTML = '';
+            
+            const horses = document.querySelectorAll('.horse');
+            horses.forEach(horse => {
+                horse.style.left = '10px';
+            });
+        }
+
+        function startRaceGame() {
+            const bet = parseInt(document.getElementById('raceBet').value);
+            const horse = parseInt(document.getElementById('raceHorse').value);
+            
+            if (!bet || bet < 10 || bet > balance) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            if (horse < 1 || horse > 5) {
+                alert('Выберите лошадь от 1 до 5!');
+                return;
+            }
+            
+            raceGame.bet = bet;
+            raceGame.selectedHorse = horse;
+            balance -= bet;
+            updateBalance();
+            raceGame.raceStarted = true;
+            
+            document.getElementById('selectedHorse').textContent = horse;
+            
+            // Устанавливаем случайные скорости для лошадей (от 0.5 до 2)
+            raceGame.horses.forEach(h => {
+                h.speed = 0.5 + Math.random() * 1.5;
+                h.position = 0;
+            });
+            
+            startRace();
+        }
+
+        function startRace() {
+            const raceTrack = document.getElementById('raceTrack');
+            const trackWidth = raceTrack.offsetWidth - 60;
+            let finished = false;
+            
+            const raceInterval = setInterval(() => {
+                if (finished) return;
+                
+                let allFinished = true;
+                
+                raceGame.horses.forEach(horse => {
+                    if (horse.position < trackWidth) {
+                        horse.position += horse.speed * (0.5 + Math.random() * 0.5);
+                        document.getElementById(`horse${horse.id}`).style.left = `${horse.position}px`;
+                        allFinished = false;
+                    }
+                });
+                
+                // Обновляем позицию выбранной лошади
+                const selectedHorse = raceGame.horses.find(h => h.id === raceGame.selectedHorse);
+                if (selectedHorse.position < trackWidth) {
+                    document.getElementById('horsePosition').textContent = 
+                        Math.floor((selectedHorse.position / trackWidth) * 100) + '%';
+                }
+                
+                if (allFinished) {
+                    finished = true;
+                    clearInterval(raceInterval);
+                    finishRace();
+                }
+            }, 50);
+        }
+
+        function finishRace() {
+            // Сортируем лошадей по позиции (чем больше позиция, тем лучше)
+            const sortedHorses = [...raceGame.horses].sort((a, b) => b.position - a.position);
+            const winner = sortedHorses[0].id;
+            const second = sortedHorses[1].id;
+            const third = sortedHorses[2].id;
+            
+            let winMultiplier = 0;
+            if (raceGame.selectedHorse === winner) winMultiplier = 5;
+            else if (raceGame.selectedHorse === second) winMultiplier = 2;
+            else if (raceGame.selectedHorse === third) winMultiplier = 1;
+            
+            if (winMultiplier > 0) {
+                const winAmount = raceGame.bet * winMultiplier;
+                balance += winAmount;
+                updateBalance();
+                document.getElementById('raceStatus').innerHTML = 
+                    `<p style="color: #00ff00">Ваша лошадь пришла ${getPositionText(winMultiplier)}! Выигрыш: $${winAmount} (x${winMultiplier})</p>`;
+            } else {
+                document.getElementById('raceStatus').innerHTML = 
+                    '<p style="color: #ff4444">Ваша лошадь не заняла призового места. Попробуйте еще раз!</p>';
+            }
+            
+            raceGame.raceStarted = false;
+        }
+
+        function getPositionText(multiplier) {
+            if (multiplier === 5) return 'первой';
+            if (multiplier === 2) return 'второй';
+            return 'третьей';
+        }
+
+        // Игра ФУТБОЛ
+        let footballGame = {
+            bet: 0,
+            selectedTeam: 0,
+            scoreA: 0,
+            scoreB: 0,
+            time: 0,
+            gameStarted: false
+        };
+
+        function openFootballGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('footballGame').style.display = 'block';
+            resetFootballGame();
+        }
+
+        function resetFootballGame() {
+            footballGame.bet = 0;
+            footballGame.selectedTeam = 0;
+            footballGame.scoreA = 0;
+            footballGame.scoreB = 0;
+            footballGame.time = 0;
+            footballGame.gameStarted = false;
+            document.getElementById('footballBet').value = '';
+            document.getElementById('footballTeam').value = '1';
+            document.getElementById('footballScore').textContent = '0:0';
+            document.getElementById('footballTime').textContent = "0'";
+            document.getElementById('footballStatus').innerHTML = '';
+        }
+
+        function startFootballGame() {
+            const bet = parseInt(document.getElementById('footballBet').value);
+            const team = parseInt(document.getElementById('footballTeam').value);
+            
+            if (!bet || bet < 10 || bet > balance) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            if (team < 1 || team > 2) {
+                alert('Выберите команду 1 или 2!');
+                return;
+            }
+            
+            footballGame.bet = bet;
+            footballGame.selectedTeam = team;
+            balance -= bet;
+            updateBalance();
+            footballGame.gameStarted = true;
+            
+            simulateFootballMatch();
+        }
+
+        function simulateFootballMatch() {
+            footballGame.time = 0;
+            footballGame.scoreA = 0;
+            footballGame.scoreB = 0;
+            
+            const matchInterval = setInterval(() => {
+                if (!footballGame.gameStarted) {
+                    clearInterval(matchInterval);
+                    return;
+                }
+                
+                footballGame.time += 5;
+                document.getElementById('footballTime').textContent = `${footballGame.time}'`;
+                
+                // Случайное событие в матче
+                if (Math.random() < 0.1) {
+                    if (Math.random() < 0.5) {
+                        footballGame.scoreA++;
+                    } else {
+                        footballGame.scoreB++;
+                    }
+                    document.getElementById('footballScore').textContent = `${footballGame.scoreA}:${footballGame.scoreB}`;
+                }
+                
+                if (footballGame.time >= 90) {
+                    clearInterval(matchInterval);
+                    finishFootballGame();
+                }
+            }, 500);
+        }
+
+        function finishFootballGame() {
+            footballGame.gameStarted = false;
+            
+            let winMultiplier = 0;
+            if ((footballGame.selectedTeam === 1 && footballGame.scoreA > footballGame.scoreB) ||
+                (footballGame.selectedTeam === 2 && footballGame.scoreB > footballGame.scoreA)) {
+                winMultiplier = 3;
+            } else if (footballGame.scoreA === footballGame.scoreB) {
+                winMultiplier = 1;
+            }
+            
+            if (winMultiplier > 0) {
+                const winAmount = footballGame.bet * winMultiplier;
+                balance += winAmount;
+                updateBalance();
+                document.getElementById('footballStatus').innerHTML = 
+                    `<p style="color: #00ff00">${winMultiplier === 3 ? 'Ваша команда победила' : 'Ничья'}! Выигрыш: $${winAmount} (x${winMultiplier})</p>`;
+            } else {
+                document.getElementById('footballStatus').innerHTML = 
+                    '<p style="color: #ff4444">Ваша команда проиграла. Попробуйте еще раз!</p>';
+            }
+        }
+
+        // Игра БАСКЕТБОЛ
+        let basketballGame = {
+            bet: 0,
+            selectedTeam: 0,
+            scoreA: 0,
+            scoreB: 0,
+            time: 0,
+            gameStarted: false
+        };
+
+        function openBasketballGame() {
+            if (balance < 10) {
+                alert('Минимальный баланс для игры: $10');
+                return;
+            }
+            document.getElementById('basketballGame').style.display = 'block';
+            resetBasketballGame();
+        }
+
+        function resetBasketballGame() {
+            basketballGame.bet = 0;
+            basketballGame.selectedTeam = 0;
+            basketballGame.scoreA = 0;
+            basketballGame.scoreB = 0;
+            basketballGame.time = 0;
+            basketballGame.gameStarted = false;
+            document.getElementById('basketballBet').value = '';
+            document.getElementById('basketballTeam').value = '1';
+            document.getElementById('basketballScore').textContent = '0:0';
+            document.getElementById('basketballTime').textContent = "0'";
+            document.getElementById('basketballStatus').innerHTML = '';
+        }
+
+        function startBasketballGame() {
+            const bet = parseInt(document.getElementById('basketballBet').value);
+            const team = parseInt(document.getElementById('basketballTeam').value);
+            
+            if (!bet || bet < 10 || bet > balance) {
+                alert('Введите корректную ставку (мин. $10)');
+                return;
+            }
+            
+            if (team < 1 || team > 2) {
+                alert('Выберите команду 1 или 2!');
+                return;
+            }
+            
+            basketballGame.bet = bet;
+            basketballGame.selectedTeam = team;
+            balance -= bet;
+            updateBalance();
+            basketballGame.gameStarted = true;
+            
+            simulateBasketballMatch();
+        }
+
+        function simulateBasketballMatch() {
+            basketballGame.time = 0;
+            basketballGame.scoreA = 0;
+            basketballGame.scoreB = 0;
+            
+            const matchInterval = setInterval(() => {
+                if (!basketballGame.gameStarted) {
+                    clearInterval(matchInterval);
+                    return;
+                }
+                
+                basketballGame.time += 1;
+                document.getElementById('basketballTime').textContent = `${basketballGame.time}'`;
+                
+                // Случайное событие в матче
+                if (Math.random() < 0.3) {
+                    if (Math.random() < 0.5) {
+                        basketballGame.scoreA += Math.random() < 0.3 ? 3 : 2;
+                    } else {
+                        basketballGame.scoreB += Math.random() < 0.3 ? 3 : 2;
+                    }
+                    document.getElementById('basketballScore').textContent = `${basketballGame.scoreA}:${basketballGame.scoreB}`;
+                }
+                
+                if (basketballGame.time >= 48) {
+                    clearInterval(matchInterval);
+                    finishBasketballGame();
+                }
+            }, 300);
+        }
+
+        function finishBasketballGame() {
+            basketballGame.gameStarted = false;
+            
+            let winMultiplier = 0;
+            if ((basketballGame.selectedTeam === 1 && basketballGame.scoreA > basketballGame.scoreB) ||
+                (basketballGame.selectedTeam === 2 && basketballGame.scoreB > basketballGame.scoreA)) {
+                winMultiplier = 3;
+            } else if (basketballGame.scoreA === basketballGame.scoreB) {
+                winMultiplier = 1;
+            }
+            
+            if (winMultiplier > 0) {
+                const winAmount = basketballGame.bet * winMultiplier;
+                balance += winAmount;
+                updateBalance();
+                document.getElementById('basketballStatus').innerHTML = 
+                    `<p style="color: #00ff00">${winMultiplier === 3 ? 'Ваша команда победила' : 'Ничья'}! Выигрыш: $${winAmount} (x${winMultiplier})</p>`;
+            } else {
+                document.getElementById('basketballStatus').innerHTML = 
+                    '<p style="color: #ff4444">Ваша команда проиграла. Попробуйте еще раз!</p>';
+            }
+        }
+
         // Общая логика закрытия окон
         window.onclick = function(event) {
             if (event.target == document.getElementById('modal')) {
                 closeModal();
             }
-            if (event.target.classList.contains('mines-container') || 
-                event.target.classList.contains('tower-container') ||
-                event.target.classList.contains('roulette-container') ||
-                event.target.classList.contains('dice-container') ||
-                event.target.classList.contains('slots-container') ||
-                event.target.classList.contains('blackjack-container')) {
+            if (event.target == document.getElementById('shopModal')) {
+                closeShop();
+            }
+            if (event.target == document.getElementById('inventoryModal')) {
+                closeInventory();
+            }
+            if (event.target.classList.contains('game-container')) {
                 event.target.style.display = 'none';
                 resetMinesGame();
                 resetTowerGame();
@@ -1433,8 +2445,15 @@
                 resetDiceGame();
                 resetSlotsGame();
                 resetBlackjackGame();
+                resetPokerGame();
+                resetTicTacToeGame();
+                resetQuizGame();
+                resetLotteryGame();
+                resetRaceGame();
+                resetFootballGame();
+                resetBasketballGame();
             }
         }
     </script>
 </body>
-                    </html>
+</html>
