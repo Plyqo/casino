@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Бизнес-Магнат PRO</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f0f2f5;
+            color: #333;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #e3f2fd;
+            border-radius: 10px;
+            font-size: 18px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 10px;
+            border-left: 5px solid #2196f3;
+        }
+        h1 {
+            color: #1976d2;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #0d47a1;
+            border-bottom: 2px solid #bbdefb;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+        button {
+            background-color: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #1976d2;
+            transform: translateY(-2px);
+        }
+        button:disabled {
+            background-color: #b0bec5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .item {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+            margin: 10px 0;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: all 0.3s;
+        }
+        .item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .item-img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 8px;
+            margin-right: 20px;
+            border: 2px solid #e3f2fd;
+        }
+        .item-info {
+            flex-grow: 1;
+        }
+        .item-title {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+            color: #1565c0;
+        }
+        .item-desc {
+            color: #666;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        .item-price {
+            font-weight: bold;
+            color: #2e7d32;
+        }
+        .owned {
+            color: #388e3c;
+            font-weight: bold;
+            margin-left: 15px;
+            font-size: 18px;
+        }
+        .minigame-container {
+            text-align: center;
+            padding: 20px;
+            background-color: #e8f5e9;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+        .minigame-area {
+            width: 300px;
+            height: 150px;
+            background-color: #c8e6c9;
+            margin: 15px auto;
+            border-radius: 10px;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid #81c784;
+        }
+        .target {
+            width: 50px;
+            height: 50px;
+            background-color: #e53935;
+            border-radius: 50%;
+            position: absolute;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+        #casinoResult {
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 25px;
+            font-size: 18px;
+            padding: 10px;
+            border-radius: 5px;
+            text-align: center;
+        }
+        .win {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+        .lose {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 5px;
+            margin: 10px 0;
+        }
+        .progress-bar {
+            height: 20px;
+            background-color: #4caf50;
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Бизнес-Магнат PRO</h1>
+        
+        <div class="stats">
+            <div>💰 Деньги: <span id="money">1000</span></div>
+            <div>📈 Пассивный доход: <span id="income">0</span>/сек</div>
+        </div>
+        
+        <div class="minigame-container">
+            <h2>💼 Работа: Клики по целям</h2>
+            <p>Кликайте по красным целям, чтобы заработать деньги!</p>
+            <div class="minigame-area" id="minigameArea"></div>
+            <div class="progress-container">
+                <div class="progress-bar" id="workProgress"></div>
+            </div>
+            <p>Заработано за сессию: <span id="sessionEarnings">0</span>💰</p>
+            <button onclick="claimEarnings()">Забрать деньги</button>
+        </div>
+        
+        <div class="section">
+            <h2>🏠 Недвижимость</h2>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Квартира">
+                <div class="item-info">
+                    <div class="item-title">Квартира в центре</div>
+                    <div class="item-desc">Престижное жилье с хорошей доходностью</div>
+                    <div class="item-price">Цена: 5,000💰 (+5💰/сек)</div>
+                </div>
+                <button onclick="buyProperty('apartment', 5000)">Купить</button>
+                <span id="apartmentCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Дом">
+                <div class="item-info">
+                    <div class="item-title">Загородный дом</div>
+                    <div class="item-desc">Просторный дом с садом и бассейном</div>
+                    <div class="item-price">Цена: 15,000💰 (+15💰/сек)</div>
+                </div>
+                <button onclick="buyProperty('house', 15000)">Купить</button>
+                <span id="houseCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Офис">
+                <div class="item-info">
+                    <div class="item-title">Офисное здание</div>
+                    <div class="item-desc">Современный бизнес-центр с арендаторами</div>
+                    <div class="item-price">Цена: 50,000💰 (+50💰/сек)</div>
+                </div>
+                <button onclick="buyProperty('office', 50000)">Купить</button>
+                <span id="officeCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1432303492674-642e9d0944b2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Отель">
+                <div class="item-info">
+                    <div class="item-title">Бутик-отель</div>
+                    <div class="item-desc">Небольшой элитный отель в центре города</div>
+                    <div class="item-price">Цена: 120,000💰 (+120💰/сек)</div>
+                </div>
+                <button onclick="buyProperty('hotel', 120000)">Купить</button>
+                <span id="hotelCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1479839672679-a46483c0e7c8?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Торговый центр">
+                <div class="item-info">
+                    <div class="item-title">Торговый центр</div>
+                    <div class="item-desc">Крупный торговый комплекс с множеством магазинов</div>
+                    <div class="item-price">Цена: 300,000💰 (+300💰/сек)</div>
+                </div>
+                <button onclick="buyProperty('mall', 300000)">Купить</button>
+                <span id="mallCount" class="owned">0</span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🚗 Транспорт</h2>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1511994298241-608e28f14fde?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Велосипед">
+                <div class="item-info">
+                    <div class="item-title">Премиум велосипед</div>
+                    <div class="item-desc">Элитный велосипед для доставки еды</div>
+                    <div class="item-price">Цена: 1,000💰 (+1💰/сек)</div>
+                </div>
+                <button onclick="buyVehicle('bike', 1000)">Купить</button>
+                <span id="bikeCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1541899481282-d53bffe3c35d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Автомобиль">
+                <div class="item-info">
+                    <div class="item-title">Бизнес-седан</div>
+                    <div class="item-desc">Комфортабельный автомобиль для такси</div>
+                    <div class="item-price">Цена: 10,000💰 (+10💰/сек)</div>
+                </div>
+                <button onclick="buyVehicle('car', 10000)">Купить</button>
+                <span id="carCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1494972308805-463bc619d34e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Спорткар">
+                <div class="item-info">
+                    <div class="item-title">Спортивный автомобиль</div>
+                    <div class="item-desc">Эксклюзивный автомобиль для аренды</div>
+                    <div class="item-price">Цена: 25,000💰 (+25💰/сек)</div>
+                </div>
+                <button onclick="buyVehicle('sportCar', 25000)">Купить</button>
+                <span id="sportCarCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1533473359331-0135ef1b58bf?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Яхта">
+                <div class="item-info">
+                    <div class="item-title">Яхта</div>
+                    <div class="item-desc">Роскошная яхта для чартерных рейсов</div>
+                    <div class="item-price">Цена: 150,000💰 (+150💰/сек)</div>
+                </div>
+                <button onclick="buyVehicle('yacht', 150000)">Купить</button>
+                <span id="yachtCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1436491865332-7a61a109cc05?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Самолет">
+                <div class="item-info">
+                    <div class="item-title">Частный самолет</div>
+                    <div class="item-desc">Бизнес-джет для VIP-перевозок</div>
+                    <div class="item-price">Цена: 500,000💰 (+500💰/сек)</div>
+                </div>
+                <button onclick="buyVehicle('jet', 500000)">Купить</button>
+                <span id="jetCount" class="owned">0</span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🏢 Бизнес</h2>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Магазин">
+                <div class="item-info">
+                    <div class="item-title">Продуктовый магазин</div>
+                    <div class="item-desc">Магазин повседневного спроса</div>
+                    <div class="item-price">Цена: 20,000💰 (+20💰/сек)</div>
+                </div>
+                <button onclick="buyBusiness('shop', 20000)">Купить</button>
+                <span id="shopCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Ресторан">
+                <div class="item-info">
+                    <div class="item-title">Ресторан</div>
+                    <div class="item-desc">Популярное заведение с высокой посещаемостью</div>
+                    <div class="item-price">Цена: 75,000💰 (+75💰/сек)</div>
+                </div>
+                <button onclick="buyBusiness('restaurant', 75000)">Купить</button>
+                <span id="restaurantCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="IT компания">
+                <div class="item-info">
+                    <div class="item-title">IT-компания</div>
+                    <div class="item-desc">Разработка программного обеспечения</div>
+                    <div class="item-price">Цена: 200,000💰 (+200💰/сек)</div>
+                </div>
+                <button onclick="buyBusiness('itCompany', 200000)">Купить</button>
+                <span id="itCompanyCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1556740738-b6a63e27c4df?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Фабрика">
+                <div class="item-info">
+                    <div class="item-title">Производственная фабрика</div>
+                    <div class="item-desc">Крупное промышленное предприятие</div>
+                    <div class="item-price">Цена: 400,000💰 (+400💰/сек)</div>
+                </div>
+                <button onclick="buyBusiness('factory', 400000)">Купить</button>
+                <span id="factoryCount" class="owned">0</span>
+            </div>
+            
+            <div class="item">
+                <img src="https://images.unsplash.com/photo-1521791136064-7986c2920216?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" class="item-img" alt="Банк">
+                <div class="item-info">
+                    <div class="item-title">Банк</div>
+                    <div class="item-desc">Финансовая организация с высокой доходностью</div>
+                    <div class="item-price">Цена: 1,000,000💰 (+1,000💰/сек)</div>
+                </div>
+                <button onclick="buyBusiness('bank', 1000000)">Купить</button>
+                <span id="bankCount" class="owned">0</span>
+            </div>
+        </div>
+        
+        <div class="section">
+            <h2>🎰 Казино "Удача"</h2>
+            <p>Попробуйте удачу, но помните - казино всегда в плюсе!</p>
+            <button onclick="playCasino(100)">Ставка 100💰</button>
+            <button onclick="playCasino(500)">Ставка 500💰</button>
+            <button onclick="playCasino(1000)">Ставка 1,000💰</button>
+            <button onclick="playCasino(5000)">Ставка 5,000💰</button>
+            <div id="casinoResult"></div>
+        </div>
+    </div>
+
+    <script>
+        // Игровые переменные
+        let money = 1000;
+        let income = 0;
+        let sessionEarnings = 0;
+        let workProgress = 0;
+        let targetInterval;
+        
+        // Имущество
+        const properties = {
+            apartment: { count: 0, income: 5, price: 5000 },
+            house: { count: 0, income: 15, price: 15000 },
+            office: { count: 0, income: 50, price: 50000 },
+            hotel: { count: 0, income: 120, price: 120000 },
+            mall: { count: 0, income: 300, price: 300000 }
+        };
+        
+        // Транспорт
+        const vehicles = {
+            bike: { count: 0, income: 1, price: 1000 },
+            car: { count: 0, income: 10, price: 10000 },
+            sportCar: { count: 0, income: 25, price: 25000 },
+            yacht: { count: 0, income: 150, price: 150000 },
+            jet: { count: 0, income: 500, price: 500000 }
+        };
+        
+        // Бизнес
+        const businesses = {
+            shop: { count: 0, income: 20, price: 20000 },
+            restaurant: { count: 0, income: 75, price: 75000 },
+            itCompany: { count: 0, income: 200, price: 200000 },
+            factory: { count: 0, income: 400, price: 400000 },
+            bank: { count: 0, income: 1000, price: 1000000 }
+        };
+        
+        // Инициализация мини-игры
+        function initMiniGame() {
+            const gameArea = document.getElementById('minigameArea');
+            gameArea.innerHTML = '';
+            createTarget();
+            
+            // Создаем новую цель каждые 1.5 секунды
+            targetInterval = setInterval(createTarget, 1500);
+        }
+        
+        // Создание цели для кликов
+        function createTarget() {
+            const gameArea = document.getElementById('minigameArea');
+            const target = document.createElement('div');
+            target.className = 'target';
+            
+            // Случайная позиция в пределах игровой области
+            const maxX = gameArea.offsetWidth - 50;
+            const maxY = gameArea.offsetHeight - 50;
+            const posX = Math.floor(Math.random() * maxX);
+            const posY = Math.floor(Math.random() * maxY);
+            
+            target.style.left = posX + 'px';
+            target.style.top = posY + 'px';
+            
+            // Обработчик клика по цели
+            target.addEventListener('click', function() {
+                // Удаляем цель
+                gameArea.removeChild(target);
+                
+                // Добавляем деньги и прогресс
+                const earnings = 10 + Math.floor(Math.random() * 20);
+                sessionEarnings += earnings;
+                workProgress += 5 + Math.floor(Math.random() * 10);
+                
+                if (workProgress > 100) workProgress = 100;
+                
+                updateUI();
+            });
+            
+            gameArea.appendChild(target);
+            
+            // Удаляем цель через 1.5 секунды, если не кликнули
+            setTimeout(() => {
+                if (target.parentNode === gameArea) {
+                    gameArea.removeChild(target);
+                }
+            }, 1500);
+        }
+        
+        // Забрать заработанные деньги
+        function claimEarnings() {
+            money += sessionEarnings;
+            sessionEarnings = 0;
+            workProgress = 0;
+            updateUI();
+        }
+        
+        // Обновление интерфейса
+        function updateUI() {
+            document.getElementById('money').textContent = formatNumber(money);
+            document.getElementById('income').textContent = formatNumber(income);
+            document.getElementById('sessionEarnings').textContent = formatNumber(sessionEarnings);
+            document.getElementById('workProgress').style.width = workProgress + '%';
+            
+            // Обновляем счетчики имущества
+            for (const prop in properties) {
+                document.getElementById(`${prop}Count`).textContent = properties[prop].count;
+            }
+            
+            // Обновляем счетчики транспорта
+            for (const vehicle in vehicles) {
+                document.getElementById(`${vehicle}Count`).textContent = vehicles[vehicle].count;
+            }
+            
+            // Обновляем счетчики бизнеса
+            for (const business in businesses) {
+                document.getElementById(`${business}Count`).textContent = businesses[business].count;
+            }
+        }
+        
+        // Форматирование чисел с разделителями
+        function formatNumber(num) {
+            return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+        }
+        
+        // Покупка недвижимости
+        function buyProperty(type, price) {
+            if (money >= price) {
+                money -= price;
+                properties[type].count++;
+                calculateIncome();
+                updateUI();
+            } else {
+                alert("Недостаточно денег!");
+            }
+        }
+        
+        // Покупка транспорта
+        function buyVehicle(type, price) {
+            if (money >= price) {
+                money -= price;
+                vehicles[type].count++;
+                calculateIncome();
+                updateUI();
+            } else {
+                alert("Недостаточно денег!");
+            }
+        }
+        
+        // Покупка бизнеса
+        function buyBusiness(type, price) {
+            if (money >= price) {
+                money -= price;
+                businesses[type].count++;
+                calculateIncome();
+                updateUI();
+            } else {
+                alert("Недостаточно денег!");
+            }
+        }
+        
+        // Расчет дохода
+        function calculateIncome() {
+            income = 0;
+            
+            // Доход от недвижимости
+            for (const prop in properties) {
+                income += properties[prop].count * properties[prop].income;
+            }
+            
+            // Доход от транспорта
+            for (const vehicle in vehicles) {
+                income += vehicles[vehicle].count * vehicles[vehicle].income;
+            }
+            
+            // Доход от бизнеса
+            for (const business in businesses) {
+                income += businesses[business].count * businesses[business].income;
+            }
+        }
+        
+        // Игра в казино
+        function playCasino(bet) {
+            if (money < bet) {
+                alert("Недостаточно денег для ставки!");
+                return;
+            }
+            
+            money -= bet;
+            const result = document.getElementById('casinoResult');
+            result.textContent = "🎰 Крутим барабаны...";
+            result.className = "";
+            
+            // Имитация задержки для азарта
+            setTimeout(() => {
+                const random = Math.random();
+                if (random > 0.6) { // 40% шанс на выигрыш
+                    const multiplier = 1 + Math.floor(random * 3); // 1x-4x
+                    const winAmount = bet * multiplier;
+                    money += winAmount;
+                    result.textContent = `🎉 Вы выиграли ${formatNumber(winAmount)}💰 (x${multiplier})!`;
+                    result.className = "win";
+                } else {
+                    result.textContent = `😢 Вы проиграли ${formatNumber(bet)}💰!`;
+                    result.className = "lose";
+                }
+                updateUI();
+            }, 1500);
+        }
+        
+        // Пассивный доход
+        setInterval(() => {
+            money += income / 10; // Обновляем 10 раз в секунду для плавности
+            updateUI();
+        }, 100);
+        
+        // Инициализация игры
+        window.onload = function() {
+            initMiniGame();
+            updateUI();
+        };
+    </script>
+</body>
+</html>
