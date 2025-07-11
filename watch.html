@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Кинотеатр с друзьями</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: white;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .player-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+        .chat-container {
+            width: 100%;
+            height: 500px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        iframe {
+            border: none;
+            border-radius: 8px;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Смотрим вместе</h1>
+        
+        <div class="player-container">
+            <iframe
+                width="100%"
+                height="405"
+                src="https://rutube.ru/play/embed/34c6162505598fabe6b9b3ccac6aa32d"
+                frameBorder="0"
+                allow="clipboard-write; autoplay"
+                allowFullScreen>
+            </iframe>
+        </div>
+        
+        <div class="chat-container">
+            <script async 
+                src="https://telegram.org/js/telegram-widget.js?22" 
+                data-telegram-discussion="sklwkskskslall/3" 
+                data-comments-limit="5" 
+                data-colorful="1" 
+                data-color="343638" 
+                data-dark="1" 
+                data-dark-color="FFFFFF">
+            </script>
+        </div>
+    </div>
+</body>
+</html>
