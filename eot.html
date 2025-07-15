@@ -12,6 +12,8 @@
             --evening: linear-gradient(135deg, #4B0082, #6A5ACD, #9370DB);
             --night: linear-gradient(135deg, #000080, #191970, #2F4F4F);
             --owner-color: #ffcc00;
+            --manager-color: #00ccff;
+            --user-color: #a0a0ff;
         }
 
         body {
@@ -62,12 +64,29 @@
             font-size: 1.1rem;
             margin-top: 0.2rem;
             font-weight: 500;
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            display: inline-block;
         }
 
         .user-status.owner {
             color: var(--owner-color);
+            background: rgba(255, 204, 0, 0.15);
             text-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
-            animation: glow 2s infinite alternate;
+            animation: glow-gold 2s infinite alternate;
+        }
+
+        .user-status.manager {
+            color: var(--manager-color);
+            background: rgba(0, 204, 255, 0.15);
+            text-shadow: 0 0 8px rgba(0, 204, 255, 0.5);
+            animation: glow-blue 1.5s infinite alternate;
+        }
+
+        .user-status.user {
+            color: var(--user-color);
+            background: rgba(160, 160, 255, 0.15);
+            text-shadow: 0 0 5px rgba(160, 160, 255, 0.5);
         }
 
         .grid {
@@ -109,9 +128,26 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes glow {
-            from { text-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
-            to { text-shadow: 0 0 15px rgba(255, 204, 0, 0.8); }
+        @keyframes glow-gold {
+            from { 
+                text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+                box-shadow: 0 0 5px rgba(255, 204, 0, 0.3);
+            }
+            to { 
+                text-shadow: 0 0 15px rgba(255, 204, 0, 0.8);
+                box-shadow: 0 0 15px rgba(255, 204, 0, 0.5);
+            }
+        }
+
+        @keyframes glow-blue {
+            from { 
+                text-shadow: 0 0 5px rgba(0, 204, 255, 0.5);
+                box-shadow: 0 0 5px rgba(0, 204, 255, 0.3);
+            }
+            to { 
+                text-shadow: 0 0 15px rgba(0, 204, 255, 0.8);
+                box-shadow: 0 0 15px rgba(0, 204, 255, 0.5);
+            }
         }
 
         @media (max-width: 600px) {
@@ -148,22 +184,25 @@
             {title: 'Заработок в сети', icon: 'fa-chart-line', url: '#'}
         ];
 
-        // ID владельца сообщества
+        // ID особых пользователей
         const COMMUNITY_OWNER_ID = '7621683704';
+        const MANAGER_IDS = ['6090697616', '7574331779'];
 
         // Получение данных пользователя
         function getUserData() {
             if (window.Telegram && Telegram.WebApp) {
                 const user = Telegram.WebApp.initDataUnsafe.user;
                 if (user) {
+                    const userId = user.id.toString();
                     return {
-                        id: user.id.toString(),
+                        id: userId,
                         name: user.first_name || user.username || 'Друг',
-                        isOwner: user.id.toString() === COMMUNITY_OWNER_ID
+                        role: userId === COMMUNITY_OWNER_ID ? 'owner' : 
+                              MANAGER_IDS.includes(userId) ? 'manager' : 'user'
                     };
                 }
             }
-            return { id: null, name: null, isOwner: false };
+            return { id: null, name: null, role: null };
         }
 
         // Определение времени суток
@@ -182,10 +221,20 @@
             return greetings.night;
         }
 
+        // Получение текста статуса
+        function getStatusText(role) {
+            switch(role) {
+                case 'owner': return 'Владелец сообщества';
+                case 'manager': return 'Менеджер сообщества';
+                case 'user': return 'Пользователь EOT';
+                default: return '';
+            }
+        }
+
         // Обновление интерфейса
         function updateInterface() {
             const {text, style} = getGreeting();
-            const {id, name, isOwner} = getUserData();
+            const {id, name, role} = getUserData();
             
             document.body.style.background = style;
             
@@ -194,12 +243,14 @@
                 document.getElementById('userId').textContent = `ID: ${id}`;
                 
                 const statusElement = document.getElementById('userStatus');
-                statusElement.textContent = isOwner ? 'Владелец сообщества' : 'Статус в комьюнити - участник';
+                statusElement.textContent = getStatusText(role);
                 
-                if (isOwner) {
-                    statusElement.classList.add('owner');
-                } else {
-                    statusElement.classList.remove('owner');
+                // Удаляем все классы статусов
+                statusElement.className = 'user-status';
+                
+                // Добавляем нужный класс
+                if (role) {
+                    statusElement.classList.add(role);
                 }
             } else {
                 document.getElementById('greeting').textContent = `${text}!`;
