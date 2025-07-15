@@ -11,6 +11,7 @@
             --day: linear-gradient(135deg, #87CEEB, #00BFFF, #4682B4);
             --evening: linear-gradient(135deg, #4B0082, #6A5ACD, #9370DB);
             --night: linear-gradient(135deg, #000080, #191970, #2F4F4F);
+            --owner-color: #ffcc00;
         }
 
         body {
@@ -46,14 +47,27 @@
 
         .greeting {
             font-size: 2.8rem;
-            margin: 0 0 1rem;
+            margin: 0 0 0.5rem;
             font-weight: 300;
         }
 
-        .username-notice {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-top: 0.5rem;
+        .user-id {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin: 0.3rem 0;
+            font-family: monospace;
+        }
+
+        .user-status {
+            font-size: 1.1rem;
+            margin-top: 0.2rem;
+            font-weight: 500;
+        }
+
+        .user-status.owner {
+            color: var(--owner-color);
+            text-shadow: 0 0 8px rgba(255, 204, 0, 0.5);
+            animation: glow 2s infinite alternate;
         }
 
         .grid {
@@ -95,6 +109,11 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
+        @keyframes glow {
+            from { text-shadow: 0 0 5px rgba(255, 204, 0, 0.5); }
+            to { text-shadow: 0 0 15px rgba(255, 204, 0, 0.8); }
+        }
+
         @media (max-width: 600px) {
             .greeting {
                 font-size: 2rem;
@@ -111,7 +130,8 @@
     <div class="container">
         <div class="header">
             <h1 class="greeting" id="greeting">Доброе утро</h1>
-            <div class="username-notice" id="usernameNotice"></div>
+            <div class="user-id" id="userId"></div>
+            <div class="user-status" id="userStatus"></div>
         </div>
         
         <div class="grid" id="buttonsContainer"></div>
@@ -119,7 +139,7 @@
 
     <script>
         const buttonsConfig = [
-            {title: 'Гарант система', icon: 'fa-scale-balanced', url: 'https://t.me/eot_garant'},
+            {title: 'Гарант система', icon: 'fa-scale-balanced', url: '#'},
             {title: 'Чат услуг', icon: 'fa-comments', url: '#'},
             {title: 'Основной канал', icon: 'fa-broadcast-tower', url: '#'},
             {title: 'Общий чат', icon: 'fa-users', url: '#'},
@@ -128,18 +148,22 @@
             {title: 'Заработок в сети', icon: 'fa-chart-line', url: '#'}
         ];
 
+        // ID владельца сообщества
+        const COMMUNITY_OWNER_ID = '7621683704';
+
         // Получение данных пользователя
         function getUserData() {
             if (window.Telegram && Telegram.WebApp) {
                 const user = Telegram.WebApp.initDataUnsafe.user;
                 if (user) {
                     return {
+                        id: user.id.toString(),
                         name: user.first_name || user.username || 'Друг',
-                        platform: 'Telegram'
+                        isOwner: user.id.toString() === COMMUNITY_OWNER_ID
                     };
                 }
             }
-            return { name: null, platform: null };
+            return { id: null, name: null, isOwner: false };
         }
 
         // Определение времени суток
@@ -161,16 +185,26 @@
         // Обновление интерфейса
         function updateInterface() {
             const {text, style} = getGreeting();
-            const {name, platform} = getUserData();
+            const {id, name, isOwner} = getUserData();
             
             document.body.style.background = style;
             
-            if (name) {
+            if (id) {
                 document.getElementById('greeting').textContent = `${text}, ${name}!`;
-                document.getElementById('usernameNotice').textContent = platform ? `@${platform}` : '';
+                document.getElementById('userId').textContent = `ID: ${id}`;
+                
+                const statusElement = document.getElementById('userStatus');
+                statusElement.textContent = isOwner ? 'Владелец сообщества' : 'Статус в комьюнити - участник';
+                
+                if (isOwner) {
+                    statusElement.classList.add('owner');
+                } else {
+                    statusElement.classList.remove('owner');
+                }
             } else {
                 document.getElementById('greeting').textContent = `${text}!`;
-                document.getElementById('usernameNotice').textContent = 'Откройте в Telegram для персонализации';
+                document.getElementById('userId').textContent = 'Откройте в Telegram для персонализации';
+                document.getElementById('userStatus').textContent = '';
             }
         }
 
