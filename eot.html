@@ -22,6 +22,9 @@
             --owner-color: #ffcc00;
             --manager-color: #00ccff;
             --user-color: #a0a0ff;
+            --color-1: var(--morning-1);
+            --color-2: var(--morning-2);
+            --color-3: var(--morning-3);
         }
 
         body {
@@ -181,7 +184,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1 class="greeting" id="greeting">Доброе утро</h1>
+            <h1 class="greeting" id="greeting"></h1>
             <div class="user-id" id="userId"></div>
             <div class="user-status" id="userStatus"></div>
         </div>
@@ -189,17 +192,69 @@
         <div class="grid" id="buttonsContainer"></div>
     </div>
 
-    <audio id="welcomeSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+    <audio id="welcomeSound" preload="auto">
+        <source src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" type="audio/mpeg">
+    </audio>
 
     <script>
+        // Локализация
+        const translations = {
+            ru: {
+                greetings: {
+                    morning: "Доброе утро",
+                    day: "Добрый день",
+                    evening: "Добрый вечер",
+                    night: "Доброй ночи"
+                },
+                statuses: {
+                    owner: "Владелец сообщества",
+                    manager: "Менеджер сообщества",
+                    user: "Пользователь EOT",
+                    unknown: "Откройте в Telegram для персонализации"
+                },
+                buttons: [
+                    "Гарант система",
+                    "Чат услуг",
+                    "Основной канал",
+                    "Общий чат",
+                    "Чат пиара",
+                    "Магазин EOT",
+                    "Заработок EOT"
+                ]
+            },
+            en: {
+                greetings: {
+                    morning: "Good morning",
+                    day: "Good afternoon",
+                    evening: "Good evening",
+                    night: "Good night"
+                },
+                statuses: {
+                    owner: "Community owner",
+                    manager: "Community manager",
+                    user: "EOT user",
+                    unknown: "Open in Telegram for personalization"
+                },
+                buttons: [
+                    "Guarantee system",
+                    "Services chat",
+                    "Main channel",
+                    "General chat",
+                    "Promo chat",
+                    "EOT shop",
+                    "EOT earnings"
+                ]
+            }
+        };
+
         const buttonsConfig = [
-            {title: 'Гарант система', icon: 'fa-scale-balanced', url: 'https://t.me/eot_garant'},
-            {title: 'Чат услуг', icon: 'fa-comments', url: 'https://t.me/eot_chat_services'},
-            {title: 'Основной канал', icon: 'fa-broadcast-tower', url: 'https://t.me/eot_channel'},
-            {title: 'Общий чат', icon: 'fa-users', url: 'https://t.me/eot_chat'},
-            {title: 'Чат пиара', icon: 'fa-megaphone', url: 'https://t.me/eot_piar_chat'},
-            {title: 'Магазин EOT', icon: 'fa-basket-shopping', url: 'https://t.me/eot_shop'},
-            {title: 'Заработок EOT', icon: 'fa-chart-line', url: 'https://t.me/eot_work'}
+            {icon: 'fa-scale-balanced', url: 'https://t.me/eot_garant'},
+            {icon: 'fa-comments', url: 'https://t.me/eot_chat_services'},
+            {icon: 'fa-broadcast-tower', url: 'https://t.me/eot_channel'},
+            {icon: 'fa-users', url: 'https://t.me/eot_chat'},
+            {icon: 'fa-megaphone', url: 'https://t.me/eot_piar_chat'},
+            {icon: 'fa-basket-shopping', url: 'https://t.me/eot_shop'},
+            {icon: 'fa-chart-line', url: 'https://t.me/eot_work'}
         ];
 
         // ID особых пользователей
@@ -214,11 +269,27 @@
             night: ['var(--night-1)', 'var(--night-2)', 'var(--night-3)']
         };
 
+        // Определение языка пользователя
+        function getUserLanguage() {
+            if (window.Telegram && Telegram.WebApp) {
+                const user = Telegram.WebApp.initDataUnsafe.user;
+                if (user && user.language_code) {
+                    return user.language_code.startsWith('ru') ? 'ru' : 'en';
+                }
+            }
+            return navigator.language.startsWith('ru') ? 'ru' : 'en';
+        }
+
         // Воспроизведение приветственного звука
         function playWelcomeSound() {
             const sound = document.getElementById('welcomeSound');
             sound.volume = 0.3;
-            sound.play().catch(e => console.log('Автовоспроизведение звука не сработало:', e));
+            
+            // Разрешаем воспроизведение через пользовательское действие
+            document.body.addEventListener('click', function handler() {
+                sound.play().catch(e => console.log('Sound play error:', e));
+                document.body.removeEventListener('click', handler);
+            }, { once: true });
         }
 
         // Получение данных пользователя
@@ -229,7 +300,7 @@
                     const userId = user.id.toString();
                     return {
                         id: userId,
-                        name: user.first_name || user.username || 'Друг',
+                        name: user.first_name || user.username || '',
                         role: userId === COMMUNITY_OWNER_ID ? 'owner' : 
                               MANAGER_IDS.includes(userId) ? 'manager' : 'user'
                     };
@@ -247,16 +318,6 @@
             return 'night';
         }
 
-        // Получение текста статуса
-        function getStatusText(role) {
-            switch(role) {
-                case 'owner': return 'Владелец сообщества';
-                case 'manager': return 'Менеджер сообщества';
-                case 'user': return 'Пользователь EOT';
-                default: return '';
-            }
-        }
-
         // Обновление фона
         function updateBackground() {
             const time = getTimeOfDay();
@@ -267,26 +328,20 @@
         }
 
         // Обновление интерфейса
-        function updateInterface() {
+        function updateInterface(lang) {
             const time = getTimeOfDay();
-            const greetings = {
-                morning: 'Доброе утро',
-                day: 'Добрый день',
-                evening: 'Добрый вечер',
-                night: 'Доброй ночи'
-            };
-            
             const {id, name, role} = getUserData();
-            const greetingText = greetings[time];
+            const greetingText = translations[lang].greetings[time];
             
             updateBackground();
             
             if (id) {
-                document.getElementById('greeting').textContent = `${greetingText}, ${name}!`;
+                const nameDisplay = name ? `, ${name}!` : '!';
+                document.getElementById('greeting').textContent = greetingText + nameDisplay;
                 document.getElementById('userId').textContent = `ID: ${id}`;
                 
                 const statusElement = document.getElementById('userStatus');
-                statusElement.textContent = getStatusText(role);
+                statusElement.textContent = translations[lang].statuses[role];
                 
                 // Удаляем все классы статусов
                 statusElement.className = 'user-status';
@@ -296,31 +351,33 @@
                     statusElement.classList.add(role);
                 }
             } else {
-                document.getElementById('greeting').textContent = `${greetingText}!`;
-                document.getElementById('userId').textContent = 'Откройте в Telegram для персонализации';
+                document.getElementById('greeting').textContent = greetingText + '!';
+                document.getElementById('userId').textContent = translations[lang].statuses.unknown;
                 document.getElementById('userStatus').textContent = '';
             }
         }
 
         // Инициализация приложения
         function initApp() {
+            const lang = getUserLanguage();
+            
             // Создание кнопок
             const container = document.getElementById('buttonsContainer');
-            buttonsConfig.forEach(btn => {
+            buttonsConfig.forEach((btn, index) => {
                 const button = document.createElement('a');
                 button.className = 'btn';
                 button.href = btn.url;
                 button.target = '_blank';
                 button.innerHTML = `
                     <i class="fa-solid ${btn.icon}"></i>
-                    ${btn.title}
+                    ${translations[lang].buttons[index]}
                 `;
                 container.appendChild(button);
             });
 
             // Первоначальное обновление
-            updateInterface();
-            setInterval(updateInterface, 1000 * 60); // Обновление каждую минуту
+            updateInterface(lang);
+            setInterval(() => updateInterface(lang), 1000 * 60); // Обновление каждую минуту
 
             // Инициализация Telegram Web App
             if (window.Telegram && Telegram.WebApp) {
@@ -329,7 +386,7 @@
             }
 
             // Воспроизведение звука
-            setTimeout(playWelcomeSound, 500);
+            playWelcomeSound();
         }
 
         // Запуск приложения
