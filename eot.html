@@ -7,10 +7,18 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --morning: linear-gradient(135deg, #FFD700, #FFA500, #FF69B4);
-            --day: linear-gradient(135deg, #87CEEB, #00BFFF, #4682B4);
-            --evening: linear-gradient(135deg, #4B0082, #6A5ACD, #9370DB);
-            --night: linear-gradient(135deg, #000080, #191970, #2F4F4F);
+            --morning-1: #FFD700;
+            --morning-2: #FFA500;
+            --morning-3: #FF69B4;
+            --day-1: #87CEEB;
+            --day-2: #00BFFF;
+            --day-3: #4682B4;
+            --evening-1: #4B0082;
+            --evening-2: #6A5ACD;
+            --evening-3: #9370DB;
+            --night-1: #000080;
+            --night-2: #191970;
+            --night-3: #2F4F4F;
             --owner-color: #ffcc00;
             --manager-color: #00ccff;
             --user-color: #a0a0ff;
@@ -23,11 +31,19 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            background-size: cover;
-            transition: background 0.5s ease;
+            background: linear-gradient(-45deg, var(--color-1), var(--color-2), var(--color-3));
+            background-size: 300% 300%;
+            animation: gradientBG 15s ease infinite;
+            transition: all 0.5s ease;
             padding: 20px;
             color: white;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
         .container {
@@ -173,20 +189,37 @@
         <div class="grid" id="buttonsContainer"></div>
     </div>
 
+    <audio id="welcomeSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+
     <script>
         const buttonsConfig = [
-            {title: 'Гарант система', icon: 'fa-scale-balanced', url: '#'},
-            {title: 'Чат услуг', icon: 'fa-comments', url: '#'},
-            {title: 'Основной канал', icon: 'fa-broadcast-tower', url: '#'},
-            {title: 'Общий чат', icon: 'fa-users', url: '#'},
-            {title: 'Чат пиара', icon: 'fa-megaphone', url: '#'},
-            {title: 'Магазин EOT', icon: 'fa-basket-shopping', url: '#'},
-            {title: 'Заработок в сети', icon: 'fa-chart-line', url: '#'}
+            {title: 'Гарант система', icon: 'fa-scale-balanced', url: 'https://t.me/eot_garant'},
+            {title: 'Чат услуг', icon: 'fa-comments', url: 'https://t.me/eot_chat_services'},
+            {title: 'Основной канал', icon: 'fa-broadcast-tower', url: 'https://t.me/eot_channel'},
+            {title: 'Общий чат', icon: 'fa-users', url: 'https://t.me/eot_chat'},
+            {title: 'Чат пиара', icon: 'fa-megaphone', url: 'https://t.me/eot_piar_chat'},
+            {title: 'Магазин EOT', icon: 'fa-basket-shopping', url: 'https://t.me/eot_shop'},
+            {title: 'Заработок EOT', icon: 'fa-chart-line', url: 'https://t.me/eot_work'}
         ];
 
         // ID особых пользователей
         const COMMUNITY_OWNER_ID = '7621683704';
         const MANAGER_IDS = ['6090697616', '7574331779'];
+
+        // Цвета для времени суток
+        const timeColors = {
+            morning: ['var(--morning-1)', 'var(--morning-2)', 'var(--morning-3)'],
+            day: ['var(--day-1)', 'var(--day-2)', 'var(--day-3)'],
+            evening: ['var(--evening-1)', 'var(--evening-2)', 'var(--evening-3)'],
+            night: ['var(--night-1)', 'var(--night-2)', 'var(--night-3)']
+        };
+
+        // Воспроизведение приветственного звука
+        function playWelcomeSound() {
+            const sound = document.getElementById('welcomeSound');
+            sound.volume = 0.3;
+            sound.play().catch(e => console.log('Автовоспроизведение звука не сработало:', e));
+        }
 
         // Получение данных пользователя
         function getUserData() {
@@ -206,19 +239,12 @@
         }
 
         // Определение времени суток
-        function getGreeting() {
+        function getTimeOfDay() {
             const hour = new Date().getHours();
-            const greetings = {
-                morning: {text: 'Доброе утро', style: 'var(--morning)'},
-                day: {text: 'Добрый день', style: 'var(--day)'},
-                evening: {text: 'Добрый вечер', style: 'var(--evening)'},
-                night: {text: 'Доброй ночи', style: 'var(--night)'}
-            };
-
-            if(hour >= 5 && hour < 12) return greetings.morning;
-            if(hour >= 12 && hour < 17) return greetings.day;
-            if(hour >= 17 && hour < 23) return greetings.evening;
-            return greetings.night;
+            if(hour >= 5 && hour < 12) return 'morning';
+            if(hour >= 12 && hour < 17) return 'day';
+            if(hour >= 17 && hour < 23) return 'evening';
+            return 'night';
         }
 
         // Получение текста статуса
@@ -231,15 +257,32 @@
             }
         }
 
+        // Обновление фона
+        function updateBackground() {
+            const time = getTimeOfDay();
+            const colors = timeColors[time];
+            document.documentElement.style.setProperty('--color-1', colors[0]);
+            document.documentElement.style.setProperty('--color-2', colors[1]);
+            document.documentElement.style.setProperty('--color-3', colors[2]);
+        }
+
         // Обновление интерфейса
         function updateInterface() {
-            const {text, style} = getGreeting();
-            const {id, name, role} = getUserData();
+            const time = getTimeOfDay();
+            const greetings = {
+                morning: 'Доброе утро',
+                day: 'Добрый день',
+                evening: 'Добрый вечер',
+                night: 'Доброй ночи'
+            };
             
-            document.body.style.background = style;
+            const {id, name, role} = getUserData();
+            const greetingText = greetings[time];
+            
+            updateBackground();
             
             if (id) {
-                document.getElementById('greeting').textContent = `${text}, ${name}!`;
+                document.getElementById('greeting').textContent = `${greetingText}, ${name}!`;
                 document.getElementById('userId').textContent = `ID: ${id}`;
                 
                 const statusElement = document.getElementById('userStatus');
@@ -253,7 +296,7 @@
                     statusElement.classList.add(role);
                 }
             } else {
-                document.getElementById('greeting').textContent = `${text}!`;
+                document.getElementById('greeting').textContent = `${greetingText}!`;
                 document.getElementById('userId').textContent = 'Откройте в Telegram для персонализации';
                 document.getElementById('userStatus').textContent = '';
             }
@@ -267,6 +310,7 @@
                 const button = document.createElement('a');
                 button.className = 'btn';
                 button.href = btn.url;
+                button.target = '_blank';
                 button.innerHTML = `
                     <i class="fa-solid ${btn.icon}"></i>
                     ${btn.title}
@@ -283,6 +327,9 @@
                 Telegram.WebApp.ready();
                 Telegram.WebApp.expand();
             }
+
+            // Воспроизведение звука
+            setTimeout(playWelcomeSound, 500);
         }
 
         // Запуск приложения
