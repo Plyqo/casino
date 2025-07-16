@@ -58,6 +58,26 @@
             backdrop-filter: blur(10px);
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
             margin: 20px;
+            position: relative;
+        }
+
+        .lang-switcher {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 15px;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.3s;
+            backdrop-filter: blur(5px);
+        }
+
+        .lang-switcher:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .header {
@@ -183,6 +203,8 @@
 </head>
 <body>
     <div class="container">
+        <div class="lang-switcher" id="langSwitcher">EN</div>
+        
         <div class="header">
             <h1 class="greeting" id="greeting"></h1>
             <div class="user-id" id="userId"></div>
@@ -200,6 +222,7 @@
         // Локализация
         const translations = {
             ru: {
+                lang: "EN",
                 greetings: {
                     morning: "Доброе утро",
                     day: "Добрый день",
@@ -219,10 +242,12 @@
                     "Общий чат",
                     "Чат пиара",
                     "Магазин EOT",
-                    "Заработок EOT"
+                    "Заработок EOT",
+                    "Скам база"
                 ]
             },
             en: {
+                lang: "RU",
                 greetings: {
                     morning: "Good morning",
                     day: "Good afternoon",
@@ -242,7 +267,8 @@
                     "General chat",
                     "Promo chat",
                     "EOT shop",
-                    "EOT earnings"
+                    "EOT earnings",
+                    "Scam database"
                 ]
             }
         };
@@ -252,9 +278,10 @@
             {icon: 'fa-comments', url: 'https://t.me/eot_chat_services'},
             {icon: 'fa-broadcast-tower', url: 'https://t.me/eot_channel'},
             {icon: 'fa-users', url: 'https://t.me/eot_chat'},
-            {icon: 'fa-megaphone', url: 'https://t.me/eot_piar_chat'},
+            {icon: 'fa-microphone', url: 'https://t.me/eot_piar_chat'},
             {icon: 'fa-basket-shopping', url: 'https://t.me/eot_shop'},
-            {icon: 'fa-chart-line', url: 'https://t.me/eot_work'}
+            {icon: 'fa-chart-line', url: 'https://t.me/eot_work'},
+            {icon: 'fa-user-secret', url: 'https://t.me/eot_scam_baza'}
         ];
 
         // ID особых пользователей
@@ -269,16 +296,8 @@
             night: ['var(--night-1)', 'var(--night-2)', 'var(--night-3)']
         };
 
-        // Определение языка пользователя
-        function getUserLanguage() {
-            if (window.Telegram && Telegram.WebApp) {
-                const user = Telegram.WebApp.initDataUnsafe.user;
-                if (user && user.language_code) {
-                    return user.language_code.startsWith('ru') ? 'ru' : 'en';
-                }
-            }
-            return navigator.language.startsWith('ru') ? 'ru' : 'en';
-        }
+        // Текущий язык
+        let currentLang = 'ru';
 
         // Воспроизведение приветственного звука
         function playWelcomeSound() {
@@ -328,10 +347,10 @@
         }
 
         // Обновление интерфейса
-        function updateInterface(lang) {
+        function updateInterface() {
             const time = getTimeOfDay();
             const {id, name, role} = getUserData();
-            const greetingText = translations[lang].greetings[time];
+            const greetingText = translations[currentLang].greetings[time];
             
             updateBackground();
             
@@ -341,7 +360,7 @@
                 document.getElementById('userId').textContent = `ID: ${id}`;
                 
                 const statusElement = document.getElementById('userStatus');
-                statusElement.textContent = translations[lang].statuses[role];
+                statusElement.textContent = translations[currentLang].statuses[role];
                 
                 // Удаляем все классы статусов
                 statusElement.className = 'user-status';
@@ -352,17 +371,16 @@
                 }
             } else {
                 document.getElementById('greeting').textContent = greetingText + '!';
-                document.getElementById('userId').textContent = translations[lang].statuses.unknown;
+                document.getElementById('userId').textContent = translations[currentLang].statuses.unknown;
                 document.getElementById('userStatus').textContent = '';
             }
         }
 
-        // Инициализация приложения
-        function initApp() {
-            const lang = getUserLanguage();
-            
-            // Создание кнопок
+        // Создание кнопок
+        function createButtons() {
             const container = document.getElementById('buttonsContainer');
+            container.innerHTML = '';
+            
             buttonsConfig.forEach((btn, index) => {
                 const button = document.createElement('a');
                 button.className = 'btn';
@@ -370,14 +388,39 @@
                 button.target = '_blank';
                 button.innerHTML = `
                     <i class="fa-solid ${btn.icon}"></i>
-                    ${translations[lang].buttons[index]}
+                    ${translations[currentLang].buttons[index]}
                 `;
                 container.appendChild(button);
             });
+        }
 
+        // Переключение языка
+        function toggleLanguage() {
+            currentLang = currentLang === 'ru' ? 'en' : 'ru';
+            document.getElementById('langSwitcher').textContent = translations[currentLang].lang;
+            updateInterface();
+            createButtons();
+            localStorage.setItem('eot_lang', currentLang);
+        }
+
+        // Инициализация приложения
+        function initApp() {
+            // Установка языка из localStorage или по умолчанию
+            const savedLang = localStorage.getItem('eot_lang');
+            if (savedLang) {
+                currentLang = savedLang;
+            }
+            
+            // Настройка переключателя языка
+            document.getElementById('langSwitcher').textContent = translations[currentLang].lang;
+            document.getElementById('langSwitcher').addEventListener('click', toggleLanguage);
+            
+            // Создание кнопок
+            createButtons();
+            
             // Первоначальное обновление
-            updateInterface(lang);
-            setInterval(() => updateInterface(lang), 1000 * 60); // Обновление каждую минуту
+            updateInterface();
+            setInterval(updateInterface, 1000 * 60); // Обновление каждую минуту
 
             // Инициализация Telegram Web App
             if (window.Telegram && Telegram.WebApp) {
