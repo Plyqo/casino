@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Название вашего сайта</title>
+  <meta name="description" content="Описание содержимого страницы">
+  
+  <!-- Favicon как отдельный файл (рекомендуется) -->
+  <link rel="icon" href="/favicon.ico" type="image/x-icon">
+  
+  <!-- Удален Cloudflare Analytics -->
+</head>
+<body>
+  <div id="root"></div>
+  
+  <!-- Удален Polyfill.io (может собирать данные) -->
+  
+  <!-- Стили -->
+  <link href="/index.css" rel="stylesheet">
+  
+  <!-- Основной скрипт -->
+  <script src="/index.js"></script>
+</body>
+</html>
