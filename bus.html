@@ -1,25 +1,291 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Название вашего сайта</title>
-  <meta name="description" content="Описание содержимого страницы">
-  
-  <!-- Favicon как отдельный файл (рекомендуется) -->
-  <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  
-  <!-- Удален Cloudflare Analytics -->
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cashew — пример</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#f2f4f6;
+      --card:#ffffff;
+      --muted:#6b6b6b;
+      --accent:#f15a30; /* оранжевый логотип */
+      --footer:#2f7fb0;
+      --shadow: 0 10px 18px rgba(21, 24, 27, 0.07), inset 0 1px 0 rgba(255,255,255,0.6);
+      --card-shadow: 0 10px 20px rgba(21,24,27,0.08);
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background: linear-gradient(180deg, var(--bg) 0%, #eef1f4 100%);
+      color:#111;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      display:flex;
+      justify-content:center;
+      padding:18px 12px;
+    }
+
+    .wrap{
+      width:100%;
+      max-width:420px;
+      background:transparent;
+    }
+
+    /* fake browser top with url */
+    .browser-top{
+      display:flex;
+      align-items:center;
+      gap:12px;
+      margin-bottom:12px;
+    }
+    .status{
+      flex:0 0 auto;
+      background:#2f3335;
+      color:#fff;
+      border-radius:10px;
+      padding:6px 10px;
+      font-size:12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+    }
+    .url-bar{
+      flex:1;
+      height:42px;
+      background:#4b4f51;
+      border-radius:999px;
+      padding:8px 12px;
+      display:flex;
+      align-items:center;
+      color:#ddd;
+      font-size:14px;
+    }
+    .url-bar .share{
+      margin-left:auto;
+      opacity:0.9;
+    }
+
+    /* header with logo */
+    header.top{
+      background:var(--card);
+      padding:18px 22px;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      border-radius:8px;
+      box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 1px 8px rgba(15,20,25,0.03);
+      margin-bottom:16px;
+    }
+    .logo{
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .logo .icon{
+      width:44px;
+      height:44px;
+      background:var(--accent);
+      border-radius:999px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 2px 6px rgba(241,90,48,0.15);
+    }
+    .logo .icon svg{width:22px;height:22px;fill:#fff}
+    .logo .brand{
+      font-weight:700;
+            font-size:34px;
+      line-height:1;
+      color:#111;
+      letter-spacing:-0.02em;
+    }
+
+    main{
+      margin-bottom:18px;
+    }
+
+    .card{
+      background:var(--card);
+      border-radius:14px;
+      padding:18px;
+      box-shadow: var(--card-shadow);
+      border:1px solid rgba(0,0,0,0.03);
+    }
+
+    .qr-wrap{
+      display:flex;
+      justify-content:center;
+      margin-bottom:18px;
+      position:relative;
+      padding:8px;
+      background:#fff;
+      border-radius:12px;
+      box-shadow: 0 6px 18px rgba(18,23,26,0.06);
+    }
+
+    .qr{
+      width:220px;
+      height:220px;
+      background:linear-gradient(180deg,#fff,#fff);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      border-radius:8px;
+      position:relative;
+    }
+
+    /* red circle X overlay */
+    .qr .cross{
+      position:absolute;
+      width:86px;
+      height:86px;
+      border-radius:999px;
+      background:#c74141;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow:0 6px 14px rgba(199,65,65,0.18);
+      transform:translateY(0);
+    }
+    .cross svg{width:48px;height:48px;fill:#fff}
+
+    /* text block */
+    .info{
+      padding:6px 2px;
+      color:#222;
+      font-size:16px;
+      line-height:1.55;
+    }
+    .label{
+      color:var(--muted);
+      font-weight:500;
+      margin-top:10px;
+      font-size:15px;
+    }
+    .value{
+      font-weight:600;
+      font-size:18px;
+      margin-top:6px;
+      color:#111;
+    }
+    .small{
+      font-size:15px;
+      font-weight:400;
+      color:#111;
+    }
+
+    /* footer */
+    footer{
+      margin-top:18px;
+      border-radius:6px;
+      overflow:hidden;
+    }
+    .footer-block{
+      background:var(--footer);
+      color:#fff;
+      padding:28px 16px;
+      text-align:center;
+      font-size:18px;
+    }
+    .footer-block small{display:block; margin-top:8px; opacity:0.95; font-weight:500}
+
+    /* responsive tweaks */
+    @media (max-width:420px){
+      .logo .brand{font-size:32px}
+      .qr{width:200px;height:200px}
+    }
+
+  </style>
 </head>
 <body>
-  <div id="root"></div>
-  
-  <!-- Удален Polyfill.io (может собирать данные) -->
-  
-  <!-- Стили -->
-  <link href="/index.css" rel="stylesheet">
-  
-  <!-- Основной скрипт -->
-  <script src="/index.js"></script>
+  <div class="wrap">
+    <div class="browser-top">
+      <div class="status">02:43 ⏱️</div>
+      <div class="url-bar">pay2.cashewpay.by <span class="share">⤴</span></div>
+    </div>
+
+    <header class="top">
+      <div class="logo">
+        <div class="icon" aria-hidden>
+          <!-- smile icon -->
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4.5 8c.83 0 1.5-.67 1.5-1.5S8.33 7 7.5 7 6 7.67 6 8.5 6.67 10 7.5 10zm9 0c.83 0 1.5-.67 1.5-1.5S17.33 7 16.5 7 15 7.67 15 8.5s.67 1.5 1.5 1.5zM12 17c-2.33 0-4.31-1.46-5.12-3.5l1.84-.68C9.03 14.06 10.45 15 12 15s2.97-.94 3.28-2.18l1.84.68C16.31 15.54 14.33 17 12 17z"/>
+          </svg>
+        </div>
+        <div class="brand">cashew</div>
+      </div>
+    </header>
+
+    <main>
+      <div class="card">
+        <div class="qr-wrap">
+          <div class="qr" role="img" aria-label="QR Code">
+            <!-- simple placeholder QR (stylized) -->
+            <svg viewBox="0 0 220 220" width="220" height="220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
+              <rect width="220" height="220" fill="#fff"/>
+              <g fill="#111">
+                <rect x="12" y="12" width="60" height="60"/>
+                <rect x="148" y="12" width="60" height="60"/>
+                <rect x="12" y="148" width="60" height="60"/>
+                <!-- pseudo random pattern -->
+                <rect x="90" y="30" width="12" height="12"/>
+                <rect x="110" y="30" width="12" height="12"/>
+                <rect x="70" y="50" width="12" height="12"/>
+                <rect x="130" y="70" width="12" height="12"/>
+                <rect x="30" y="90" width="12" height="12"/>
+                <rect x="50" y="110" width="12" height="12"/>
+                <rect x="170" y="110" width="12" height="12"/>
+                <rect x="110" y="130" width="12" height="12"/>
+                <rect x="90" y="150" width="12" height="12"/>
+                <rect x="150" y="150" width="12" height="12"/>
+                <rect x="30" y="170" width="12" height="12"/>
+                <rect x="50" y="150" width="12" height="12"/>
+                <rect x="110" y="90" width="12" height="12"/>
+                <rect x="140" y="110" width="12" height="12"/>
+              </g>
+            </svg>
+
+            <div class="cross" style="left:50%; top:50%; transform:translate(-50%,-50%);">
+              <!-- X icon -->
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                <path d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12l-4.89 4.89a1 1 0 0 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4z" fill="#fff"/>
+              </svg>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="info">
+          <div class="label">Получатель:</div>
+          <div class="small">Оплата проезда в автобусе, гар.<br>номер 332<br>г. Бобруйск<br>Бобруйский ф‑л Автобусный парк №2 ОАО "Могилевоблавтотранс"</div>
+
+          <div class="label">Активен с:</div>
+          <div class="value">06.11.2025 21:41</div>
+
+          <div class="label">Активен до:</div>
+          <div class="value">06.11.2025 22:41</div>
+
+          <div class="label">Описание:</div>
+          <div class="value">#2ac7402c8858770f#</div>
+
+          <div class="label">Цена:</div>
+          <div class="value">0.9 BYN</div>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footer-block">
+        Cashew
+        <small>info@cashew.me</small>
+      </div>
+    </footer>
+  </div>
 </body>
 </html>
+
