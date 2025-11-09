@@ -161,7 +161,7 @@
       border:1px solid rgba(20,30,40,0.03);
     }
 
-    /* ---- QR ВИДЕО ---- */
+    /* ---- QR ---- */
     .qr-wrap{display:flex;justify-content:center;padding:8px 0 18px}
     .qr{
       width:var(--qr-size);
@@ -174,13 +174,7 @@
       overflow:hidden;
       display:block;
     }
-    .qr video{
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      object-position:var(--qr-pos);
-      display:block;
-    }
+    .qr img{width:100%;height:100%;object-fit:contain;object-position:var(--qr-pos);display:block}
 
     /* ---- Детали (слегка жирнее значения) ---- */
     .details{padding:6px 2px 0;color:var(--muted)}
@@ -299,12 +293,9 @@
     <main class="wrap">
       <section class="card">
         <div class="qr-wrap">
-          <div class="qr" role="img" aria-label="QR видео">
-            <!-- Заменено на видео -->
-            <video id="qrVideo" muted playsinline>
-              <source src="ScreenRecording_11-09-2025 15-24-57_1.mov" type="video/mp4">
-              Ваш браузер не поддерживает видео.
-            </video>
+          <div class="qr" role="img" aria-label="QR код">
+            <!-- поместите qr.jpg рядом с этим файлом -->
+            <img src="qr.jpg" alt="QR код — qr.jpg">
           </div>
         </div>
 
@@ -353,7 +344,6 @@
       const recipientText = document.getElementById('recipientText');
       const activeFrom = document.getElementById('activeFrom');
       const activeTo = document.getElementById('activeTo');
-      const qrVideo = document.getElementById('qrVideo');
       
       // Функция для форматирования даты
       function formatDate(date) {
@@ -379,29 +369,6 @@
         activeTo.textContent = toDateFormatted;
       }
       
-      // Функция для настройки видео
-      function setupVideo() {
-        if (qrVideo) {
-          // Устанавливаем зацикливание
-          qrVideo.loop = true;
-          qrVideo.muted = true;
-          qrVideo.playsInline = true;
-          
-          // Запускаем видео когда оно готово
-          qrVideo.addEventListener('loadeddata', function() {
-            qrVideo.play().catch(function(error) {
-              console.log('Автовоспроизведение заблокировано:', error);
-            });
-          });
-          
-          // Обработчик для зацикливания (на всякий случай)
-          qrVideo.addEventListener('ended', function() {
-            qrVideo.currentTime = 0;
-            qrVideo.play();
-          });
-        }
-      }
-      
       // Обработчик нажатия кнопки
       submitBtn.addEventListener('click', function() {
         const garageNumber = garageNumberInput.value.trim();
@@ -412,9 +379,6 @@
           
           // Устанавливаем даты
           setDates();
-          
-          // Настраиваем и запускаем видео
-          setupVideo();
           
           // Переключаем страницы
           startPage.classList.add('hidden');
