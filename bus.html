@@ -1,291 +1,149 @@
+
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Cashew — пример</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Cashew — билет с QR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     :root{
-      --bg:#f2f4f6;
-      --card:#ffffff;
+      --bg:#f2f5f7;
+      --card:#fff;
       --muted:#6b6b6b;
-      --accent:#f15a30; /* оранжевый логотип */
-      --footer:#2f7fb0;
-      --shadow: 0 10px 18px rgba(21, 24, 27, 0.07), inset 0 1px 0 rgba(255,255,255,0.6);
-      --card-shadow: 0 10px 20px rgba(21,24,27,0.08);
+      --accent:#f15a3a;
+      --blue:#2f82b9;
+      --radius:14px;
     }
-
     *{box-sizing:border-box}
-    html,body{height:100%}
+    html,body{height:100%;}
     body{
       margin:0;
-      font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-      background: linear-gradient(180deg, var(--bg) 0%, #eef1f4 100%);
+      font-family: "Roboto", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+      background:linear-gradient(180deg,var(--bg),#e9eef2 60%);
       color:#111;
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
-      display:flex;
-      justify-content:center;
-      padding:18px 12px;
+      padding-bottom:80px;
     }
-
-    .wrap{
-      width:100%;
-      max-width:420px;
-      background:transparent;
-    }
-
-    /* fake browser top with url */
-    .browser-top{
+    .header{
       display:flex;
       align-items:center;
-      gap:12px;
-      margin-bottom:12px;
-    }
-    .status{
-      flex:0 0 auto;
-      background:#2f3335;
-      color:#fff;
-      border-radius:10px;
-      padding:6px 10px;
-      font-size:12px;
-      display:flex;
-      gap:10px;
-      align-items:center;
-    }
-    .url-bar{
-      flex:1;
-      height:42px;
-      background:#4b4f51;
-      border-radius:999px;
-      padding:8px 12px;
-      display:flex;
-      align-items:center;
-      color:#ddd;
-      font-size:14px;
-    }
-    .url-bar .share{
-      margin-left:auto;
-      opacity:0.9;
-    }
-
-    /* header with logo */
-    header.top{
+      gap:14px;
       background:var(--card);
-      padding:18px 22px;
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      border-radius:8px;
-      box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 1px 8px rgba(15,20,25,0.03);
-      margin-bottom:16px;
+      padding:18px 20px;
+      box-shadow:0 2px 0 rgba(0,0,0,0.06);
+      position:sticky;
+      top:0;
+      z-index:10;
     }
-    .logo{
-      display:flex;
-      align-items:center;
-      gap:12px;
+    .logo-circle{
+      width:40px;height:40px;border-radius:50%;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;flex:0 0 40px;
     }
-    .logo .icon{
-      width:44px;
-      height:44px;
-      background:var(--accent);
-      border-radius:999px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow:0 2px 6px rgba(241,90,48,0.15);
-    }
-    .logo .icon svg{width:22px;height:22px;fill:#fff}
-    .logo .brand{
-      font-weight:700;
-            font-size:34px;
-      line-height:1;
-      color:#111;
-      letter-spacing:-0.02em;
-    }
+    .logo-circle::after{content:'';width:20px;height:11px;border-radius:20px;background:#fff;display:block;transform:translateY(2px)}
+    .brand{font-family:'Montserrat',Arial;font-weight:700;font-size:20px;color:#000;letter-spacing:0.4px}
 
-    main{
-      margin-bottom:18px;
-    }
+    .wrap{max-width:720px;margin:18px auto;padding:0 14px}
 
-    .card{
-      background:var(--card);
-      border-radius:14px;
-      padding:18px;
-      box-shadow: var(--card-shadow);
-      border:1px solid rgba(0,0,0,0.03);
-    }
+    .card{background:var(--card);border-radius:calc(var(--radius));padding:28px 20px 22px;box-shadow:0 6px 16px rgba(35,47,52,0.08), inset 0 1px 0 rgba(255,255,255,0.6);border:1px solid rgba(20,30,40,0.03)}
 
-    .qr-wrap{
-      display:flex;
-      justify-content:center;
-      margin-bottom:18px;
-      position:relative;
-      padding:8px;
-      background:#fff;
-      border-radius:12px;
-      box-shadow: 0 6px 18px rgba(18,23,26,0.06);
-    }
-
+    /* QR block - используйте файл qr.jpg в той же папке */
+    .qr-wrap{display:flex;justify-content:center;padding:6px 0 18px}
     .qr{
-      width:220px;
-      height:220px;
-      background:linear-gradient(180deg,#fff,#fff);
-      display:flex;
-      align-items:center;
-      justify-content:center;
+      width:min(520px,86vw);
+      max-width:520px;
+      aspect-ratio:1/1;
       border-radius:8px;
       position:relative;
-    }
-
-    /* red circle X overlay */
-    .qr .cross{
-      position:absolute;
-      width:86px;
-      height:86px;
-      border-radius:999px;
-      background:#c74141;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      box-shadow:0 6px 14px rgba(199,65,65,0.18);
-      transform:translateY(0);
-    }
-    .cross svg{width:48px;height:48px;fill:#fff}
-
-    /* text block */
-    .info{
-      padding:6px 2px;
-      color:#222;
-      font-size:16px;
-      line-height:1.55;
-    }
-    .label{
-      color:var(--muted);
-      font-weight:500;
-      margin-top:10px;
-      font-size:15px;
-    }
-    .value{
-      font-weight:600;
-      font-size:18px;
-      margin-top:6px;
-      color:#111;
-    }
-    .small{
-      font-size:15px;
-      font-weight:400;
-      color:#111;
-    }
-
-    /* footer */
-    footer{
-      margin-top:18px;
-      border-radius:6px;
+      box-shadow:0 6px 20px rgba(20,30,40,0.06);
+      background:linear-gradient(180deg,#fff,#fafbfc);
       overflow:hidden;
     }
-    .footer-block{
-      background:var(--footer);
-      color:#fff;
-      padding:28px 16px;
-      text-align:center;
-      font-size:18px;
-    }
-    .footer-block small{display:block; margin-top:8px; opacity:0.95; font-weight:500}
+    .qr img{width:100%;height:100%;object-fit:cover;display:block}
 
-    /* responsive tweaks */
-    @media (max-width:420px){
-      .logo .brand{font-size:32px}
-      .qr{width:200px;height:200px}
+    /* badge размером как на фото */
+    .qr .badge{
+      --size:26%;
+      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+
+      width:var(--size);height:var(--size);border-radius:999px;background:#c83f3f;display:flex;align-items:center;justify-content:center;
+      box-shadow:0 6px 18px rgba(200,50,50,0.18);z-index:2
+    }
+    .qr .badge::before,.qr .badge::after{content:'';position:absolute;width:60%;height:12%;background:#fff;border-radius:6px}
+    .qr .badge::before{transform:rotate(45deg)}
+    .qr .badge::after{transform:rotate(-45deg)}
+
+    .details{padding:6px 2px 0;color:var(--muted)}
+    .details .label{font-size:14px;color:#6f6f6f;margin-top:10px}
+    .details .value{font-family:'Montserrat',sans-serif;font-size:18px;color:#111;margin-top:6px;line-height:1.32}
+    .row{margin-bottom:10px}
+
+    footer{margin-top:26px;background:var(--blue);color:#fff;padding:28px 16px;border-radius:18px 18px 0 0;display:flex;flex-direction:column;align-items:center}
+    footer .f-title{font-family:'Montserrat';font-weight:600;margin-bottom:6px}
+    footer .f-mail{opacity:0.95}
+
+    @media(min-width:540px){
+      .brand{font-size:28px}
+      .wrap{max-width:720px}
+      .card{padding:32px}
+      .qr{width:min(520px,62%)}
+      .details .value{font-size:20px}
+    }
+    @media(min-width:900px){
+      .wrap{max-width:920px}
+      .qr{width:480px}
     }
 
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="browser-top">
-      <div class="status">02:43 ⏱️</div>
-      <div class="url-bar">pay2.cashewpay.by <span class="share">⤴</span></div>
-    </div>
+  <header class="header">
+    <div class="logo-circle" aria-hidden></div>
+    <div class="brand">cashew</div>
+  </header>
 
-    <header class="top">
-      <div class="logo">
-        <div class="icon" aria-hidden>
-          <!-- smile icon -->
-          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-4.5 8c.83 0 1.5-.67 1.5-1.5S8.33 7 7.5 7 6 7.67 6 8.5 6.67 10 7.5 10zm9 0c.83 0 1.5-.67 1.5-1.5S17.33 7 16.5 7 15 7.67 15 8.5s.67 1.5 1.5 1.5zM12 17c-2.33 0-4.31-1.46-5.12-3.5l1.84-.68C9.03 14.06 10.45 15 12 15s2.97-.94 3.28-2.18l1.84.68C16.31 15.54 14.33 17 12 17z"/>
-          </svg>
+  <main class="wrap">
+    <section class="card">
+      <div class="qr-wrap">
+        <div class="qr" role="img" aria-label="QR код">
+          <img src="qr.jpg" alt="QR код">
+          <div class="badge" aria-hidden></div>
         </div>
-        <div class="brand">cashew</div>
       </div>
-    </header>
 
-    <main>
-      <div class="card">
-        <div class="qr-wrap">
-          <div class="qr" role="img" aria-label="QR Code">
-            <!-- simple placeholder QR (stylized) -->
-            <svg viewBox="0 0 220 220" width="220" height="220" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">
-              <rect width="220" height="220" fill="#fff"/>
-              <g fill="#111">
-                <rect x="12" y="12" width="60" height="60"/>
-                <rect x="148" y="12" width="60" height="60"/>
-                <rect x="12" y="148" width="60" height="60"/>
-                <!-- pseudo random pattern -->
-                <rect x="90" y="30" width="12" height="12"/>
-                <rect x="110" y="30" width="12" height="12"/>
-                <rect x="70" y="50" width="12" height="12"/>
-                <rect x="130" y="70" width="12" height="12"/>
-                <rect x="30" y="90" width="12" height="12"/>
-                <rect x="50" y="110" width="12" height="12"/>
-                <rect x="170" y="110" width="12" height="12"/>
-                <rect x="110" y="130" width="12" height="12"/>
-                <rect x="90" y="150" width="12" height="12"/>
-                <rect x="150" y="150" width="12" height="12"/>
-                <rect x="30" y="170" width="12" height="12"/>
-                <rect x="50" y="150" width="12" height="12"/>
-                <rect x="110" y="90" width="12" height="12"/>
-                <rect x="140" y="110" width="12" height="12"/>
-              </g>
-            </svg>
-
-            <div class="cross" style="left:50%; top:50%; transform:translate(-50%,-50%);">
-              <!-- X icon -->
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                <path d="M18.3 5.71a1 1 0 0 0-1.41 0L12 10.59 7.11 5.7A1 1 0 0 0 5.7 7.11L10.59 12l-4.89 4.89a1 1 0 0 0 1.41 1.41L12 13.41l4.89 4.89a1 1 0 0 0 1.41-1.41L13.41 12l4.89-4.89a1 1 0 0 0 0-1.4z" fill="#fff"/>
-              </svg>
-            </div>
-
-          </div>
+      <div class="details">
+        <div class="row">
+          <div class="label">Получатель:</div>
+          <div class="value">Оплата проезда в автобусе, гар. номер 332<br>г. Бобруйск<br>Бобруйский ф‑л Автобусный парк №2 ОАО "Могилевоблавтотранс"</div>
         </div>
 
-        <div class="info">
-          <div class="label">Получатель:</div>
-          <div class="small">Оплата проезда в автобусе, гар.<br>номер 332<br>г. Бобруйск<br>Бобруйский ф‑л Автобусный парк №2 ОАО "Могилевоблавтотранс"</div>
-
+        <div class="row">
           <div class="label">Активен с:</div>
           <div class="value">06.11.2025 21:41</div>
+        </div>
 
+        <div class="row">
           <div class="label">Активен до:</div>
           <div class="value">06.11.2025 22:41</div>
+        </div>
 
+        <div class="row">
           <div class="label">Описание:</div>
           <div class="value">#2ac7402c8858770f#</div>
+        </div>
 
+        <div class="row">
           <div class="label">Цена:</div>
           <div class="value">0.9 BYN</div>
         </div>
       </div>
-    </main>
+    </section>
 
     <footer>
-      <div class="footer-block">
-        Cashew
-        <small>info@cashew.me</small>
-      </div>
+      <div class="f-title">Cashew</div>
+      <div class="f-mail">info@cashew.me</div>
     </footer>
-  </div>
-</body>
-</html>
+  </main>
 
+</body>
+  </html>
