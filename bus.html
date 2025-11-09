@@ -2,8 +2,8 @@
 <!doctype html>
 <html lang="ru">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Cashew — билет с QR</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
@@ -26,28 +26,39 @@
       -moz-osx-font-smoothing:grayscale;
       padding-bottom:80px;
     }
+
+    /* Header: заменён на изображение za.jpg (положите za.jpg в ту же папку) */
     .header{
+      width:100%;
+      background:var(--card);
       display:flex;
       align-items:center;
-      gap:14px;
-      background:var(--card);
-      padding:18px 20px;
+      justify-content:center;
+      padding:12px 14px;
       box-shadow:0 2px 0 rgba(0,0,0,0.06);
       position:sticky;
       top:0;
       z-index:10;
     }
-    .logo-circle{
-      width:40px;height:40px;border-radius:50%;background:var(--accent);display:inline-flex;align-items:center;justify-content:center;flex:0 0 40px;
+    .header img{
+      height:72px;               /* размер, близкий к фото */
+      max-width:92%;
+      object-fit:contain;
+      display:block;
     }
-    .logo-circle::after{content:'';width:20px;height:11px;border-radius:20px;background:#fff;display:block;transform:translateY(2px)}
-    .brand{font-family:'Montserrat',Arial;font-weight:700;font-size:20px;color:#000;letter-spacing:0.4px}
 
+    /* Основной контейнер */
     .wrap{max-width:720px;margin:18px auto;padding:0 14px}
 
-    .card{background:var(--card);border-radius:calc(var(--radius));padding:28px 20px 22px;box-shadow:0 6px 16px rgba(35,47,52,0.08), inset 0 1px 0 rgba(255,255,255,0.6);border:1px solid rgba(20,30,40,0.03)}
+    .card{
+      background:var(--card);
+      border-radius:calc(var(--radius));
+      padding:28px 20px 22px;
+      box-shadow:0 6px 16px rgba(35,47,52,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+      border:1px solid rgba(20,30,40,0.03);
+    }
 
-    /* QR block - используйте файл qr.jpg в той же папке */
+    /* QR блок - используйте файл qr.jpg (положите в ту же папку) */
     .qr-wrap{display:flex;justify-content:center;padding:6px 0 18px}
     .qr{
       width:min(520px,86vw);
@@ -61,17 +72,7 @@
     }
     .qr img{width:100%;height:100%;object-fit:cover;display:block}
 
-    /* badge размером как на фото */
-    .qr .badge{
-      --size:26%;
-      position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
-
-      width:var(--size);height:var(--size);border-radius:999px;background:#c83f3f;display:flex;align-items:center;justify-content:center;
-      box-shadow:0 6px 18px rgba(200,50,50,0.18);z-index:2
-    }
-    .qr .badge::before,.qr .badge::after{content:'';position:absolute;width:60%;height:12%;background:#fff;border-radius:6px}
-    .qr .badge::before{transform:rotate(45deg)}
-    .qr .badge::after{transform:rotate(-45deg)}
+    /* Убрана иконка-крест; QR показывается целиком */
 
     .details{padding:6px 2px 0;color:var(--muted)}
     .details .label{font-size:14px;color:#6f6f6f;margin-top:10px}
@@ -82,8 +83,12 @@
     footer .f-title{font-family:'Montserrat';font-weight:600;margin-bottom:6px}
     footer .f-mail{opacity:0.95}
 
+    @media(max-width:420px){
+      .header img{height:56px}
+      .card{padding:18px 14px}
+      .details .value{font-size:17px}
+    }
     @media(min-width:540px){
-      .brand{font-size:28px}
       .wrap{max-width:720px}
       .card{padding:32px}
       .qr{width:min(520px,62%)}
@@ -98,8 +103,8 @@
 </head>
 <body>
   <header class="header">
-    <div class="logo-circle" aria-hidden></div>
-    <div class="brand">cashew</div>
+    <!-- Положите za.jpg в ту же папку; изображение будет использоваться как заголовок -->
+    <img src="za.jpg" alt="cashew header">
   </header>
 
   <main class="wrap">
@@ -107,7 +112,6 @@
       <div class="qr-wrap">
         <div class="qr" role="img" aria-label="QR код">
           <img src="qr.jpg" alt="QR код">
-          <div class="badge" aria-hidden></div>
         </div>
       </div>
 
@@ -144,6 +148,5 @@
       <div class="f-mail">info@cashew.me</div>
     </footer>
   </main>
-
 </body>
-  </html>
+</html>
