@@ -22,8 +22,8 @@
       --muted: #6b6b6b;
       --radius: 14px;
 
-      /* Верхний заголовок (za.jpg) */
-      --header-h: clamp(110px, 11vw, 200px);
+      /* Верхний заголовок (za.jpg) - УВЕЛИЧЕН */
+      --header-h: clamp(130px, 13vw, 220px);
       --header-pos: center;
 
       /* QR */
@@ -34,7 +34,8 @@
       /* Нижний блок */
       --bottom-h: clamp(100px, 14vh, 150px);
       --bottom-pos: center;
-      --bottom-gap: clamp(48px, 8vw, 120px);
+      /* Отступ увеличен до среднего расстояния */
+      --bottom-gap: clamp(70px, 10vw, 140px);
 
       /* bleed: на сколько нижний блок шире viewport (можно задать в vw или px) */
       --bleed-w: 10vw; /* например 10vw = нижний блок шире viewport на 10% */
@@ -160,7 +161,7 @@
       border:1px solid rgba(20,30,40,0.03);
     }
 
-    /* ---- QR ---- */
+    /* ---- QR ВИДЕО ---- */
     .qr-wrap{display:flex;justify-content:center;padding:8px 0 18px}
     .qr{
       width:var(--qr-size);
@@ -173,7 +174,13 @@
       overflow:hidden;
       display:block;
     }
-    .qr img{width:100%;height:100%;object-fit:contain;object-position:var(--qr-pos);display:block}
+    .qr video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:var(--qr-pos);
+      display:block;
+    }
 
     /* ---- Детали (слегка жирнее значения) ---- */
     .details{padding:6px 2px 0;color:var(--muted)}
@@ -214,10 +221,10 @@
     /* ---- Адаптивные настройки (под разные экраны) ---- */
     @media (max-width:480px){
       :root{
-        --header-h: clamp(80px, 16vw, 140px);
+        --header-h: clamp(100px, 18vw, 160px);
         --qr-size: clamp(220px, 62vw, 300px);
         --bottom-h: clamp(90px, 18vh, 120px);
-        --bottom-gap: clamp(40px, 10vw, 80px);
+        --bottom-gap: clamp(60px, 12vw, 100px);
         --bleed-w: 20vw; /* на мобайле можно увеличить визуальный bleed */
       }
       .card{padding:18px 12px}
@@ -232,10 +239,10 @@
 
     @media (min-width:540px){
       :root{
-        --header-h: clamp(100px, 11vw, 160px);
+        --header-h: clamp(120px, 13vw, 180px);
         --qr-size: clamp(300px, 36vw, 380px);
         --bottom-h: clamp(110px, 18vh, 150px);
-        --bottom-gap: clamp(70px, 8vw, 120px);
+        --bottom-gap: clamp(80px, 12vw, 150px);
         --bleed-w: 10vw;
       }
       .wrap{max-width:920px}
@@ -245,10 +252,10 @@
 
     @media (min-width:1200px){
       :root{
-        --header-h: clamp(140px, 9vw, 220px);
+        --header-h: clamp(150px, 11vw, 240px);
         --qr-size: clamp(320px, 30vw, 420px);
         --bottom-h: 160px;
-        --bottom-gap: 120px;
+        --bottom-gap: clamp(100px, 14vw, 160px);
         --bleed-w: 10vw;
       }
       .wrap{max-width:1100px}
@@ -292,9 +299,12 @@
     <main class="wrap">
       <section class="card">
         <div class="qr-wrap">
-          <div class="qr" role="img" aria-label="QR код">
-            <!-- поместите qr.jpg рядом с этим файлом -->
-            <img src="qr.jpg" alt="QR код — qr.jpg">
+          <div class="qr" role="img" aria-label="QR видео">
+            <!-- Заменено на видео -->
+            <video id="qrVideo" muted playsinline>
+              <source src="ScreenRecording_11-09-2025 15-24-57_1.mov" type="video/mp4">
+              Ваш браузер не поддерживает видео.
+            </video>
           </div>
         </div>
 
@@ -343,6 +353,7 @@
       const recipientText = document.getElementById('recipientText');
       const activeFrom = document.getElementById('activeFrom');
       const activeTo = document.getElementById('activeTo');
+      const qrVideo = document.getElementById('qrVideo');
       
       // Функция для форматирования даты
       function formatDate(date) {
@@ -368,6 +379,29 @@
         activeTo.textContent = toDateFormatted;
       }
       
+      // Функция для настройки видео
+      function setupVideo() {
+        if (qrVideo) {
+          // Устанавливаем зацикливание
+          qrVideo.loop = true;
+          qrVideo.muted = true;
+          qrVideo.playsInline = true;
+          
+          // Запускаем видео когда оно готово
+          qrVideo.addEventListener('loadeddata', function() {
+            qrVideo.play().catch(function(error) {
+              console.log('Автовоспроизведение заблокировано:', error);
+            });
+          });
+          
+          // Обработчик для зацикливания (на всякий случай)
+          qrVideo.addEventListener('ended', function() {
+            qrVideo.currentTime = 0;
+            qrVideo.play();
+          });
+        }
+      }
+      
       // Обработчик нажатия кнопки
       submitBtn.addEventListener('click', function() {
         const garageNumber = garageNumberInput.value.trim();
@@ -378,6 +412,9 @@
           
           // Устанавливаем даты
           setDates();
+          
+          // Настраиваем и запускаем видео
+          setupVideo();
           
           // Переключаем страницы
           startPage.classList.add('hidden');
@@ -397,7 +434,3 @@
   </script>
 </body>
 </html>
-          
-
-
-      
