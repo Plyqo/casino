@@ -7,30 +7,31 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     /*
-      Настройки размеров и положения всех изображений можно регулировать через CSS-переменные ниже.
-      Изменяйте значения переменных --header-h, --header-pos, --qr-size, --qr-pos, --bottom-h, --bottom-pos.
-      Переменные используют clamp для адаптивности; можно заменить на фиксированные px при необходимости.
+      Настройки размеров и положения изображений через CSS-переменные:
+      --header-h  — высота верхнего заголовка (za.jpg)
+      --qr-size   — размер блока с QR (ширина и высота)
+      --bottom-h  — высота нижнего блока (niz.jpg)
+      Позицию изображений можно менять через --header-pos, --qr-pos, --bottom-pos
     */
 
     :root{
       --bg: #f2f5f7;
       --card: #fff;
       --muted: #6b6b6b;
-      --accent: #f15a3a;
       --radius: 14px;
 
-      /* Верхний заголовок (za.jpg) */
-      --header-h: clamp(64px, 9.5vw, 110px);    /* высота заголовка (регулируется) */
-      --header-pos: center;                     /* позиция содержимого в заголовке (object-position) */
+      /* Верхний заголовок */
+      --header-h: clamp(72px, 9vw, 110px);
+      --header-pos: center;
 
-      /* QR (qr.jpg) */
-      --qr-size: clamp(300px, 44vw, 420px);     /* внешний размер qr-блока (ширина и высота) */
-      --qr-pos: center;                         /* позиция внутри img (object-position) */
-      --qr-max-w: 520px;                        /* максимальная ширина для больших экранов */
+      /* QR */
+      --qr-size: clamp(300px, 40vw, 420px);
+      --qr-pos: center;
+      --qr-max-w: 520px;
 
-      /* Нижний блок (niz.jpg) */
-      --bottom-h: clamp(140px, 22vh, 200px);    /* высота нижнего изображения (регулируется) */
-      --bottom-pos: center;                     /* позиция содержимого нижнего изображения */
+      /* Нижний блок */
+      --bottom-h: clamp(140px, 22vh, 200px);
+      --bottom-pos: center;
     }
 
     *{box-sizing:border-box}
@@ -42,12 +43,10 @@
       -moz-osx-font-smoothing:grayscale;
       background:linear-gradient(180deg,var(--bg),#e9eef2 60%);
       padding-bottom:24px;
+      overflow-x:hidden; /* предотвращаем горизонтальную полосу прокрутки при full-bleed */
     }
 
-    /* ===== HEADER (za.jpg) =====
-       - za.jpg: регулируйте высоту через --header-h
-       - положение внутри изображения через --header-pos (например 'left center', 'center', 'right center')
-    */
+    /* HEADER (za.jpg) */
     .header{
       width:100%;
       background:var(--card);
@@ -69,7 +68,7 @@
       display:block;
     }
 
-    /* ===== MAIN WRAP & CARD ===== */
+    /* MAIN WRAP & CARD */
     .wrap{
       max-width:760px;
       margin:18px auto;
@@ -83,10 +82,7 @@
       border:1px solid rgba(20,30,40,0.03);
     }
 
-    /* ===== QR BLOCK =====
-       - Размер блока и изображения контролируются через --qr-size и --qr-pos
-       - Если нужно изменить относительную ширину — правьте --qr-size или --qr-max-w
-    */
+    /* QR BLOCK */
     .qr-wrap{
       display:flex;
       justify-content:center;
@@ -106,52 +102,58 @@
     .qr img{
       width:100%;
       height:100%;
-      object-fit:contain;            /* сохраняет весь QR, не обрезая */
-      object-position:var(--qr-pos); /* положение внутри (например 'center', 'top left') */
+      object-fit:contain;
+      object-position:var(--qr-pos);
       display:block;
     }
 
-    /* ===== DETAILS ===== */
+    /* DETAILS — сделал значения (value) чуть жирнее */
     .details{
       padding:6px 2px 0;
       color:var(--muted);
     }
-    .details .label{font-size:14px;color:#6f6f6f;margin-top:10px}
+    .details .label{
+      font-size:14px;
+      color:#6f6f6f;
+      margin-top:10px;
+      font-weight:500;
+    }
     .details .value{
       font-family:'Montserrat',sans-serif;
       font-size:18px;
       color:#111;
       margin-top:6px;
       line-height:1.32;
+      font-weight:600; /* значения стали немного жирнее, как просили */
     }
     .row{margin-bottom:10px}
 
-    /* ===== BOTTOM FULL-WIDTH IMAGE (niz.jpg) =====
-       - niz.jpg растянут на всю ширину viewport.
-       - Управляйте высотой через --bottom-h и положением через --bottom-pos.
-       - Для "полосы" снизу ширина будет на всю страницу, без скруглений.
-    */
+    /* LOWER FULL-WIDTH IMAGE (niz.jpg) — растягиваем по всей ширине экрана */
     .bottom{
       width:100%;
       margin-top:22px;
-      overflow:hidden; /* обрезает всё, что выходит за границы блока */
+      position:relative;
+      overflow:hidden;
     }
-    .bottom img{
-      /* Делаем изображение full-bleed (выполняется на всю ширину окна браузера) */
-      width:100vw;
-      margin-left: calc(50% - 50vw); /* выравнивание по центру viewport (полный размах) */
+    .bottom .full{
+      position:relative;
+      left:50%;
+      right:50%;
+      margin-left:-50vw;  /* сдвигаем влево на половину viewport чтобы занять всю ширину */
+      margin-right:-50vw;
+      width:100vw;        /* растягиваем на всю ширину viewport */
       height:var(--bottom-h);
-      object-fit:cover;               /* чтобы заполнить полосу, обрезая края по необходимости */
+      object-fit:cover;   /* заполнит полосу, можно использовать object-position для смещения */
       object-position:var(--bottom-pos);
       display:block;
     }
 
-    /* ===== Адаптивность ===== */
+    /* Адаптив */
     @media (max-width:480px){
       :root{
         --header-h: clamp(56px, 14vw, 84px);
         --qr-size: clamp(240px, 62vw, 320px);
-        --bottom-h: clamp(120px, 20vh, 160px);
+        --bottom-h: clamp(110px, 20vh, 150px);
       }
       .card{padding:18px 12px}
       .details .value{font-size:16px}
@@ -172,23 +174,23 @@
       :root{
         --header-h: clamp(86px, 8vw, 120px);
         --qr-size: clamp(320px, 34vw, 420px);
-        --bottom_h: 220px;
+        --bottom-h: 220px;
       }
       .wrap{max-width:920px}
       .card{padding:34px}
       .details .value{font-size:20px}
     }
 
-    /* Небольшая визуальная очистка при печати */
+    /* печать */
     @media print{
       .header, .bottom{box-shadow:none}
-      .header img, .bottom img{object-fit:contain}
+      .header img, .bottom .full{object-fit:contain}
     }
 
   </style>
 </head>
 <body>
-  <!-- Верхний заголовок: поместите za.jpg в ту же папку -->
+  <!-- za.jpg (верхний заголовок). Высоту и позицию можно регулировать через --header-h и --header-pos -->
   <header class="header">
     <img src="za.jpg" alt="cashew header — za.jpg">
   </header>
@@ -196,7 +198,7 @@
   <main class="wrap">
     <section class="card">
       <div class="qr-wrap">
-        <!-- QR: поместите qr.jpg в ту же папку -->
+        <!-- qr.jpg (размер/позицию можно менять через --qr-size и --qr-pos) -->
         <div class="qr" role="img" aria-label="QR код">
           <img src="qr.jpg" alt="QR код — qr.jpg">
         </div>
@@ -230,10 +232,14 @@
       </div>
     </section>
 
-    <!-- Нижний полно-ширинный блок: поместите niz.jpg в ту же папку -->
+    <!-- niz.jpg — растянут на всю ширину экрана.
+         Управление: --bottom-h (высота), --bottom-pos (object-position для смещения содержимого) -->
     <div class="bottom" aria-hidden>
-      <img src="niz.jpg" alt="нижний блок — niz.jpg">
+      <img class="full" src="niz.jpg" alt="нижний блок — niz.jpg">
     </div>
   </main>
 </body>
 </html>
+
+
+      
