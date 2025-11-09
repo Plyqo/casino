@@ -52,6 +52,78 @@
       overflow-x:visible; /* разрешаем видимый выход нижнего блока за экран */
     }
 
+    /* ---- СТАРТОВАЯ СТРАНИЦА ---- */
+    .start-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .start-page h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 28px;
+      margin-bottom: 40px;
+      text-align: center;
+      color: #333;
+    }
+    
+    .garage-form {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 30px;
+      box-shadow: 0 6px 16px rgba(35,47,52,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+      border: 1px solid rgba(20,30,40,0.03);
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+      color: #555;
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+    
+    .submit-btn {
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 12px 20px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+    
+    .submit-btn:hover {
+      background: #3a7bc8;
+    }
+
     /* ---- Верхний заголовок (za.jpg) ---- */
     .header{
       width:100%;
@@ -150,6 +222,12 @@
       }
       .card{padding:18px 12px}
       .details .value{font-size:16px}
+      .garage-form {
+        padding: 20px;
+      }
+      .start-page h1 {
+        font-size: 24px;
+      }
     }
 
     @media (min-width:540px){
@@ -184,57 +262,139 @@
       .header img, .bottom .full{object-fit:contain}
     }
 
+    /* Скрытие элементов */
+    .hidden {
+      display: none;
+    }
+
   </style>
 </head>
 <body>
-  <!-- Верхний заголовок: поместите za.jpg рядом с этим файлом -->
-  <header class="header">
-    <img src="za.jpg" alt="cashew header — za.jpg">
-  </header>
-
-  <main class="wrap">
-    <section class="card">
-      <div class="qr-wrap">
-        <div class="qr" role="img" aria-label="QR код">
-          <!-- поместите qr.jpg рядом с этим файлом -->
-          <img src="qr.jpg" alt="QR код — qr.jpg">
-        </div>
+  <!-- СТАРТОВАЯ СТРАНИЦА -->
+  <div id="startPage" class="start-page">
+    <h1>Введите гаража номер</h1>
+    <div class="garage-form">
+      <div class="form-group">
+        <label for="garageNumber">Гаража номер:</label>
+        <input type="text" id="garageNumber" placeholder="Введите номер гаража">
       </div>
-
-      <div class="details">
-        <div class="row">
-          <div class="label">Получатель:</div>
-          <div class="value">Оплата проезда в автобусе, гар. номер 332<br>г. Бобруйск<br>Бобруйский ф‑л Автобусный парк №2 ОАО "Могилевоблавтотранс"</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Активен с:</div>
-          <div class="value">06.11.2025 21:41</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Активен до:</div>
-          <div class="value">06.11.2025 22:41</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Описание:</div>
-          <div class="value">#2ac7402c8858770f#</div>
-        </div>
-
-        <div class="row">
-          <div class="label">Цена:</div>
-          <div class="value">0.9 BYN</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Нижний блок: поместите niz.jpg рядом с этим файлом.
-         Он центрируется относительно viewport и выходит за рамки контейнера (bleed). -->
-    <div class="bottom" aria-hidden>
-      <img class="full" src="niz.jpg" alt="нижний блок — niz.jpg">
+      <button class="submit-btn" id="submitBtn">Продолжить</button>
     </div>
-  </main>
+  </div>
+
+  <!-- ОСНОВНАЯ СТРАНИЦА -->
+  <div id="mainPage" class="hidden">
+    <!-- Верхний заголовок: поместите za.jpg рядом с этим файлом -->
+    <header class="header">
+      <img src="za.jpg" alt="cashew header — za.jpg">
+    </header>
+
+    <main class="wrap">
+      <section class="card">
+        <div class="qr-wrap">
+          <div class="qr" role="img" aria-label="QR код">
+            <!-- поместите qr.jpg рядом с этим файлом -->
+            <img src="qr.jpg" alt="QR код — qr.jpg">
+          </div>
+        </div>
+
+        <div class="details">
+          <div class="row">
+            <div class="label">Получатель:</div>
+            <div class="value" id="recipientText">Оплата проезда в автобусе, гар. номер 332<br>г. Бобруйск<br>Бобруйский ф‑л Автобусный парк №2 ОАО "Могилевоблавтотранс"</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Активен с:</div>
+            <div class="value" id="activeFrom">06.11.2025 21:41</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Активен до:</div>
+            <div class="value" id="activeTo">06.11.2025 22:41</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Описание:</div>
+            <div class="value">#2ac7402c8858770f#</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Цена:</div>
+            <div class="value">0.9 BYN</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Нижний блок: поместите niz.jpg рядом с этим файлом.
+           Он центрируется относительно viewport и выходит за рамки контейнера (bleed). -->
+      <div class="bottom" aria-hidden>
+        <img class="full" src="niz.jpg" alt="нижний блок — niz.jpg">
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const startPage = document.getElementById('startPage');
+      const mainPage = document.getElementById('mainPage');
+      const garageNumberInput = document.getElementById('garageNumber');
+      const submitBtn = document.getElementById('submitBtn');
+      const recipientText = document.getElementById('recipientText');
+      const activeFrom = document.getElementById('activeFrom');
+      const activeTo = document.getElementById('activeTo');
+      
+      // Функция для форматирования даты
+      function formatDate(date) {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        
+        return `${day}.${month}.${year} ${hours}:${minutes}`;
+      }
+      
+      // Функция для установки дат
+      function setDates() {
+        const now = new Date();
+        const fromDate = formatDate(now);
+        
+        // Добавляем 1 час к текущей дате
+        const toDate = new Date(now.getTime() + 60 * 60 * 1000);
+        const toDateFormatted = formatDate(toDate);
+        
+        activeFrom.textContent = fromDate;
+        activeTo.textContent = toDateFormatted;
+      }
+      
+      // Обработчик нажатия кнопки
+      submitBtn.addEventListener('click', function() {
+        const garageNumber = garageNumberInput.value.trim();
+        
+        if (garageNumber) {
+          // Обновляем текст получателя с введенным номером гаража
+          recipientText.innerHTML = `Оплата проезда в автобусе, гар. номер ${garageNumber}<br>г. Бобруйск<br>Бобруйский ф‑л Автобусный парк №2 ОАО "Могилевоблавтотранс"`;
+          
+          // Устанавливаем даты
+          setDates();
+          
+          // Переключаем страницы
+          startPage.classList.add('hidden');
+          mainPage.classList.remove('hidden');
+        } else {
+          alert('Пожалуйста, введите номер гаража');
+        }
+      });
+      
+      // Обработчик нажатия Enter в поле ввода
+      garageNumberInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          submitBtn.click();
+        }
+      });
+    });
+  </script>
 </body>
 </html>
           
