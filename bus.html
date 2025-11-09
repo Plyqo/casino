@@ -7,11 +7,14 @@
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
     /*
-      Настройки размеров и положения изображений через CSS-переменные:
-      --header-h  — высота верхнего заголовка (za.jpg)
-      --qr-size   — размер блока с QR (ширина и высота)
-      --bottom-h  — высота нижнего блока (niz.jpg)
-      Позицию изображений можно менять через --header-pos, --qr-pos, --bottom-pos
+      Управление размерами/положением через CSS-переменные:
+      --header-h   — высота верхнего заголовка (za.jpg)
+      --header-pos — позиция содержимого заголовка (object-position)
+      --qr-size    — размер блока с QR (ширина и высота)
+      --qr-pos     — позиция QR внутри img
+      --bottom-h   — высота нижнего блока (niz.jpg)
+      --bottom-pos — позиция содержимого нижнего блока
+      --bottom-gap — расстояние от основного блока до нижнего изображения
     */
 
     :root{
@@ -20,18 +23,19 @@
       --muted: #6b6b6b;
       --radius: 14px;
 
-      /* Верхний заголовок */
-      --header-h: clamp(72px, 9vw, 110px);
+      /* Верхний заголовок — увеличен */
+      --header-h: clamp(110px, 12vw, 180px);   /* увеличенная базовая высота */
       --header-pos: center;
 
       /* QR */
-      --qr-size: clamp(300px, 40vw, 420px);
+      --qr-size: clamp(280px, 38vw, 380px);
       --qr-pos: center;
       --qr-max-w: 520px;
 
-      /* Нижний блок */
-      --bottom-h: clamp(140px, 22vh, 200px);
+      /* Нижний блок — чуть ниже по высоте и отодвинут от основного блока */
+      --bottom-h: clamp(100px, 14vh, 150px);   /* уменьшенная высота */
       --bottom-pos: center;
+      --bottom-gap: clamp(28px, 6vw, 56px);    /* отступ сверху перед нижним блоком */
     }
 
     *{box-sizing:border-box}
@@ -43,34 +47,33 @@
       -moz-osx-font-smoothing:grayscale;
       background:linear-gradient(180deg,var(--bg),#e9eef2 60%);
       padding-bottom:24px;
-      overflow-x:hidden; /* предотвращаем горизонтальную полосу прокрутки при full-bleed */
+      overflow-x:hidden; /* предотвращаем горизонтальную полосу прокрутки */
     }
 
-    /* HEADER (za.jpg) */
+    /* HEADER (za.jpg) — увеличен */
     .header{
       width:100%;
       background:var(--card);
       display:flex;
       align-items:center;
       justify-content:center;
-      padding:8px 12px;
+      padding:6px 12px;
       box-shadow:0 2px 0 rgba(0,0,0,0.06);
       position:sticky;
       top:0;
       z-index:20;
     }
     .header img{
-      height:var(--header-h);
-      max-width:92%;
+      height:var(--header-h);     /* регулируется переменной --header-h */
+      max-width:94%;
       width:auto;
       object-fit:contain;
       object-position:var(--header-pos);
       display:block;
     }
 
-    /* MAIN WRAP & CARD */
-    .wrap{
-      max-width:760px;
+    /* Основной контейнер и карточка */
+    .wrap{      max-width:820px;
       margin:18px auto;
       padding:0 16px;
     }
@@ -82,7 +85,7 @@
       border:1px solid rgba(20,30,40,0.03);
     }
 
-    /* QR BLOCK */
+    /* QR блок */
     .qr-wrap{
       display:flex;
       justify-content:center;
@@ -107,7 +110,7 @@
       display:block;
     }
 
-    /* DETAILS — сделал значения (value) чуть жирнее */
+    /* Детали — текст значений чуть жирнее */
     .details{
       padding:6px 2px 0;
       color:var(--muted);
@@ -124,14 +127,16 @@
       color:#111;
       margin-top:6px;
       line-height:1.32;
-      font-weight:600; /* значения стали немного жирнее, как просили */
+      font-weight:600; /* значения чуть жирнее */
     }
     .row{margin-bottom:10px}
 
-    /* LOWER FULL-WIDTH IMAGE (niz.jpg) — растягиваем по всей ширине экрана */
+    /* Нижний полно-ширинный блок — растянут по всей ширине, выходит за рамки контейнера
+       Сделано: ширина 100vw и сдвиг через отрицательные margin, отступ сверху через --bottom-gap.
+       Высота через --bottom-h. */
     .bottom{
       width:100%;
-      margin-top:22px;
+      margin-top:var(--bottom-gap); /* отодвигаем от главного блока */
       position:relative;
       overflow:hidden;
     }
@@ -139,11 +144,11 @@
       position:relative;
       left:50%;
       right:50%;
-      margin-left:-50vw;  /* сдвигаем влево на половину viewport чтобы занять всю ширину */
+      margin-left:-50vw;  /* делаем full-bleed по ширине viewport */
       margin-right:-50vw;
       width:100vw;        /* растягиваем на всю ширину viewport */
-      height:var(--bottom-h);
-      object-fit:cover;   /* заполнит полосу, можно использовать object-position для смещения */
+      height:var(--bottom-h); /* регулируется переменной */
+      object-fit:cover;   /* заполнение по высоте; края будут обрезаны по необходимости */
       object-position:var(--bottom-pos);
       display:block;
     }
@@ -151,9 +156,10 @@
     /* Адаптив */
     @media (max-width:480px){
       :root{
-        --header-h: clamp(56px, 14vw, 84px);
-        --qr-size: clamp(240px, 62vw, 320px);
-        --bottom-h: clamp(110px, 20vh, 150px);
+        --header-h: clamp(80px, 16vw, 120px);
+        --qr-size: clamp(220px, 62vw, 300px);
+        --bottom-h: clamp(90px, 18vh, 120px);
+        --bottom-gap: clamp(20px, 6vw, 36px);
       }
       .card{padding:18px 12px}
       .details .value{font-size:16px}
@@ -161,23 +167,25 @@
 
     @media (min-width:540px){
       :root{
-        --header-h: clamp(72px, 9vw, 110px);
-        --qr-size: clamp(300px, 40vw, 380px);
-        --bottom-h: clamp(140px, 22vh, 200px);
+        --header-h: clamp(100px, 11vw, 160px);
+        --qr-size: clamp(300px, 36vw, 380px);
+        --bottom-h: clamp(110px, 18vh, 150px);
+        --bottom-gap: clamp(28px, 5vw, 48px);
       }
-      .wrap{max-width:760px}
+      .wrap{max-width:820px}
       .card{padding:30px}
       .details .value{font-size:19px}
     }
 
-    @media (min-width:900px){
+    @media (min-width:1200px){
       :root{
-        --header-h: clamp(86px, 8vw, 120px);
-        --qr-size: clamp(320px, 34vw, 420px);
-        --bottom-h: 220px;
+        --header-h: clamp(120px, 9vw, 180px);
+        --qr-size: clamp(320px, 30vw, 420px);
+        --bottom-h: 160px;
+        --bottom-gap: 56px;
       }
-      .wrap{max-width:920px}
-      .card{padding:34px}
+      .wrap{max-width:1100px}
+      .card{padding:36px}
       .details .value{font-size:20px}
     }
 
@@ -190,7 +198,7 @@
   </style>
 </head>
 <body>
-  <!-- za.jpg (верхний заголовок). Высоту и позицию можно регулировать через --header-h и --header-pos -->
+  <!-- za.jpg (верхний заголовок). Высоту/позицию можно регулировать через --header-h и --header-pos -->
   <header class="header">
     <img src="za.jpg" alt="cashew header — za.jpg">
   </header>
@@ -198,7 +206,7 @@
   <main class="wrap">
     <section class="card">
       <div class="qr-wrap">
-        <!-- qr.jpg (размер/позицию можно менять через --qr-size и --qr-pos) -->
+        <!-- qr.jpg (поменяйте --qr-size или --qr-pos для управления размером/положением) -->
         <div class="qr" role="img" aria-label="QR код">
           <img src="qr.jpg" alt="QR код — qr.jpg">
         </div>
@@ -232,14 +240,15 @@
       </div>
     </section>
 
-    <!-- niz.jpg — растянут на всю ширину экрана.
-         Управление: --bottom-h (высота), --bottom-pos (object-position для смещения содержимого) -->
+    <!-- niz.jpg — растянут на всю ширину экрана, выходит за рамки контейнера.
+         Отступ сверху задаётся переменной --bottom-gap, высота — --bottom-h. -->
     <div class="bottom" aria-hidden>
       <img class="full" src="niz.jpg" alt="нижний блок — niz.jpg">
     </div>
   </main>
 </body>
 </html>
+          
 
 
       
