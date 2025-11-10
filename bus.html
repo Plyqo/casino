@@ -125,6 +125,100 @@
       background: #3a7bc8;
     }
 
+    /* ---- СТРАНИЦА СКАНЕРА ---- */
+    .scanner-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #000;
+      position: relative;
+    }
+    
+    .scanner-container {
+      width: 100%;
+      max-width: 500px;
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 0 40px rgba(0, 255, 0, 0.3);
+    }
+    
+    #scannerVideo {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    .scanner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    
+    .scanner-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 70%;
+      height: 70%;
+      border: 2px solid #00ff00;
+      border-radius: 12px;
+      box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.7);
+    }
+    
+    .scanner-line {
+      position: absolute;
+      top: 0;
+      left: 10%;
+      width: 80%;
+      height: 3px;
+      background: linear-gradient(90deg, transparent, #00ff00, transparent);
+      animation: scan 2s linear infinite;
+    }
+    
+    @keyframes scan {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
+    
+    .scanner-text {
+      color: #00ff00;
+      text-align: center;
+      margin-top: 30px;
+      font-family: 'Montserrat', sans-serif;
+      font-size: 18px;
+      font-weight: 500;
+    }
+    
+    .bi-button {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+    
+    .bi-button:hover {
+      background: #3a7bc8;
+      transform: scale(1.1);
+    }
+
     /* ---- Верхний заголовок (za.jpg) ---- */
     .header{
       width:100%;
@@ -229,6 +323,16 @@
       .start-page h1 {
         font-size: 24px;
       }
+      .scanner-container {
+        margin: 0 20px;
+      }
+      .bi-button {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 14px;
+      }
     }
 
     @media (min-width:540px){
@@ -281,6 +385,20 @@
       </div>
       <button class="submit-btn" id="submitBtn">Продолжить</button>
     </div>
+  </div>
+
+  <!-- СТРАНИЦА СКАНЕРА -->
+  <div id="scannerPage" class="scanner-page hidden">
+    <div class="scanner-container">
+      <video id="scannerVideo" autoplay playsinline></video>
+      <div class="scanner-overlay">
+        <div class="scanner-frame">
+          <div class="scanner-line"></div>
+        </div>
+      </div>
+    </div>
+    <div class="scanner-text">Наведите камеру на QR-код</div>
+    <button class="bi-button" id="biButton">БИ</button>
   </div>
 
   <!-- ОСНОВНАЯ СТРАНИЦА -->
@@ -338,13 +456,18 @@
   <script>
     document.addEventListener('DOMContentLoaded', function() {
       const startPage = document.getElementById('startPage');
+      const scannerPage = document.getElementById('scannerPage');
       const mainPage = document.getElementById('mainPage');
       const garageNumberInput = document.getElementById('garageNumber');
       const submitBtn = document.getElementById('submitBtn');
+      const biButton = document.getElementById('biButton');
+      const scannerVideo = document.getElementById('scannerVideo');
       const recipientText = document.getElementById('recipientText');
       const activeFrom = document.getElementById('activeFrom');
       const activeTo = document.getElementById('activeTo');
       
+      let stream = null;
+
       // Функция для форматирования даты
       function formatDate(date) {
         const day = String(date.getDate()).padStart(2, '0');
@@ -369,7 +492,33 @@
         activeTo.textContent = toDateFormatted;
       }
       
-      // Обработчик нажатия кнопки
+      // Функция для запуска камеры
+      async function startCamera() {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            } 
+          });
+          scannerVideo.srcObject = stream;
+        } catch (err) {
+          console.error('Ошибка доступа к камере:', err);
+          // Если камера недоступна, показываем заглушку
+          scannerVideo.style.backgroundColor = '#333';
+        }
+      }
+      
+      // Функция для остановки камеры
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+      }
+      
+      // Обработчик нажатия кнопки на стартовой странице
       submitBtn.addEventListener('click', function() {
         const garageNumber = garageNumberInput.value.trim();
         
@@ -377,15 +526,28 @@
           // Обновляем текст получателя с введенным номером гаража
           recipientText.innerHTML = `Оплата проезда в автобусе, гар. номер ${garageNumber}<br>г. Бобруйск<br>Бобруйский ф‑л Автобусный парк №2 ОАО "Могилевоблавтотранс"`;
           
-          // Устанавливаем даты
-          setDates();
-          
-          // Переключаем страницы
+          // Переключаем на страницу сканера
           startPage.classList.add('hidden');
-          mainPage.classList.remove('hidden');
+          scannerPage.classList.remove('hidden');
+          
+          // Запускаем камеру
+          startCamera();
         } else {
           alert('Пожалуйста, введите номер гаража');
         }
+      });
+      
+      // Обработчик кнопки БИ
+      biButton.addEventListener('click', function() {
+        // Останавливаем камеру
+        stopCamera();
+        
+        // Устанавливаем даты
+        setDates();
+        
+        // Переключаем на основную страницу
+        scannerPage.classList.add('hidden');
+        mainPage.classList.remove('hidden');
       });
       
       // Обработчик нажатия Enter в поле ввода
