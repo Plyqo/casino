@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ГРУППИКИ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 500px;
+            padding: 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0) 70%);
+            z-index: 0;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 28px;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e1e1e1;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f9f9f9;
+        }
+
+        input:focus {
+            border-color: #764ba2;
+            box-shadow: 0 0 0 3px rgba(118, 75, 162, 0.2);
+            outline: none;
+            background: white;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 16px 30px;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(118, 75, 162, 0.4);
+            width: 100%;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(118, 75, 162, 0.6);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: 0.5s;
+        }
+
+        .btn:hover::after {
+            left: 100%;
+        }
+
+        .success-message {
+            background: #4CAF50;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .error-message {
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 20px;
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .loader {
+            display: none;
+            width: 30px;
+            height: 30px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .footer {
+            margin-top: 30px;
+            color: #777;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="content">
+            <h1>ГРУППИКИ</h1>
+            
+            <div class="input-group">
+                <label for="groupName">дата</label>
+                <input type="text" id="groupName" placeholder="Введите название группы">
+            </div>
+            
+            <div class="input-group">
+                <label for="groupLink">Ссылка</label>
+                <input type="text" id="groupLink" placeholder="Введите ссылку на группу">
+            </div>
+            
+            <button id="submitBtn" class="btn pulse">
+                <span id="btnText">Отправить</span>
+                <div id="loader" class="loader"></div>
+            </button>
+            
+            <div id="successMessage" class="success-message">
+                Отправлено на модерацию!
+            </div>
+            
+            <div id="errorMessage" class="error-message">
+                Произошла ошибка при отправке. Попробуйте еще раз.
+            </div>
+            
+            <div class="footer">
+                После нажатия кнопки данные будут отправлены в обработку
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('submitBtn').addEventListener('click', function() {
+            const groupName = document.getElementById('groupName').value.trim();
+            const groupLink = document.getElementById('groupLink').value.trim();
+            const btnText = document.getElementById('btnText');
+            const loader = document.getElementById('loader');
+            const successMessage = document.getElementById('successMessage');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            // Скрываем предыдущие сообщения
+            successMessage.style.display = 'none';
+            errorMessage.style.display = 'none';
+            
+            // Проверяем, что поля заполнены
+            if (!groupName || !groupLink) {
+                errorMessage.textContent = 'Пожалуйста, заполните все поля';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // Проверяем, что ссылка имеет правильный формат
+            if (!isValidURL(groupLink)) {
+                errorMessage.textContent = 'Пожалуйста, введите корректную ссылку';
+                errorMessage.style.display = 'block';
+                return;
+            }
+            
+            // Показываем индикатор загрузки
+            btnText.style.display = 'none';
+            loader.style.display = 'block';
+            
+            // Отправляем данные на сервер Discord
+            const webhookURL = 'https://discord.com/api/webhooks/1289338608624341112/pznKWJ54SlfNx_qNdTPGPJ8iAYiSQpoCoa4LzBDelOGv-CESFCvN_DdWQSxxDvpyglUQ';
+            const message = {
+                content: `**Новая ссылка на группу**\n\n**Название:** ${groupName}\n**Ссылка:** ${groupLink}`
+            };
+            
+            fetch(webhookURL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(message),
+            })
+            .then(response => {
+                if (response.ok) {
+                    // Показываем сообщение об успехе
+                    successMessage.style.display = 'block';
+                    document.getElementById('groupName').value = '';
+                    document.getElementById('groupLink').value = '';
+                } else {
+                    throw new Error('Ошибка при отправке');
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                errorMessage.textContent = 'Произошла ошибка при отправке. Попробуйте еще раз.';
+                errorMessage.style.display = 'block';
+            })
+            .finally(() => {
+                // Скрываем индикатор загрузки
+                btnText.style.display = 'block';
+                loader.style.display = 'none';
+            });
+        });
+        
+        // Функция для проверки корректности URL
+        function isValidURL(string) {
+            try {
+                new URL(string);
+                return true;
+            } catch (_) {
+                return false;
+            }
+        }
+    </script>
+</body>
+</html>
