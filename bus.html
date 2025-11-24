@@ -138,16 +138,15 @@
     
     .scanner-container {
       width: 100%;
-      max-width: 500px;
+      height: 100vh;
       position: relative;
       overflow: hidden;
-      border-radius: 12px;
-      box-shadow: 0 0 40px rgba(0, 255, 0, 0.3);
     }
     
     #scannerVideo {
       width: 100%;
-      height: auto;
+      height: 100%;
+      object-fit: cover;
       display: block;
     }
     
@@ -165,20 +164,20 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: 70%;
-      height: 70%;
-      border: 2px solid #00ff00;
-      border-radius: 12px;
-      box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.7);
+      width: var(--qr-size);
+      height: var(--qr-size);
+      max-width: var(--qr-max-w);
+      background: rgba(128, 128, 128, 0.1);
+      border: 1px solid #888;
     }
     
     .scanner-line {
       position: absolute;
       top: 0;
-      left: 10%;
-      width: 80%;
-      height: 3px;
-      background: linear-gradient(90deg, transparent, #00ff00, transparent);
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: #888;
       animation: scan 2s linear infinite;
     }
     
@@ -187,13 +186,56 @@
       100% { top: 100%; }
     }
     
+    .scanner-corners {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .corner {
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border-color: #888;
+      border-style: solid;
+    }
+    
+    .corner-tl {
+      top: -1px;
+      left: -1px;
+      border-width: 3px 0 0 3px;
+    }
+    
+    .corner-tr {
+      top: -1px;
+      right: -1px;
+      border-width: 3px 3px 0 0;
+    }
+    
+    .corner-bl {
+      bottom: -1px;
+      left: -1px;
+      border-width: 0 0 3px 3px;
+    }
+    
+    .corner-br {
+      bottom: -1px;
+      right: -1px;
+      border-width: 0 3px 3px 0;
+    }
+    
     .scanner-text {
-      color: #00ff00;
+      position: absolute;
+      bottom: 100px;
+      left: 0;
+      width: 100%;
+      color: white;
       text-align: center;
-      margin-top: 30px;
-      font-family: 'Montserrat', sans-serif;
-      font-size: 18px;
-      font-weight: 500;
+      font-family: 'Roboto', sans-serif;
+      font-size: 16px;
+      font-weight: 400;
     }
     
     .bi-button {
@@ -323,14 +365,15 @@
       .start-page h1 {
         font-size: 24px;
       }
-      .scanner-container {
-        margin: 0 20px;
-      }
       .bi-button {
         bottom: 20px;
         right: 20px;
         width: 50px;
         height: 50px;
+        font-size: 14px;
+      }
+      .scanner-text {
+        bottom: 80px;
         font-size: 14px;
       }
     }
@@ -394,10 +437,16 @@
       <div class="scanner-overlay">
         <div class="scanner-frame">
           <div class="scanner-line"></div>
+          <div class="scanner-corners">
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+          </div>
         </div>
+        <div class="scanner-text">Наведите камеру на QR-код</div>
       </div>
     </div>
-    <div class="scanner-text">Наведите камеру на QR-код</div>
     <button class="bi-button" id="biButton">БИ</button>
   </div>
 
