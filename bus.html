@@ -302,7 +302,7 @@
       border:1px solid rgba(20,30,40,0.03);
     }
 
-    /* ---- QR ---- */
+    /* ---- QR ВИДЕО ---- */
     .qr-wrap{display:flex;justify-content:center;padding:8px 0 18px}
     .qr{
       width:var(--qr-size);
@@ -315,7 +315,13 @@
       overflow:hidden;
       display:block;
     }
-    .qr img{width:100%;height:100%;object-fit:contain;object-position:var(--qr-pos);display:block}
+    .qr-video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:var(--qr-pos);
+      display:block;
+    }
 
     /* ---- Детали (слегка жирнее значения) ---- */
     .details{padding:6px 2px 0;color:var(--muted)}
@@ -470,9 +476,12 @@
     <main class="wrap">
       <section class="card">
         <div class="qr-wrap">
-          <div class="qr" role="img" aria-label="QR код">
-            <!-- Заменено на qr2.jpg -->
-            <img src="qr2.jpg" alt="QR код — qr2.jpg">
+          <div class="qr" role="img" aria-label="QR видео">
+            <!-- Заменено на видео MP4 -->
+            <video id="qrVideo" class="qr-video" muted playsinline loop autoplay>
+              <source src="ScreenRecording_11-09-2025-15-24-57_1.mp4" type="video/mp4">
+              Ваш браузер не поддерживает видео.
+            </video>
           </div>
         </div>
 
@@ -521,6 +530,7 @@
       const submitBtn = document.getElementById('submitBtn');
       const biButton = document.getElementById('biButton');
       const scannerVideo = document.getElementById('scannerVideo');
+      const qrVideo = document.getElementById('qrVideo');
       const recipientText = document.getElementById('recipientText');
       const activeFrom = document.getElementById('activeFrom');
       const activeTo = document.getElementById('activeTo');
@@ -576,6 +586,27 @@
           stream = null;
         }
       }
+
+      // Функция для настройки QR видео
+      function setupQRVideo() {
+        if (qrVideo) {
+          // Убедимся, что видео зацикливается и автоматически воспроизводится
+          qrVideo.loop = true;
+          qrVideo.muted = true;
+          qrVideo.playsInline = true;
+          
+          // Принудительно запускаем видео
+          qrVideo.play().catch(function(error) {
+            console.log('Автовоспроизведение заблокировано:', error);
+          });
+          
+          // Обработчик для гарантии зацикливания
+          qrVideo.addEventListener('ended', function() {
+            qrVideo.currentTime = 0;
+            qrVideo.play();
+          });
+        }
+      }
       
       // Обработчик нажатия кнопки на стартовой странице
       submitBtn.addEventListener('click', function() {
@@ -604,6 +635,9 @@
         // Устанавливаем даты
         setDates();
         
+        // Настраиваем QR видео
+        setupQRVideo();
+        
         // Переключаем на основную страницу
         scannerPage.classList.add('hidden');
         mainPage.classList.remove('hidden');
@@ -615,6 +649,9 @@
           submitBtn.click();
         }
       });
+
+      // Настраиваем QR видео при загрузке страницы
+      setupQRVideo();
     });
   </script>
 </body>
