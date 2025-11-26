@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Cashew — билет с QR</title>
-  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* 
       Управление через CSS-переменные:
@@ -44,7 +44,7 @@
     *{box-sizing:border-box}
     html,body{height:100%;margin:0;padding:0}
     body{
-      font-family:"Roboto",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
       color:#111;
       -webkit-font-smoothing:antialiased;
       -moz-osx-font-smoothing:grayscale;
@@ -64,7 +64,7 @@
     }
     
     .start-page h1 {
-      font-family: 'Montserrat', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 28px;
       margin-bottom: 40px;
@@ -164,11 +164,11 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: var(--qr-size);
-      height: var(--qr-size);
-      max-width: var(--qr-max-w);
+      width: calc(var(--qr-size) * 0.8); /* Уменьшен на 20% */
+      height: calc(var(--qr-size) * 0.8); /* Уменьшен на 20% */
+      max-width: calc(var(--qr-max-w) * 0.8);
       background: rgba(128, 128, 128, 0.1);
-      border: 1px solid #888;
+      border: 2px solid #006400; /* Темно-зеленый и жирнее */
     }
     
     .scanner-line {
@@ -176,8 +176,8 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 2px;
-      background: #888;
+      height: 3px; /* Толще */
+      background: #006400; /* Темно-зеленый */
       animation: scan 2s linear infinite;
     }
     
@@ -196,11 +196,11 @@
     
     .corner {
       position: absolute;
-      width: 25px;
-      height: 25px;
-      border-color: #00ff00;
+      width: 30px; /* Больше */
+      height: 30px; /* Больше */
+      border-color: #006400; /* Темно-зеленый */
       border-style: solid;
-      border-width: 4px;
+      border-width: 5px; /* Жирнее */
     }
     
     .corner-tl {
@@ -233,12 +233,12 @@
     
     .scanner-text {
       position: absolute;
-      top: calc(50% - var(--qr-size) / 2 - 60px);
+      top: calc(50% - calc(var(--qr-size) * 0.8) / 2 - 60px);
       left: 0;
       width: 100%;
       color: white;
       text-align: center;
-      font-family: 'Roboto', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 18px;
       font-weight: 500;
     }
@@ -323,11 +323,31 @@
       display:block;
     }
 
-    /* ---- Детали (слегка жирнее значения) ---- */
+    /* ---- Детали ---- */
     .details{padding:6px 2px 0;color:var(--muted)}
-    .details .label{font-size:14px;color:#6f6f6f;margin-top:10px;font-weight:500}
-    .details .value{font-family:'Montserrat',sans-serif;font-size:18px;color:#111;margin-top:6px;line-height:1.32;font-weight:600}
-    .row{margin-bottom:10px}
+    .details .label{
+      font-size:16px; /* ~16-17px */
+      color:#6f6f6f;
+      margin-top:12px;
+      font-weight:500; /* Medium */
+      font-family: 'Inter', sans-serif;
+    }
+    .details .value{
+      font-family:'Inter',sans-serif;
+      font-size:15px; /* ~15-16px */
+      color:#111;
+      margin-top:6px;
+      line-height:1.4;
+      font-weight:400; /* Regular */
+    }
+    .row{margin-bottom:12px}
+
+    /* Специальный стиль для цены */
+    .price-value {
+      font-size:17px !important; /* ~16-18px */
+      font-weight:500 !important; /* Medium */
+      color:#111 !important;
+    }
 
     /* ---- Нижний полно-ширинный блок с центровкой и bleed ----
        Поведение:
@@ -369,7 +389,9 @@
         --bleed-w: 20vw; /* на мобайле можно увеличить визуальный bleed */
       }
       .card{padding:18px 12px}
-      .details .value{font-size:16px}
+      .details .label{font-size:15px}
+      .details .value{font-size:14px}
+      .price-value{font-size:16px !important}
       .garage-form {
         padding: 20px;
       }
@@ -384,13 +406,16 @@
         font-size: 14px;
       }
       .scanner-text {
-        top: calc(50% - var(--qr-size) / 2 - 50px);
+        top: calc(50% - calc(var(--qr-size) * 0.8) / 2 - 50px);
         font-size: 16px;
       }
       .corner {
-        width: 20px;
-        height: 20px;
-        border-width: 3px;
+        width: 25px;
+        height: 25px;
+        border-width: 4px;
+      }
+      .scanner-frame {
+        border-width: 2px;
       }
     }
 
@@ -404,7 +429,9 @@
       }
       .wrap{max-width:920px}
       .card{padding:30px}
-      .details .value{font-size:19px}
+      .details .label{font-size:16px}
+      .details .value{font-size:15px}
+      .price-value{font-size:17px !important}
     }
 
     @media (min-width:1200px){
@@ -417,7 +444,9 @@
       }
       .wrap{max-width:1100px}
       .card{padding:36px}
-      .details .value{font-size:20px}
+      .details .label{font-size:17px}
+      .details .value{font-size:16px}
+      .price-value{font-size:18px !important}
     }
 
     /* печать: убираем тень и делаем изображение адаптивным для печати */
@@ -479,7 +508,7 @@
           <div class="qr" role="img" aria-label="QR видео">
             <!-- Заменено на видео MP4 -->
             <video id="qrVideo" class="qr-video" muted playsinline loop autoplay>
-              <source src="qrvid.mp4" type="video/mp4">
+              <source src="ScreenRecording_11-09-2025-15-24-57_1.mp4" type="video/mp4">
               Ваш браузер не поддерживает видео.
             </video>
           </div>
@@ -508,7 +537,7 @@
 
           <div class="row">
             <div class="label">Цена:</div>
-            <div class="value">0.9 BYN</div>
+            <div class="value price-value">0.9 BYN</div>
           </div>
         </div>
       </section>
@@ -534,6 +563,7 @@
       const recipientText = document.getElementById('recipientText');
       const activeFrom = document.getElementById('activeFrom');
       const activeTo = document.getElementById('activeTo');
+      const priceValue = document.querySelector('.price-value');
       
       let stream = null;
 
@@ -602,8 +632,19 @@
           
           // Обработчик для гарантии зацикливания
           qrVideo.addEventListener('ended', function() {
+            console.log('Видео закончилось, перезапуск...');
             qrVideo.currentTime = 0;
-            qrVideo.play();
+            qrVideo.play().catch(function(error) {
+              console.log('Ошибка перезапуска:', error);
+            });
+          });
+
+          // Обработчик для немедленного перезапуска при достижении конца
+          qrVideo.addEventListener('timeupdate', function() {
+            if (qrVideo.currentTime >= qrVideo.duration - 0.1) {
+              qrVideo.currentTime = 0;
+              qrVideo.play();
+            }
           });
         }
       }
