@@ -66,16 +66,17 @@
     .start-page h1 {
       font-family: 'Inter', sans-serif;
       font-weight: 700;
-      font-size: 36px; /* ЕЩЁ БОЛЬШЕ */
-      margin-bottom: 40px;
+      font-size: 36px;
+      margin-bottom: 30px; /* Уменьшен отступ */
       text-align: center;
       color: #333;
+      line-height: 1.2; /* Более плотный */
     }
     
     .garage-form {
       background: var(--card);
       border-radius: var(--radius);
-      padding: 30px;
+      padding: 25px; /* Уменьшен padding */
       box-shadow: 0 6px 16px rgba(35,47,52,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
       border: 1px solid rgba(20,30,40,0.03);
       width: 100%;
@@ -83,24 +84,26 @@
     }
     
     .form-group {
-      margin-bottom: 20px;
+      margin-bottom: 15px; /* Уменьшен отступ */
     }
     
     .form-group label {
       display: block;
-      margin-bottom: 12px; /* Увеличен отступ */
-      font-weight: 500;
+      margin-bottom: 8px; /* Уменьшен отступ */
+      font-weight: 600; /* Жирнее */
       color: #555;
-      font-size: 20px; /* ЕЩЁ БОЛЬШЕ */
+      font-size: 20px;
+      line-height: 1.2; /* Более плотный */
     }
     
     .form-group input {
       width: 100%;
-      padding: 16px 18px; /* Увеличен */
+      padding: 14px 16px; /* Немного уменьшен */
       border: 1px solid #ddd;
       border-radius: 6px;
-      font-size: 20px; /* ЕЩЁ БОЛЬШЕ */
+      font-size: 20px;
       transition: border-color 0.3s;
+      font-weight: 500; /* Жирнее */
     }
     
     .form-group input:focus {
@@ -114,12 +117,13 @@
       color: white;
       border: none;
       border-radius: 6px;
-      padding: 16px 20px; /* Увеличен */
-      font-size: 20px; /* ЕЩЁ БОЛЬШЕ */
-      font-weight: 500;
+      padding: 14px 20px; /* Немного уменьшен */
+      font-size: 20px;
+      font-weight: 600; /* Жирнее */
       cursor: pointer;
       width: 100%;
       transition: background-color 0.3s;
+      line-height: 1.2; /* Более плотный */
     }
     
     .submit-btn:hover {
@@ -165,11 +169,11 @@
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
-      width: calc(var(--qr-size) * 0.8); /* Уменьшен на 20% */
-      height: calc(var(--qr-size) * 0.8); /* Уменьшен на 20% */
+      width: calc(var(--qr-size) * 0.8);
+      height: calc(var(--qr-size) * 0.8);
       max-width: calc(var(--qr-max-w) * 0.8);
       background: rgba(128, 128, 128, 0.1);
-      border: 2px solid #006400; /* Темно-зеленый и жирнее */
+      border: 2px solid #006400;
     }
     
     .scanner-line {
@@ -177,8 +181,8 @@
       top: 0;
       left: 0;
       width: 100%;
-      height: 3px; /* Толще */
-      background: #006400; /* Темно-зеленый */
+      height: 3px;
+      background: #006400;
       animation: scan 2s linear infinite;
     }
     
@@ -197,11 +201,11 @@
     
     .corner {
       position: absolute;
-      width: 30px; /* Больше */
-      height: 30px; /* Больше */
-      border-color: #006400; /* Темно-зеленый */
+      width: 30px;
+      height: 30px;
+      border-color: #006400;
       border-style: solid;
-      border-width: 5px; /* Жирнее */
+      border-width: 5px;
     }
     
     .corner-tl {
@@ -234,14 +238,15 @@
     
     .scanner-text {
       position: absolute;
-      top: calc(50% - calc(var(--qr-size) * 0.8) / 2 - 60px);
+      top: calc(50% - calc(var(--qr-size) * 0.8) / 2 - 50px); /* Ближе к сканеру */
       left: 0;
       width: 100%;
       color: white;
       text-align: center;
       font-family: 'Inter', sans-serif;
-      font-size: 22px; /* ЕЩЁ БОЛЬШЕ */
-      font-weight: 500;
+      font-size: 22px;
+      font-weight: 600; /* Жирнее */
+      line-height: 1.2; /* Более плотный */
     }
     
     .bi-button {
@@ -254,12 +259,13 @@
       border-radius: 50%;
       width: 60px;
       height: 60px;
-      font-size: 20px; /* ЕЩЁ БОЛЬШЕ */
-      font-weight: bold;
+      font-size: 20px;
+      font-weight: 700; /* Жирнее */
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
       transition: all 0.3s ease;
       z-index: 1000;
+      line-height: 1; /* Более плотный */
     }
     
     .bi-button:hover {
@@ -298,13 +304,13 @@
     .card{
       background:var(--card);
       border-radius:calc(var(--radius));
-      padding:28px 18px 20px;
+      padding:24px 18px 16px; /* Уменьшен padding */
       box-shadow:0 6px 16px rgba(35,47,52,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
       border:1px solid rgba(20,30,40,0.03);
     }
 
     /* ---- QR ВИДЕО ---- */
-    .qr-wrap{display:flex;justify-content:center;padding:8px 0 18px}
+    .qr-wrap{display:flex;justify-content:center;padding:6px 0 14px} /* Уменьшен padding */
     .qr{
       width:var(--qr-size);
       height:var(--qr-size);
@@ -325,53 +331,49 @@
     }
 
     /* ---- Детали ---- */
-    .details{padding:6px 2px 0;color:var(--muted)}
+    .details{padding:4px 2px 0;color:var(--muted)} /* Уменьшен padding */
     .details .label{
-      font-size:20px; /* ЕЩЁ БОЛЬШЕ ~20px */
+      font-size:20px;
       color:#6f6f6f;
-      margin-top:16px; /* Увеличен отступ */
-      font-weight:500; /* Medium */
+      margin-top:12px; /* Уменьшен отступ */
+      margin-bottom: 4px; /* Ближе к значению */
+      font-weight:600; /* Жирнее */
       font-family: 'Inter', sans-serif;
+      line-height: 1.2; /* Более плотный */
     }
     .details .value{
       font-family:'Inter',sans-serif;
-      font-size:19px; /* ЕЩЁ БОЛЬШЕ ~19px */
+      font-size:19px;
       color:#111;
-      margin-top:10px; /* Увеличен отступ */
-      line-height:1.4;
-      font-weight:400; /* Regular */
+      margin-top:0; /* Убран отступ сверху */
+      margin-bottom: 8px; /* Отступ снизу */
+      line-height:1.3; /* Более плотный */
+      font-weight:500; /* Жирнее */
     }
-    .row{margin-bottom:16px} /* Увеличен отступ */
+    .row{margin-bottom:10px} /* Уменьшен отступ между рядами */
 
     /* Специальный стиль для цены */
     .price-value {
-      font-size:22px !important; /* ЕЩЁ БОЛЬШЕ ~22px */
-      font-weight:500 !important; /* Medium */
+      font-size:22px !important;
+      font-weight:600 !important; /* Жирнее */
       color:#111 !important;
+      line-height: 1.2; /* Более плотный */
     }
 
-    /* ---- Нижний полно-ширинный блок с центровкой и bleed ----
-       Поведение:
-       - элемент .bottom .full центрируется по горизонтали относительно viewport.
-       - ширина =100vw + (двойной вклад bleed) => реализовано как width: calc(100vw + var(--bleed-w) * 1).
-         Вместо умножений в calc используем выражение с var и vw: width: calc(100vw + var(--bleed-w)).
-       - left:50% и transform:translateX(-50%) гарантируют центрирование.
-       - margin-top задается через --bottom-gap.
-    */
+    /* ---- Нижний полно-ширинный блок с центровкой и bleed ---- */
     .bottom{
       width:100%;
       margin-top:var(--bottom-gap);
       position:relative;
       overflow:visible;
-      pointer-events:none; /* декоративный низ не реагирует на клики по желанию */
+      pointer-events:none;
     }
     .bottom .full{
       position:relative;
       left:50%;
       transform:translateX(-50%);
-      /* ширина делает «вылет»: 100vw + (количество, заданное в --bleed-w) */
       width: calc(100vw + var(--bleed-w));
-      max-width: none; /* отключаем ограничение внутри контейнера */
+      max-width: none;
       height:var(--bottom-h);
       object-fit:cover;
       object-position:var(--bottom-pos);
@@ -387,7 +389,7 @@
         --qr-size: clamp(220px, 62vw, 300px);
         --bottom-h: clamp(90px, 18vh, 120px);
         --bottom-gap: clamp(60px, 12vw, 100px);
-        --bleed-w: 20vw; /* на мобайле можно увеличить визуальный bleed */
+        --bleed-w: 20vw;
       }
       .card{padding:18px 12px}
       .details .label{font-size:18px}
@@ -397,29 +399,31 @@
         padding: 20px;
       }
       .start-page h1 {
-        font-size: 28px; /* Адаптивный */
+        font-size: 28px;
+        margin-bottom: 25px;
       }
       .form-group label {
-        font-size: 18px; /* Адаптивный */
+        font-size: 18px;
+        margin-bottom: 6px;
       }
       .form-group input {
-        font-size: 18px; /* Адаптивный */
-        padding: 14px 16px; /* Адаптивный */
+        font-size: 18px;
+        padding: 12px 14px;
       }
       .submit-btn {
-        font-size: 18px; /* Адаптивный */
-        padding: 14px 20px; /* Адаптивный */
+        font-size: 18px;
+        padding: 12px 20px;
       }
       .bi-button {
         bottom: 20px;
         right: 20px;
         width: 50px;
         height: 50px;
-        font-size: 18px; /* Адаптивный */
+        font-size: 18px;
       }
       .scanner-text {
-        top: calc(50% - calc(var(--qr-size) * 0.8) / 2 - 50px);
-        font-size: 20px; /* Адаптивный */
+        top: calc(50% - calc(var(--qr-size) * 0.8) / 2 - 40px); /* Ближе к сканеру */
+        font-size: 20px;
       }
       .corner {
         width: 25px;
@@ -429,6 +433,7 @@
       .scanner-frame {
         border-width: 2px;
       }
+      .row{margin-bottom:8px}
     }
 
     @media (min-width:540px){
@@ -440,7 +445,7 @@
         --bleed-w: 10vw;
       }
       .wrap{max-width:920px}
-      .card{padding:30px}
+      .card{padding:24px 20px 16px}
       .details .label{font-size:20px}
       .details .value{font-size:19px}
       .price-value{font-size:22px !important}
@@ -455,7 +460,7 @@
         --bleed-w: 10vw;
       }
       .wrap{max-width:1100px}
-      .card{padding:36px}
+      .card{padding:28px 24px 18px}
       .details .label{font-size:21px}
       .details .value{font-size:20px}
       .price-value{font-size:24px !important}
@@ -518,7 +523,6 @@
       <section class="card">
         <div class="qr-wrap">
           <div class="qr" role="img" aria-label="QR видео">
-            <!-- Заменено на видео qrvid.mp4 -->
             <video id="qrVideo" class="qr-video" muted playsinline loop autoplay>
               <source src="qrvid.mp4" type="video/mp4">
               Ваш браузер не поддерживает видео.
@@ -661,18 +665,8 @@
               qrVideo.play().catch(function(error) {
                 console.log('Ошибка перезапуска:', error);
               });
-            }, 10); // Минимальная задержка для гарантии
+            }, 10);
           });
-
-          // Принудительный перезапуск каждые 3 секунды на всякий случай
-          setInterval(function() {
-            if (qrVideo.paused) {
-              qrVideo.currentTime = 0;
-              qrVideo.play().catch(function(error) {
-                console.log('Интервальный перезапуск:', error);
-              });
-            }
-          }, 3000); // 3 секунды
         }
       }
       
