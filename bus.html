@@ -66,7 +66,7 @@
     .start-page h1 {
       font-family: 'Inter', sans-serif;
       font-weight: 700;
-      font-size: 28px;
+      font-size: 32px; /* Увеличен */
       margin-bottom: 40px;
       text-align: center;
       color: #333;
@@ -88,17 +88,18 @@
     
     .form-group label {
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 10px; /* Увеличен отступ */
       font-weight: 500;
       color: #555;
+      font-size: 18px; /* Увеличен */
     }
     
     .form-group input {
       width: 100%;
-      padding: 12px 15px;
+      padding: 14px 16px; /* Увеличен */
       border: 1px solid #ddd;
       border-radius: 6px;
-      font-size: 16px;
+      font-size: 18px; /* Увеличен */
       transition: border-color 0.3s;
     }
     
@@ -113,8 +114,8 @@
       color: white;
       border: none;
       border-radius: 6px;
-      padding: 12px 20px;
-      font-size: 16px;
+      padding: 14px 20px; /* Увеличен */
+      font-size: 18px; /* Увеличен */
       font-weight: 500;
       cursor: pointer;
       width: 100%;
@@ -239,7 +240,7 @@
       color: white;
       text-align: center;
       font-family: 'Inter', sans-serif;
-      font-size: 18px;
+      font-size: 20px; /* Увеличен */
       font-weight: 500;
     }
     
@@ -253,7 +254,7 @@
       border-radius: 50%;
       width: 60px;
       height: 60px;
-      font-size: 16px;
+      font-size: 18px; /* Увеличен */
       font-weight: bold;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -326,25 +327,25 @@
     /* ---- Детали ---- */
     .details{padding:6px 2px 0;color:var(--muted)}
     .details .label{
-      font-size:16px; /* ~16-17px */
+      font-size:18px; /* Увеличен ~18px */
       color:#6f6f6f;
-      margin-top:12px;
+      margin-top:14px; /* Увеличен отступ */
       font-weight:500; /* Medium */
       font-family: 'Inter', sans-serif;
     }
     .details .value{
       font-family:'Inter',sans-serif;
-      font-size:15px; /* ~15-16px */
+      font-size:17px; /* Увеличен ~17px */
       color:#111;
-      margin-top:6px;
+      margin-top:8px; /* Увеличен отступ */
       line-height:1.4;
       font-weight:400; /* Regular */
     }
-    .row{margin-bottom:12px}
+    .row{margin-bottom:14px} /* Увеличен отступ */
 
     /* Специальный стиль для цены */
     .price-value {
-      font-size:17px !important; /* ~16-18px */
+      font-size:19px !important; /* Увеличен ~19px */
       font-weight:500 !important; /* Medium */
       color:#111 !important;
     }
@@ -389,25 +390,36 @@
         --bleed-w: 20vw; /* на мобайле можно увеличить визуальный bleed */
       }
       .card{padding:18px 12px}
-      .details .label{font-size:15px}
-      .details .value{font-size:14px}
-      .price-value{font-size:16px !important}
+      .details .label{font-size:16px}
+      .details .value{font-size:15px}
+      .price-value{font-size:17px !important}
       .garage-form {
         padding: 20px;
       }
       .start-page h1 {
-        font-size: 24px;
+        font-size: 26px; /* Увеличен */
+      }
+      .form-group label {
+        font-size: 16px; /* Адаптивный */
+      }
+      .form-group input {
+        font-size: 16px; /* Адаптивный */
+        padding: 12px 14px; /* Адаптивный */
+      }
+      .submit-btn {
+        font-size: 16px; /* Адаптивный */
+        padding: 12px 20px; /* Адаптивный */
       }
       .bi-button {
         bottom: 20px;
         right: 20px;
         width: 50px;
         height: 50px;
-        font-size: 14px;
+        font-size: 16px; /* Адаптивный */
       }
       .scanner-text {
         top: calc(50% - calc(var(--qr-size) * 0.8) / 2 - 50px);
-        font-size: 16px;
+        font-size: 18px; /* Адаптивный */
       }
       .corner {
         width: 25px;
@@ -429,9 +441,9 @@
       }
       .wrap{max-width:920px}
       .card{padding:30px}
-      .details .label{font-size:16px}
-      .details .value{font-size:15px}
-      .price-value{font-size:17px !important}
+      .details .label{font-size:18px}
+      .details .value{font-size:17px}
+      .price-value{font-size:19px !important}
     }
 
     @media (min-width:1200px){
@@ -444,9 +456,9 @@
       }
       .wrap{max-width:1100px}
       .card{padding:36px}
-      .details .label{font-size:17px}
-      .details .value{font-size:16px}
-      .price-value{font-size:18px !important}
+      .details .label{font-size:19px}
+      .details .value{font-size:18px}
+      .price-value{font-size:20px !important}
     }
 
     /* печать: убираем тень и делаем изображение адаптивным для печати */
@@ -506,9 +518,9 @@
       <section class="card">
         <div class="qr-wrap">
           <div class="qr" role="img" aria-label="QR видео">
-            <!-- Заменено на видео MP4 -->
+            <!-- Заменено на видео qrvid.mp4 -->
             <video id="qrVideo" class="qr-video" muted playsinline loop autoplay>
-              <source src="ScreenRecording_11-09-2025-15-24-57_1.mp4" type="video/mp4">
+              <source src="qrvid.mp4" type="video/mp4">
               Ваш браузер не поддерживает видео.
             </video>
           </div>
