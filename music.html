@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎵 Telegram Music Player</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --tg-theme-bg-color: #ffffff;
+            --tg-theme-text-color: #000000;
+            --tg-theme-hint-color: #999999;
+            --tg-theme-link-color: #2481cc;
+            --tg-theme-button-color: #40a7e3;
+            --tg-theme-button-text-color: #ffffff;
+            --tg-theme-secondary-bg-color: #f1f1f1;
+            --player-height: 100px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tg-theme-bg-color);
+            color: var(--tg-theme-text-color);
+            max-width: 100%;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+
+        .header {
+            padding: 15px;
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .user-info {
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            padding: 15px;
+        }
+
+        /* Player Styles */
+        .player-container {
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .track-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .album-art {
+            width: 200px;
+            height: 200px;
+            border-radius: 15px;
+            margin: 0 auto 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .album-art img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .track-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .track-artist {
+            font-size: 1.1rem;
+            color: var(--tg-theme-hint-color);
+            margin-bottom: 10px;
+        }
+
+        .track-duration {
+            font-size: 0.9rem;
+            color: var(--tg-theme-link-color);
+        }
+
+        /* Controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 25px;
+            margin: 20px 0;
+        }
+
+        .control-btn {
+            background: var(--tg-theme-button-color);
+            color: var(--tg-theme-button-text-color);
+            border: none;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .control-btn:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 15px rgba(64, 167, 227, 0.4);
+        }
+
+        .play-btn {
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            margin: 25px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(0,0,0,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+
+        .progress {
+            height: 100%;
+            background: var(--tg-theme-button-color);
+            width: 0%;
+            transition: width 0.1s;
+            border-radius: 3px;
+        }
+
+        .time-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.85rem;
+            color: var(--tg-theme-hint-color);
+        }
+
+        /* Volume */
+        .volume-container {
+            margin: 20px 0;
+        }
+
+        .volume-slider {
+            width: 100%;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: rgba(0,0,0,0.1);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--tg-theme-button-color);
+            cursor: pointer;
+        }
+
+        /* Playlist */
+        .playlist-container {
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 15px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .playlist-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .playlist-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: var(--tg-theme-bg-color);
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .playlist-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .playlist-item.active {
+            border-left: 4px solid var(--tg-theme-button-color);
+            background: rgba(64, 167, 227, 0.1);
+        }
+
+        .playlist-number {
+            width: 30px;
+            text-align: center;
+            font-weight: bold;
+            color: var(--tg-theme-link-color);
+        }
+
+        .playlist-info {
+            flex: 1;
+            margin-left: 15px;
+        }
+
+        .playlist-title {
+            font-weight: 500;
+            margin-bottom: 3px;
+        }
+
+        .playlist-artist {
+            font-size: 0.85rem;
+            color: var(--tg-theme-hint-color);
+        }
+
+        .playlist-duration {
+            font-size: 0.8rem;
+            color: var(--tg-theme-hint-color);
+        }
+
+        /* Features */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin: 25px 0;
+        }
+
+        .feature-btn {
+            background: var(--tg-theme-secondary-bg-color);
+            border: none;
+            border-radius: 12px;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .feature-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .feature-btn i {
+            font-size: 1.5rem;
+            margin-bottom: 8px;
+            color: var(--tg-theme-button-color);
+        }
+
+        /* Visualizer */
+        .visualizer-container {
+            margin: 25px 0;
+            background: var(--tg-theme-secondary-bg-color);
+            border-radius: 15px;
+            padding: 20px;
+        }
+
+        .visualizer {
+            width: 100%;
+            height: 120px;
+            background: #000;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        /* History */
+        .history-item {
+            padding: 10px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            font-size: 0.9rem;
+        }
+
+        .history-time {
+            color: var(--tg-theme-hint-color);
+            font-size: 0.8rem;
+            margin-top: 3px;
+        }
+
+        /* Loading */
+        .loader {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .loader.spin {
+            display: block;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--tg-theme-button-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .album-art {
+                width: 150px;
+                height: 150px;
+            }
+            
+            .controls {
+                gap: 15px;
+            }
+            
+            .control-btn {
+                width: 45px;
+                height: 45px;
+            }
+            
+            .play-btn {
+                width: 55px;
+                height: 55px;
+            }
+            
+            .features {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Theme-aware styles */
+        .tg-bg { background: var(--tg-theme-bg-color); }
+        .tg-text { color: var(--tg-theme-text-color); }
+        .tg-hint { color: var(--tg-theme-hint-color); }
+        .tg-link { color: var(--tg-theme-link-color); }
+        .tg-button { background: var(--tg-theme-button-color); color: var(--tg-theme-button-text-color); }
+        .tg-secondary { background: var(--tg-theme-secondary-bg-color); }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1><i class="fas fa-music"></i> Telegram Music</h1>
+        <div class="user-info" id="userInfo">Загрузка...</div>
+    </div>
+
+    <div class="container">
+        <!-- Player Section -->
+        <div class="player-container">
+            <div class="track-info">
+                <div class="album-art" id="albumArt">
+                    <i class="fas fa-music" style="font-size: 3rem; color: white;"></i>
+                </div>
+                <h2 class="track-title" id="currentTitle">Выберите трек</h2>
+                <p class="track-artist" id="currentArtist">—</p>
+                <div class="track-duration">
+                    <span id="currentTime">0:00</span> / <span id="totalTime">0:00</span>
+                </div>
+            </div>
+
+            <div class="progress-container">
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress" id="progress"></div>
+                </div>
+                <div class="time-info">
+                    <span id="elapsedTime">0:00</span>
+                    <span id="remainingTime">-0:00</span>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button class="control-btn" onclick="previousTrack()" title="Предыдущий">
+                    <i class="fas fa-step-backward"></i>
+                </button>
+                <button class="control-btn" onclick="toggleShuffle()" title="Перемешать" id="shuffleBtn">
+                    <i class="fas fa-random"></i>
+                </button>
+                <button class="control-btn play-btn" onclick="togglePlayPause()" id="playPauseBtn" title="Воспроизвести">
+                    <i class="fas fa-play" id="playIcon"></i>
+                </button>
+                <button class="control-btn" onclick="toggleRepeat()" title="Повтор" id="repeatBtn">
+                    <i class="fas fa-redo"></i>
+                </button>
+                <button class="control-btn" onclick="nextTrack()" title="Следующий">
+                    <i class="fas fa-step-forward"></i>
+                </button>
+            </div>
+
+            <div class="volume-container">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <i class="fas fa-volume-down"></i>
+                    <input type="range" class="volume-slider" id="volumeSlider" min="0" max="100" value="70">
+                    <i class="fas fa-volume-up"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features -->
+        <div class="features">
+            <button class="feature-btn" onclick="discoverNewMusic()">
+                <i class="fas fa-compass"></i>
+                <span>Открыть для себя</span>
+            </button>
+            <button class="feature-btn" onclick="showFavorites()">
+                <i class="fas fa-heart"></i>
+                <span>Избранное</span>
+            </button>
+            <button class="feature-btn" onclick="createPlaylist()">
+                <i class="fas fa-plus-circle"></i>
+                <span>Новый плейлист</span>
+            </button>
+            <button class="feature-btn" onclick="shareTrack()">
+                <i class="fas fa-share-alt"></i>
+                <span>Поделиться</span>
+            </button>
+        </div>
+
+        <!-- Visualizer -->
+        <div class="visualizer-container">
+            <h3><i class="fas fa-wave-square"></i> Визуализатор</h3>
+            <canvas class="visualizer" id="visualizer"></canvas>
+        </div>
+
+        <!-- Playlist -->
+        <div class="playlist-container">
+            <div class="playlist-header">
+                <h3><i class="fas fa-list-music"></i> Плейлист</h3>
+                <button class="control-btn" onclick="refreshPlaylist()" title="Обновить" style="width: 40px; height: 40px;">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+            </div>
+            <div id="playlist"></div>
+        </div>
+
+        <!-- History -->
+        <div class="playlist-container" style="margin-top: 20px;">
+            <h3><i class="fas fa-history"></i> Недавно прослушано</h3>
+            <div id="historyList"></div>
+        </div>
+
+        <!-- Loading -->
+        <div class="loader" id="loader">
+            <div class="spinner"></div>
+            <p>Загрузка музыки...</p>
+        </div>
+    </div>
+
+    <script>
+        // ========== CONFIGURATION ==========
+        const MUSIC_SOURCES = [
+            // Бесплатные треки с Jamendo
+            {
+                title: "Epic Cinematic",
+                artist: "Alex Productions",
+                url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_12c1a4f140.mp3",
+                cover: "https://cdn.pixabay.com/audio/2022/03/10/12-49-09-355_200x200.jpg",
+                duration: 120
+            },
+            {
+                title: "Summer Walk",
+                artist: "Olexy",
+                url: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_14e9c6dfcb.mp3",
+                cover: "https://cdn.pixabay.com/audio/2022/01/18/13-06-44-570_200x200.jpg",
+                duration: 112
+            },
+            {
+                title: "Urban Lullaby",
+                artist: "Ghostrifter Official",
+                url: "https://cdn.pixabay.com/download/audio/2021/11/25/audio_3b49e1d781.mp3",
+                cover: "https://cdn.pixabay.com/audio/2021/11/25/11-42-29-952_200x200.jpg",
+                duration: 105
+            },
+            {
+                title: "Jazz Apricot",
+                artist: "Joystock",
+                url: "https://cdn.pixabay.com/download/audio/2021/09/07/audio_02e9e9d2cd.mp3",
+                cover: "https://cdn.pixabay.com/audio/2021/09/07/10-45-45-430_200x200.jpg",
+                duration: 138
+            },
+            {
+                title: "Digital Dreams",
+                artist: "Lukrembo",
+                url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_44e8aa6f61.mp3",
+                cover: "https://cdn.pixabay.com/audio/2022/03/15/16-11-06-524_200x200.jpg",
+                duration: 127
+            },
+            {
+                title: "Forest Lullaby",
+                artist: "Lesfm",
+                url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_9c9b8e9e13.mp3",
+                cover: "https://cdn.pixabay.com/audio/2022/03/10/12-47-24-229_200x200.jpg",
+                duration: 134
+            },
+            {
+                title: "Morning Routine",
+                artist: "Ghostrifter Official",
+                url: "https://cdn.pixabay.com/download/audio/2021/10/31/audio_2a25e5d6d7.mp3",
+                cover: "https://cdn.pixabay.com/audio/2021/10/31/13-13-58-768_200x200.jpg",
+                duration: 118
+            },
+            {
+                title: "Coffee Shop",
+                artist: "Barradeen",
+                url: "https://cdn.pixabay.com/download/audio/2021/11/14/audio_27d8642c78.mp3",
+                cover: "https://cdn.pixabay.com/audio/2021/11/14/13-49-47-891_200x200.jpg",
+                duration: 145
+            },
+            {
+                title: "Ocean View",
+                artist: "Lesfm",
+                url: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_b8a8a3b88c.mp3",
+                cover: "https://cdn.pixabay.com/audio/2022/01/18/13-15-13-490_200x200.jpg",
+                duration: 122
+            },
+            {
+                title: "Starlight",
+                artist: "Alex Productions",
+                url: "https://cdn.pixabay.com/download/audio/2022/03/15/audio_b8dd5673c7.mp3",
+                cover: "https://cdn.pixabay.com/audio/2022/03/15/16-10-39-687_200x200.jpg",
+                duration: 132
+            },
+            // Дополнительные треки
+            {
+                title: "Retro Wave",
+                artist: "RomanSenykMusic",
+                url: "https://cdn.pixabay.com/download/audio/2022/02/03/audio_76e666a3bb.mp3",
+                cover: "https://cdn.pixabay.com/audio/2022/02/03/13-04-52-666_200x200.jpg",
+                duration: 128
+            },
+            {
+                title: "Dreamy Piano",
+                artist: "Coma-Media",
+                url: "https://cdn.pixabay.com/download/audio/2022/01/18/audio_5958325ed3.mp3",
+                cover: "https://cdn.pixabay.com/audio/2022/01/18/13-17-05-451_200x200.jpg",
+                duration: 116
+            },
+            {
+                title: "Space Exploration",
+                artist: "Alex Productions",
+                url: "https://cdn.pixabay.com/download/audio/2022/03/10/audio_83e3898178.mp3",
+                cover: "https://cdn.pixabay.com/audio/2022/03/10/12-50-42-62_200x200.jpg",
+                duration: 125
+            }
+        ];
+
+        // ========== GLOBAL VARIABLES ==========
+        let audio = new Audio();
+        let isPlaying = false;
+        let currentTrackIndex = 0;
+        let isShuffled = false;
+        let isRepeated = false;
+        let originalPlaylist = [];
+        let shuffledPlaylist = [];
+        let audioContext = null;
+        let analyser = null;
+        let dataArray = null;
+        let bufferLength = null;
+        let canvasCtx = null;
+
+        // ========== TELEGRAM INTEGRATION ==========
+        function initTelegram() {
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.ready();
+                Telegram.WebApp.expand();
+                
+                const user = Telegram.WebApp.initDataUnsafe?.user;
+                if (user) {
+                    document.getElementById('userInfo').innerHTML = 
+                        `<i class="fas fa-user"></i> ${user.first_name || 'Пользователь'}${user.username ? ` (@${user.username})` : ''}`;
+                }
+                
+                // Настройка Main Button
+                Telegram.WebApp.MainButton.setText("🎵 Сейчас играет");
+                Telegram.WebApp.MainButton.onClick(() => {
+                    shareCurrentTrack();
+                });
+                
+                // Используем тему Telegram
+                applyTelegramTheme();
+            }
+        }
+
+        function applyTelegramTheme() {
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                document.documentElement.style.setProperty('--tg-theme-bg-color', Telegram.WebApp.backgroundColor);
+                document.documentElement.style.setProperty('--tg-theme-text-color', Telegram.WebApp.textColor || '#000000');
+                document.documentElement.style.setProperty('--tg-theme-hint-color', Telegram.WebApp.hintColor || '#999999');
+                document.documentElement.style.setProperty('--tg-theme-link-color', Telegram.WebApp.linkColor || '#2481cc');
+                document.documentElement.style.setProperty('--tg-theme-button-color', Telegram.WebApp.buttonColor || '#40a7e3');
+                document.documentElement.style.setProperty('--tg-theme-button-text-color', Telegram.WebApp.buttonTextColor || '#ffffff');
+                document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', Telegram.WebApp.secondaryBackgroundColor || '#f1f1f1');
+            }
+        }
+
+        // ========== MUSIC PLAYER CORE ==========
+        function initPlayer() {
+            originalPlaylist = [...MUSIC_SOURCES];
+            shuffledPlaylist = [...MUSIC_SOURCES];
+            loadTrack(0);
+            renderPlaylist();
+            loadHistory();
+            initVisualizer();
+            
+            // Event Listeners
+            audio.addEventListener('timeupdate', updateProgress);
+            audio.addEventListener('loadedmetadata', updateDuration);
+            audio.addEventListener('ended', handleTrackEnd);
+            audio.addEventListener('play', () => updatePlayButton(true));
+            audio.addEventListener('pause', () => updatePlayButton(false));
+            
+            document.getElementById('volumeSlider').addEventListener('input', (e) => {
+                audio.volume = e.target.value / 100;
+            });
+            
+            document.getElementById('progressBar').addEventListener('click', (e) => {
+                const rect = e.target.getBoundingClientRect();
+                const pos = (e.clientX - rect.left) / rect.width;
+                audio.currentTime = pos * audio.duration;
+            });
+            
+            // Автостарт первого трека
+            setTimeout(() => audio.play().catch(e => console.log("Автовоспроизведение заблокировано")), 1000);
+        }
+
+        function loadTrack(index) {
+            showLoader(true);
+            const track = isShuffled ? shuffledPlaylist[index] : originalPlaylist[index];
+            currentTrackIndex = index;
+            
+            // Обновляем UI
+            document.getElementById('currentTitle').textContent = track.title;
+            document.getElementById('currentArtist').textContent = track.artist;
+            document.getElementById('albumArt').innerHTML = 
+                `<img src="${track.cover}" alt="${track.title}" onerror="this.src='https://via.placeholder.com/200?text=🎵'">`;
+            
+            // Загружаем аудио
+            audio.src = track.url;
+            audio.load();
+            
+            // Обновляем Main Button Telegram
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.MainButton.setText(`🎵 ${track.title}`);
+                Telegram.WebApp.MainButton.show();
+            }
+            
+            // Добавляем в историю
+            addToHistory(track);
+            
+            // Обновляем плейлист
+            updatePlaylistHighlight();
+            
+            showLoader(false);
+            
+            // Автовоспроизведение
+            setTimeout(() => {
+                audio.play().catch(e => {
+                    console.log("Требуется взаимодействие пользователя для воспроизведения");
+                });
+            }, 500);
+        }
+
+        function togglePlayPause() {
+            if (isPlaying) {
+                audio.pause();
+            } else {
+                audio.play().catch(e => {
+                    console.log("Ошибка воспроизведения:", e);
+                });
+            }
+        }
+
+        function updatePlayButton(playing) {
+            isPlaying = playing;
+            const icon = document.getElementById('playIcon');
+            const btn = document.getElementById('playPauseBtn');
+            
+            if (playing) {
+                icon.className = 'fas fa-pause';
+                btn.title = 'Пауза';
+            } else {
+                icon.className = 'fas fa-play';
+                btn.title = 'Воспроизвести';
+            }
+        }
+
+        function updateProgress() {
+            const progress = document.getElementById('progress');
+            const currentTimeEl = document.getElementById('currentTime');
+            const elapsedTimeEl = document.getElementById('elapsedTime');
+            const remainingTimeEl = document.getElementById('remainingTime');
+            
+            if (audio.duration) {
+                const percent = (audio.currentTime / audio.duration) * 100;
+                progress.style.width = percent + '%';
+                
+                const formatTime = (seconds) => {
+                    const mins = Math.floor(seconds / 60);
+                    const secs = Math.floor(seconds % 60);
+                    return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+                };
+                
+                currentTimeEl.textContent = formatTime(audio.currentTime);
+                elapsedTimeEl.textContent = formatTime(audio.currentTime);
+                remainingTimeEl.textContent = '-' + formatTime(audio.duration - audio.currentTime);
+            }
+        }
+
+        function updateDuration() {
+            const totalTimeEl = document.getElementById('totalTime');
+            if (audio.duration) {
+                const mins = Math.floor(audio.duration / 60);
+                const secs = Math.floor(audio.duration % 60);
+                totalTimeEl.textContent = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            }
+        }
+
+        function nextTrack() {
+            let nextIndex = currentTrackIndex + 1;
+            if (nextIndex >= (isShuffled ? shuffledPlaylist.length : originalPlaylist.length)) {
+                nextIndex = 0;
+            }
+            loadTrack(nextIndex);
+        }
+
+        function previousTrack() {
+            let prevIndex = currentTrackIndex - 1;
+            if (prevIndex < 0) {
+                prevIndex = (isShuffled ? shuffledPlaylist.length : originalPlaylist.length) - 1;
+            }
+            loadTrack(prevIndex);
+        }
+
+        function toggleShuffle() {
+            isShuffled = !isShuffled;
+            const btn = document.getElementById('shuffleBtn');
+            
+            if (isShuffled) {
+                btn.style.background = 'var(--tg-theme-link-color)';
+                btn.title = 'Перемешать (вкл)';
+                // Создаем перемешанный плейлист
+                shuffledPlaylist = [...originalPlaylist].sort(() => Math.random() - 0.5);
+            } else {
+                btn.style.background = '';
+                btn.title = 'Перемешать';
+            }
+            
+            renderPlaylist();
+            updatePlaylistHighlight();
+        }
+
+        function toggleRepeat() {
+            isRepeated = !isRepeated;
+            const btn = document.getElementById('repeatBtn');
+            audio.loop = isRepeated;
+            
+            if (isRepeated) {
+                btn.style.background = 'var(--tg-theme-link-color)';
+                btn.title = 'Повтор (вкл)';
+            } else {
+                btn.style.background = '';
+                btn.title = 'Повтор';
+            }
+        }
+
+        function handleTrackEnd() {
+            if (!isRepeated) {
+                nextTrack();
+            }
+        }
+
+        // ========== PLAYLIST MANAGEMENT ==========
+        function renderPlaylist() {
+            const playlistEl = document.getElementById('playlist');
+            const playlist = isShuffled ? shuffledPlaylist : originalPlaylist;
+            
+            playlistEl.innerHTML = playlist.map((track, index) => `
+                <div class="playlist-item ${index === currentTrackIndex ? 'active' : ''}" onclick="loadTrack(${index})">
+                    <div class="playlist-number">${index + 1}</div>
+                    <div class="playlist-info">
+                        <div class="playlist-title">${track.title}</div>
+                        <div class="playlist-artist">${track.artist}</div>
+                    </div>
+                    <div class="playlist-duration">${Math.floor(track.duration / 60)}:${(track.duration % 60).toString().padStart(2, '0')}</div>
+                </div>
+            `).join('');
+        }
+
+        function updatePlaylistHighlight() {
+            document.querySelectorAll('.playlist-item').forEach((item, index) => {
+                if (index === currentTrackIndex) {
+                    item.classList.add('active');
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        function refreshPlaylist() {
+            showLoader(true);
+            // Можно добавить загрузку новых треков с сервера
+            setTimeout(() => {
+                renderPlaylist();
+                showLoader(false);
+                
+                // Показать уведомление в Telegram
+                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                    Telegram.WebApp.showPopup({
+                        title: 'Обновлено',
+                        message: 'Плейлист обновлен!',
+                        buttons: [{type: 'ok'}]
+                    });
+                }
+            }, 1000);
+        }
+
+        // ========== HISTORY ==========
+        function addToHistory(track) {
+            let history = JSON.parse(localStorage.getItem('musicHistory') || '[]');
+            
+            history.unshift({
+                title: track.title,
+                artist: track.artist,
+                time: new Date().toISOString(),
+                cover: track.cover
+            });
+            
+            // Ограничиваем историю 20 записями
+            if (history.length > 20) {
+                history = history.slice(0, 20);
+            }
+            
+            localStorage.setItem('musicHistory', JSON.stringify(history));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const history = JSON.parse(localStorage.getItem('musicHistory') || '[]');
+            const historyListEl = document.getElementById('historyList');
+            
+            if (history.length === 0) {
+                historyListEl.innerHTML = '<p style="text-align: center; color: var(--tg-theme-hint-color); padding: 20px;">История прослушивания пуста</p>';
+                return;
+            }
+            
+            historyListEl.innerHTML = history.map(item => `
+                <div class="history-item" onclick="searchTrack('${item.title}')">
+                    <strong>${item.title}</strong> - ${item.artist}
+                    <div class="history-time">${new Date(item.time).toLocaleString()}</div>
+                </div>
+            `).join('');
+        }
+
+        // ========== VISUALIZER ==========
+        function initVisualizer() {
+            const canvas = document.getElementById('visualizer');
+            canvasCtx = canvas.getContext('2d');
+            
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            
+            // Создаем AudioContext при первом взаимодействии
+            document.body.addEventListener('click', initAudioContext, { once: true });
+        }
+
+        function initAudioContext() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                const source = audioContext.createMediaElementSource(audio);
+                
+                source.connect(analyser);
+                analyser.connect(audioContext.destination);
+                
+                analyser.fftSize = 256;
+                bufferLength = analyser.frequencyBinCount;
+                dataArray = new Uint8Array(bufferLength);
+                
+                drawVisualizer();
+            }
+        }
+
+        function drawVisualizer() {
+            requestAnimationFrame(drawVisualizer);
+            
+            if (!analyser || !canvasCtx) return;
+            
+            analyser.getByteFrequencyData(dataArray);
+            
+            const width = canvasCtx.canvas.width;
+            const height = canvasCtx.canvas.height;
+            
+            canvasCtx.fillStyle = 'rgba(0, 0, 0, 0.1)';
+            canvasCtx.fillRect(0, 0, width, height);
+            
+            const barWidth = (width / bufferLength) * 2.5;
+            let barHeight;
+            let x = 0;
+            
+            for (let i = 0; i < bufferLength; i++) {
+                barHeight = dataArray[i] / 2;
+                
+                const gradient = canvasCtx.createLinearGradient(0, height - barHeight, 0, height);
+                gradient.addColorStop(0, '#40a7e3');
+                gradient.addColorStop(1, '#2481cc');
+                
+                canvasCtx.fillStyle = gradient;
+                canvasCtx.fillRect(x, height - barHeight, barWidth, barHeight);
+                
+                x += barWidth + 1;
+            }
+        }
+
+        // ========== FEATURES ==========
+        function discoverNewMusic() {
+            const randomIndex = Math.floor(Math.random() * originalPlaylist.length);
+            loadTrack(randomIndex);
+            
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.showPopup({
+                    title: 'Новая музыка!',
+                    message: 'Случайный трек загружен',
+                    buttons: [{type: 'ok'}]
+                });
+            }
+        }
+
+        function showFavorites() {
+            const favorites = JSON.parse(localStorage.getItem('musicFavorites') || '[]');
+            
+            if (favorites.length === 0) {
+                if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                    Telegram.WebApp.showPopup({
+                        title: 'Избранное',
+                        message: 'У вас пока нет избранных треков. Нажмите ♡ на треке, чтобы добавить.',
+                        buttons: [{type: 'ok'}]
+                    });
+                }
+            } else {
+                // Можно реализовать модальное окно с избранным
+                alert(`У вас ${favorites.length} избранных треков`);
+            }
+        }
+
+        function createPlaylist() {
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.showPopup({
+                    title: 'Создать плейлист',
+                    message: 'Введите название нового плейлиста:',
+                    buttons: [
+                        {type: 'default', text: 'Создать', id: 'create'},
+                        {type: 'cancel', id: 'cancel'}
+                    ]
+                }).then(btnId => {
+                    if (btnId === 'create') {
+                        // Сохраняем плейлист
+                        const playlists = JSON.parse(localStorage.getItem('playlists') || '[]');
+                        playlists.push({
+                            name: 'Новый плейлист',
+                            tracks: [],
+                            created: new Date().toISOString()
+                        });
+                        localStorage.setItem('playlists', JSON.stringify(playlists));
+                        
+                        Telegram.WebApp.showPopup({
+                            title: 'Успешно',
+                            message: 'Плейлист создан!',
+                            buttons: [{type: 'ok'}]
+                        });
+                    }
+                });
+            } else {
+                const name = prompt('Введите название плейлиста:');
+                if (name) {
+                    alert(`Плейлист "${name}" создан!`);
+                }
+            }
+        }
+
+        function shareTrack() {
+            const track = isShuffled ? shuffledPlaylist[currentTrackIndex] : originalPlaylist[currentTrackIndex];
+            
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.showPopup({
+                    title: 'Поделиться треком',
+                    message: `Поделиться "${track.title}"?`,
+                    buttons: [
+                        {
+                            type: 'default',
+                            text: 'В Telegram',
+                            id: 'telegram'
+                        },
+                        {
+                            type: 'default',
+                            text: 'Скопировать ссылку',
+                            id: 'copy'
+                        },
+                        {type: 'cancel', id: 'cancel'}
+                    ]
+                }).then(btnId => {
+                    if (btnId === 'telegram') {
+                        Telegram.WebApp.openTelegramLink(`https://t.me/share/url?url=${encodeURIComponent(track.url)}&text=🎵 ${track.title} - ${track.artist}`);
+                    } else if (btnId === 'copy') {
+                        navigator.clipboard.writeText(`${track.title} - ${track.artist}\n${track.url}`);
+                        Telegram.WebApp.showPopup({
+                            title: 'Скопировано',
+                            message: 'Ссылка скопирована в буфер обмена',
+                            buttons: [{type: 'ok'}]
+                        });
+                    }
+                });
+            } else {
+                // Для обычного браузера
+                if (navigator.share) {
+                    navigator.share({
+                        title: track.title,
+                        text: `Послушайте: ${track.title} - ${track.artist}`,
+                        url: track.url
+                    });
+                } else {
+                    navigator.clipboard.writeText(`${track.title} - ${track.artist}\n${track.url}`);
+                    alert('Ссылка скопирована в буфер обмена!');
+                }
+            }
+        }
+
+        function shareCurrentTrack() {
+            const track = isShuffled ? shuffledPlaylist[currentTrackIndex] : originalPlaylist[currentTrackIndex];
+            const message = `🎵 Сейчас играет: ${track.title} - ${track.artist}\n⏱ ${Math.floor(audio.currentTime / 60)}:${Math.floor(audio.currentTime % 60).toString().padStart(2, '0')} / ${Math.floor(audio.duration / 60)}:${Math.floor(audio.duration % 60).toString().padStart(2, '0')}`;
+            
+            if (typeof Telegram !== 'undefined' && Telegram.WebApp) {
+                Telegram.WebApp.sendData(JSON.stringify({
+                    action: 'share_status',
+                    track: track.title,
+                    artist: track.artist,
+                    time: audio.currentTime,
+                    duration: audio.duration
+                }));
+            }
+            
+            alert(message);
+        }
+
+        function searchTrack(query) {
+            // Простой поиск по плейлисту
+            const tracks = originalPlaylist.filter(track => 
+                track.title.toLowerCase().includes(query.toLowerCase()) || 
+                track.artist.toLowerCase().includes(query.toLowerCase())
+            );
+            
+            if (tracks.length > 0) {
+                const index = originalPlaylist.indexOf(tracks[0]);
+                loadTrack(index);
+            }
+        }
+
+        // ========== UTILITIES ==========
+        function showLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+        }
+
+        function formatTime(seconds) {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // ========== INITIALIZATION ==========
+        window.onload = function() {
+            initTelegram();
+            initPlayer();
+            
+            // Ресайз визуализатора при изменении размера окна
+            window.addEventListener('resize', () => {
+                const canvas = document.getElementById('visualizer');
+                if (canvas) {
+                    canvas.width = canvas.offsetWidth;
+                    canvas.height = canvas.offsetHeight;
+                }
+            });
+            
+            // Сохранение громкости
+            const savedVolume = localStorage.getItem('playerVolume');
+            if (savedVolume) {
+                audio.volume = parseFloat(savedVolume);
+                document.getElementById('volumeSlider').value = savedVolume * 100;
+            }
+            
+            document.getElementById('volumeSlider').addEventListener('change', (e) => {
+                localStorage.setItem('playerVolume', (e.target.value / 100).toString());
+            });
+        };
+
+        // ========== GLOBAL EXPORTS ==========
+        window.togglePlayPause = togglePlayPause;
+        window.nextTrack = nextTrack;
+        window.previousTrack = previousTrack;
+        window.toggleShuffle = toggleShuffle;
+        window.toggleRepeat = toggleRepeat;
+        window.loadTrack = loadTrack;
+        window.discoverNewMusic = discoverNewMusic;
+        window.showFavorites = showFavorites;
+        window.createPlaylist = createPlaylist;
+        window.shareTrack = shareTrack;
+        window.shareCurrentTrack = shareCurrentTrack;
+        window.refreshPlaylist = refreshPlaylist;
+        window.searchTrack = searchTrack;
+    </script>
+</body>
+</html>
