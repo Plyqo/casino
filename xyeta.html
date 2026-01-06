@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>FPS Casino World</title>
+<style>
+body{margin:0;overflow:hidden;background:#000;touch-action:none;font-family:sans-serif}
+canvas{display:block}
+
+/* Portrait overlay */
+#portraitOverlay{
+  position:fixed;inset:0;background:#000;color:#0f0;
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;text-align:center;z-index:100;
+  display:none;
+}
+
+/* Joysticks */
+.joy{position:fixed;bottom:30px;width:120px;height:120px;background:rgba(255,255,255,.12);border-radius:50%}
+#moveJoy{left:30px} #lookJoy{right:30px}
+.stick{position:absolute;width:50px;height:50px;background:#00ff88;border-radius:50%;left:35px;top:35px}
+
+/* UI */
+#jump{position:fixed;right:180px;bottom:50px;width:80px;height:80px;border-radius:50%;background:#00ff88;border:none}
+#attack{position:fixed;right:100px;bottom:50px;width:80px;height:80px;border-radius:50%;background:#ff4444;border:none}
+#action{position:fixed;bottom:150px;right:40px;padding:14px 20px;background:#00ff88;color:#000;border-radius:12px;display:none}
+
+/* Casino Menu */
+#casino{
+ position:fixed;inset:0;background:rgba(0,0,0,.95);color:#0f0;
+ display:none;flex-direction:column;align-items:center;justify-content:center;
+ gap:20px;font-size:24px;z-index:10;
+}
+.btn{padding:15px 30px;background:#00ff88;color:#000;border-radius:12px}
+
+/* Tic-Tac-Toe */
+#ttt{
+ display:none;flex-direction:column;align-items:center;justify-content:center;
+ gap:10px;font-size:32px;color:#0f0;
+}
+.ttt-row{display:flex;gap:10px;}
+.ttt-cell{
+ width:60px;height:60px;background:#000;border:2px solid #0f0;
+ display:flex;align-items:center;justify-content:center;font-size:36px;
+ user-select:none;cursor:pointer;
+}
+</style>
+</head>
+<body>
+
+<div id="portraitOverlay">Поверните устройство в горизонтальное положение</div>
+
+<!-- Joysticks -->
+<div id="moveJoy" class="joy"><div id="moveStick" class="stick"></div></div>
+<div id="lookJoy" class="joy"><div id="lookStick" class="stick"></div></div>
+
+<!-- Jump and attack -->
+<button id="jump">JUMP</button>
+<button id="attack">ATTACK</button>
+
+<!-- Action Button -->
+<div id="action">🎰 ИГРАТЬ</div>
+
+<!-- Casino Menu -->
+<div id="casino">
+  <div id="balance">Баланс: 0</div>
+  <div class="btn" onclick="openTTT()">♟ Крестики-нолики</div>
+  <div class="btn" onclick="closeCasino()">❌ ВЫЙТИ</div>
+</div>
+
+<!-- Tic-Tac-Toe Game -->
+<div id="ttt"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script>
+
+<script>
+// === ORIENTATION CHECK ===
+function checkOrientation(){
+  if(window.innerHeight > window.innerWidth){
+    document.getElementById("portraitOverlay").style.display="flex";
+  } else {
+    document.getElementById("portraitOverlay").style.display="none";
+  }
+}
+window.addEventListener("resize", checkOrientation);
+checkOrientation();
+
+// === SCENE SETUP ===
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87bcd4); // светлый фон вместо черного
+scene.fog = new THREE.Fog(0x87bcd4,5,100);
+
+const camera = new THREE.PerspectiveCamera(85, innerWidth/innerHeight, 0.1, 1000);
+const renderer = new THREE.WebGLRenderer({antialias:true});
+renderer.setSize(innerWidth, innerHeight);
+renderer.shadowMap.enabled = true;
+document.body.appendChild(renderer.domElement);
+
+/* LIGHT */
+scene.add(new THREE.HemisphereLight(0xffffff,0x444444,.9));
+const sun = new THREE.DirectionalLight(0xffffff,1);
+sun.position.set(10,20,10);
+sun.castShadow=true;
+scene.add(sun);
+
+/* GROUND + ROAD */
+const loader = new THREE.TextureLoader();
+const grass = loader.load("https://threejs.org/examples/textures/terrain/grasslight-big.jpg");
+grass.wrapS = grass.wrapT = THREE.RepeatWrapping;
+grass.repeat.set(20,20);
+const ground = new THREE.Mesh(
+  new THREE.PlaneGeometry(200,200),
+  new THREE.MeshStandardMaterial({map:grass})
+);
+ground.rotation.x = -Math.PI/2;
+ground.receiveShadow = true;
+scene.add(ground);
+
+const road = new THREE.Mesh(
+  new THREE.PlaneGeometry(10,50),
+  new THREE.MeshStandardMaterial({color:0x555555})
+);
+road.rotation.x=-Math.PI/2;
+road.position.set(4,0.01,0);
+scene.add(road);
+
+/* PLAYER */
+const player = {pos:new THREE.Vector3(0,0,0), vy:0, onGround:true};
+
+/* CAMERA INITIAL POSITION - чтобы ничего не было черным */
+camera.position.set(0,2,5);
+camera.lookAt(new THREE.Vector3(0,1,0));
+
+/* SLOT MACHINE */
+const machine = new THREE.Mesh(
+  new THREE.BoxGeometry(1,2,1),
+  new THREE.MeshStandardMaterial({color:0xaa0000, metalness:.6, roughness:.3})
+);
+machine.position.set(4,1,0);
+machine.castShadow=true;
+scene.add(machine);
+
+/* NPC */
+const npcs=[];
+const npcGeometry = new THREE.BoxGeometry(0.5,1.6,0.5);
+const npcMaterial = new THREE.MeshStandardMaterial({color:0x00aaff});
+for(let i=0;i<3;i++){
+  const npc = new THREE.Mesh(npcGeometry,npcMaterial);
+  npc.position.set(2+Math.random()*4,0.8,2+Math.random()*4);
+  scene.add(npc);
+  npcs.push({mesh:npc,alive:true,target:randomTarget(npc.position)});
+}
+
+function randomTarget(pos){
+  return new THREE.Vector3(pos.x+(Math.random()-0.5)*2,pos.y,pos.z+(Math.random()-0.5)*2);
+}
+
+/* NPC MONEY DROP */
+let balance=0;
+function attackNPC(){
+  for(let n of npcs){
+    if(!n.alive) continue;
+    if(n.mesh.position.distanceTo(player.pos)<1){
+      n.alive=false;
+      scene.remove(n.mesh);
+      balance+=10;
+      updateBalance();
+      break;
+    }
+  }
+}
+const balanceUI=document.getElementById("balance");
+function updateBalance(){balanceUI.innerText="Баланс: "+balance;}
+
+/* JOYSTICKS */
+const moveJoy=document.getElementById("moveJoy");
+const moveStick=document.getElementById("moveStick");
+const lookJoy=document.getElementById("lookJoy");
+const lookStick=document.getElementById("lookStick");
+
+let moveX=0,moveY=0,lookX=0,lookY=0,moveId=null,lookId=null;
+function setupJoystick(el,stick,isMove){
+ el.addEventListener("touchstart", e=>{
+   for(let t of e.changedTouches){
+     if(isMove&&moveId===null){moveId=t.identifier;break;}
+     if(!isMove&&lookId===null){lookId=t.identifier;break;}
+   }
+ });
+ el.addEventListener("touchmove", e=>{
+   for(let t of e.touches){
+     if(isMove&&t.identifier!==moveId) continue;
+     if(!isMove&&t.identifier!==lookId) continue;
+     const r=el.getBoundingClientRect();
+     let x=t.clientX-r.left-60;
+     let y=t.clientY-r.top-60;
+     const d=Math.min(40,Math.hypot(x,y));
+     const a=Math.atan2(y,x);
+     x=Math.cos(a)*(d/40);
+     y=Math.sin(a)*(d/40);
+     stick.style.left=35+x*40+"px";
+     stick.style.top=35+y*40+"px";
+     if(isMove){moveX=x;moveY=y;}else{lookX=x;lookY=y;}
+   }
+ });
+ el.addEventListener("touchend", e=>{
+   for(let t of e.changedTouches){
+     if(isMove&&t.identifier===moveId){moveX=0;moveY=0;moveId=null;stick.style.left="35px";stick.style.top="35px";}
+     if(!isMove&&t.identifier===lookId){lookX=0;lookY=0;lookId=null;stick.style.left="35px";stick.style.top="35px";}
+   }
+ });
+}
+setupJoystick(moveJoy,moveStick,true);
+setupJoystick(lookJoy,lookStick,false);
+
+/* JUMP + ATTACK */
+document.getElementById("jump").addEventListener("touchstart",()=>{if(player.onGround){player.vy=0.25;player.onGround=false;}});
+document.getElementById("attack").addEventListener("touchstart",attackNPC);
+
+/* ACTION BUTTON */
+document.getElementById("action").addEventListener("click",()=>{document.getElementById("casino").style.display="flex";});
+
+/* Tic-Tac-Toe with bot */
+const tttDiv=document.getElementById("ttt");
+let tttBoard=["","","","","","","","",""];
+let tttTurn="X";
+
+function openTTT(){document.getElementById("casino").style.display="none";tttDiv.style.display="flex";renderTTT();}
+function closeTTT(){tttDiv.style.display="none";tttBoard=["","","","","","","","",""];tttTurn="X";}
+
+function renderTTT(){
+ tttDiv.innerHTML="";
+ for(let i=0;i<3;i++){
+   const row=document.createElement("div");row.className="ttt-row";
+   for(let j=0;j<3;j++){
+     const idx=i*3+j;
+     const cell=document.createElement("div");cell.className="ttt-cell";cell.innerText=tttBoard[idx];
+     cell.onclick=()=>{
+       if(tttBoard[idx]==="" && tttTurn==="X" && balance>=10){
+         tttBoard[idx]="X";balance-=10;updateBalance();tttTurn="O";checkTTT();renderTTT();setTimeout(botMove,300);
+       }
+     };
+     row.appendChild(cell);
+   }
+   tttDiv.appendChild(row);
+ }
+}
+
+function botMove(){
+ const empty=tttBoard.map((v,i)=>v===""?i:null).filter(v=>v!==null);
+ if(empty.length===0) return;
+ const move=empty[Math.floor(Math.random()*empty.length)];
+ tttBoard[move]="O";tttTurn="X";checkTTT();renderTTT();
+}
+
+function checkTTT(){
+ const wins=[[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+ for(let w of wins){
+   if(tttBoard[w[0]]!=="" && tttBoard[w[0]]===tttBoard[w[1]] && tttBoard[w[1]]===tttBoard[w[2]]){
+     alert(tttBoard[w[0]]+" выиграл! +20");balance+=20;updateBalance();closeTTT();return;
+   }
+ }
+ if(tttBoard.every(c=>c!=="")){alert("Ничья! +10");balance+=10;updateBalance();closeTTT();}
+}
+
+/* CAMERA CONTROL */
+let yaw=0,pitch=0;
+
+/* NPC MOVE */
+function moveNPCs(){
+ for(let n of npcs){
+   if(!n.alive) continue;
+   const dir=new THREE.Vector3().subVectors(n.target,n.mesh.position);
+   if(dir.length()<0.1) n.target=randomTarget(n.mesh.position);
+   else {dir.normalize().multiplyScalar(0.02); n.mesh.position.add(dir);}
+ }
+}
+setInterval(moveNPCs,50);
+
+/* COLLISION WITH MACHINE */
+function checkCollision(pos){
+ const dx=pos.x-machine.position.x;
+ const dz=pos.z-machine.position.z;
+ const distX=Math.abs(dx), distZ=Math.abs(dz);
+ if(distX<0.6 && distZ<0.6){
+   if(dx>0) pos.x=machine.position.x+0.6; else pos.x=machine.position.x-0.6;
+   if(dz>0) pos.z=machine.position.z+0.6; else pos.z=machine.position.z-0.6;
+ }
+}
+
+/* ANIMATE LOOP */
+function animate(){
+ requestAnimationFrame(animate);
+ const forward=new THREE.Vector3(Math.sin(yaw),0,Math.cos(yaw));
+ const right=new THREE.Vector3(Math.cos(yaw),0,-Math.sin(yaw));
+ player.pos.addScaledVector(forward,moveY*0.08);
+ player.pos.addScaledVector(right,moveX*0.08);
+ checkCollision(player.pos);
+ player.vy-=0.012;player.pos.y+=player.vy;if(player.pos.y<0){player.pos.y=0;player.vy=0;player.onGround=true;}
+ yaw-=lookX*0.05; pitch-=lookY*0.05; pitch=Math.max(-1.2,Math.min(1.2,pitch));
+ camera.position.set(player.pos.x,player.pos.y+1.6,player.pos.z);
+ camera.rotation.order="YXZ"; camera.rotation.y=yaw; camera.rotation.x=pitch;
+ document.getElementById("action").style.display=player.pos.distanceTo(machine.position)<2?"block":"none";
+ renderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>
