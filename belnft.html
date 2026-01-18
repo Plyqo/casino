@@ -15,22 +15,24 @@
         }
         
         :root {
-            --primary: #8A2BE2;
-            --primary-dark: #6A0DAD;
-            --primary-light: #9B4DFF;
+            --primary: #9D4EDD;
+            --primary-dark: #7B2CBF;
+            --primary-light: #C77DFF;
             --secondary: #FF6B8B;
-            --light: #F8F9FF;
-            --dark: #1A1A2E;
-            --gray: #6C757D;
+            --dark-bg: #0F0F1E;
+            --card-bg: #1A1A2E;
+            --text-light: #F0F0FF;
+            --text-gray: #A0A0C0;
+            --border-color: #2A2A3E;
             --success: #00D4AA;
-            --card-bg: #FFFFFF;
-            --shadow: 0 10px 30px rgba(138, 43, 226, 0.1);
+            --danger: #FF4757;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
         body {
-            background: linear-gradient(135deg, #F8F9FF 0%, #F0E6FF 100%);
-            color: var(--dark);
+            background: var(--dark-bg);
+            color: var(--text-light);
             line-height: 1.6;
             min-height: 100vh;
             overflow-x: hidden;
@@ -72,7 +74,7 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            box-shadow: 0 4px 20px rgba(138, 43, 226, 0.3);
+            box-shadow: 0 4px 20px rgba(157, 78, 221, 0.3);
         }
         
         .header-content {
@@ -126,24 +128,21 @@
         
         .hero-icon {
             font-size: 4rem;
-            color: var(--primary);
             margin-bottom: 20px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: var(--primary-light);
         }
         
         .hero h1 {
             font-size: 2.5rem;
             margin-bottom: 15px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
         .hero p {
             font-size: 1.1rem;
-            color: var(--gray);
+            color: var(--text-gray);
             max-width: 600px;
             margin: 0 auto 40px;
         }
@@ -168,7 +167,7 @@
         
         .btn:hover {
             transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(138, 43, 226, 0.2);
+            box-shadow: 0 15px 30px rgba(157, 78, 221, 0.3);
         }
         
         .btn-secondary {
@@ -200,25 +199,36 @@
             overflow: hidden;
             box-shadow: var(--shadow);
             transition: var(--transition);
-            border: 1px solid rgba(138, 43, 226, 0.1);
+            border: 1px solid var(--border-color);
             text-align: center;
         }
         
         .nft-card:hover {
             transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(138, 43, 226, 0.15);
+            box-shadow: 0 20px 40px rgba(157, 78, 221, 0.2);
+            border-color: var(--primary);
         }
         
         .nft-image {
             height: 200px;
-            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
+            background: linear-gradient(135deg, #2A2A3E, #3A3A4E);
             display: flex;
             align-items: center;
             justify-content: center;
-            color: var(--gray);
+            color: var(--primary-light);
             font-size: 5rem;
             position: relative;
             overflow: hidden;
+        }
+        
+        .nft-image::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(157, 78, 221, 0.1), transparent);
         }
         
         .nft-content {
@@ -228,11 +238,11 @@
         .nft-title {
             font-size: 1.3rem;
             margin-bottom: 10px;
-            color: var(--dark);
+            color: var(--text-light);
         }
         
         .nft-description {
-            color: var(--gray);
+            color: var(--text-gray);
             font-size: 0.95rem;
             margin-bottom: 15px;
             line-height: 1.5;
@@ -246,6 +256,7 @@
             box-shadow: var(--shadow);
             max-width: 600px;
             margin: 30px auto;
+            border: 1px solid var(--border-color);
         }
         
         .form-group {
@@ -256,23 +267,24 @@
             display: block;
             margin-bottom: 10px;
             font-weight: 600;
-            color: var(--dark);
+            color: var(--text-light);
         }
         
         .form-control {
             width: 100%;
             padding: 18px 20px;
-            border: 2px solid #E6E6FF;
+            border: 2px solid var(--border-color);
             border-radius: 14px;
             font-size: 1rem;
             transition: var(--transition);
-            background: #F8F9FF;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-light);
         }
         
         .form-control:focus {
             outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(138, 43, 226, 0.1);
+            box-shadow: 0 0 0 4px rgba(157, 78, 221, 0.1);
         }
         
         .form-row {
@@ -294,16 +306,16 @@
             flex: 1;
             text-align: center;
             padding: 20px 15px;
-            border: 2px solid #E6E6FF;
+            border: 2px solid var(--border-color);
             border-radius: 14px;
             cursor: pointer;
             transition: var(--transition);
-            background: #F8F9FF;
+            background: rgba(255, 255, 255, 0.05);
         }
         
         .payment-method:hover, .payment-method.active {
             border-color: var(--primary);
-            background: rgba(138, 43, 226, 0.05);
+            background: rgba(157, 78, 221, 0.1);
             transform: translateY(-3px);
         }
         
@@ -327,6 +339,7 @@
             border-radius: 16px;
             box-shadow: var(--shadow);
             text-align: center;
+            border: 1px solid var(--border-color);
         }
         
         .stat-card h3 {
@@ -336,20 +349,59 @@
         }
         
         .stat-card p {
-            color: var(--gray);
+            color: var(--text-gray);
             font-size: 0.9rem;
         }
         
         .empty-state {
             text-align: center;
             padding: 60px 20px;
-            color: var(--gray);
+            color: var(--text-gray);
         }
         
         .empty-state i {
             font-size: 4rem;
             margin-bottom: 20px;
-            color: #e0e0e0;
+            color: var(--border-color);
+        }
+        
+        /* Продажа с выводом */
+        .sell-withdraw-section {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: var(--shadow);
+            max-width: 800px;
+            margin: 30px auto;
+            border: 1px solid var(--border-color);
+        }
+        
+        .sell-step {
+            margin-bottom: 40px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 16px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 30px;
+            height: 30px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .step-title {
+            display: inline-block;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            color: var(--text-light);
         }
         
         /* Профиль */
@@ -362,6 +414,7 @@
             padding: 30px;
             border-radius: 24px;
             box-shadow: var(--shadow);
+            border: 1px solid var(--border-color);
         }
         
         .profile-avatar {
@@ -370,7 +423,7 @@
             border-radius: 50%;
             overflow: hidden;
             border: 4px solid var(--primary);
-            box-shadow: 0 10px 30px rgba(138, 43, 226, 0.3);
+            box-shadow: 0 10px 30px rgba(157, 78, 221, 0.3);
         }
         
         .profile-avatar img {
@@ -382,11 +435,11 @@
         .profile-info h2 {
             font-size: 1.8rem;
             margin-bottom: 5px;
-            color: var(--dark);
+            color: var(--text-light);
         }
         
         .profile-info p {
-            color: var(--gray);
+            color: var(--text-gray);
             margin-bottom: 15px;
         }
         
@@ -397,54 +450,20 @@
             margin: 40px 0;
         }
         
-        /* Продажа */
-        .nft-selector {
-            display: flex;
-            align-items: center;
-            padding: 20px;
-            border: 2px solid #E6E6FF;
-            border-radius: 16px;
-            margin-bottom: 15px;
-            cursor: pointer;
-            transition: var(--transition);
-            background: #F8F9FF;
-        }
-        
-        .nft-selector:hover, .nft-selector.selected {
-            border-color: var(--primary);
-            background: rgba(138, 43, 226, 0.05);
-            transform: translateX(5px);
-        }
-        
-        .nft-selector-img {
-            width: 70px;
-            height: 70px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, #f0f0f0, #e0e0e0);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--gray);
-            font-size: 2rem;
-            margin-right: 20px;
-            flex-shrink: 0;
-        }
-        
         /* Нижнее меню */
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--card-bg);
-            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+            background: rgba(26, 26, 46, 0.95);
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.3);
             z-index: 1000;
             display: flex;
             justify-content: space-around;
             padding: 15px 0;
             backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.95);
-            border-top: 1px solid rgba(138, 43, 226, 0.1);
+            border-top: 1px solid var(--border-color);
         }
         
         .nav-item {
@@ -452,7 +471,7 @@
             flex-direction: column;
             align-items: center;
             text-decoration: none;
-            color: var(--gray);
+            color: var(--text-gray);
             transition: var(--transition);
             flex: 1;
             max-width: 100px;
@@ -475,7 +494,7 @@
         }
         
         .nav-item.active .nav-icon {
-            background: rgba(138, 43, 226, 0.1);
+            background: rgba(157, 78, 221, 0.2);
             transform: translateY(-5px);
         }
         
@@ -494,7 +513,7 @@
                 grid-template-columns: 1fr;
             }
             
-            .form-section {
+            .form-section, .sell-withdraw-section {
                 padding: 25px;
                 margin: 20px auto;
             }
@@ -536,10 +555,10 @@
         
         .profile-tab {
             padding: 12px 24px;
-            background: #F8F9FF;
+            background: rgba(255, 255, 255, 0.05);
             border-radius: 12px;
             text-decoration: none;
-            color: var(--gray);
+            color: var(--text-gray);
             font-weight: 500;
             white-space: nowrap;
             transition: var(--transition);
@@ -572,11 +591,11 @@
         .section-title h2 {
             font-size: 2rem;
             margin-bottom: 10px;
-            color: var(--dark);
+            color: var(--text-light);
         }
         
         .section-title p {
-            color: var(--gray);
+            color: var(--text-gray);
         }
         
         /* Модальное окно */
@@ -587,7 +606,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0, 0, 0, 0.5);
+            background: rgba(0, 0, 0, 0.7);
             z-index: 2000;
             align-items: center;
             justify-content: center;
@@ -599,14 +618,15 @@
         }
         
         .modal-content {
-            background: white;
+            background: var(--card-bg);
             border-radius: 24px;
             padding: 40px;
             max-width: 500px;
             width: 100%;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
             transform: scale(0.9);
             animation: modalShow 0.3s ease forwards;
+            border: 1px solid var(--border-color);
         }
         
         @keyframes modalShow {
@@ -620,13 +640,13 @@
             align-items: center;
             justify-content: center;
             padding: 40px;
-            color: var(--gray);
+            color: var(--text-gray);
         }
         
         .loading-spinner {
             width: 50px;
             height: 50px;
-            border: 3px solid #f0f0f0;
+            border: 3px solid var(--border-color);
             border-top: 3px solid var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
@@ -637,6 +657,33 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            background: var(--primary);
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            z-index: 3000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .notification.success {
+            background: var(--success);
+        }
+        
+        .notification.error {
+            background: var(--danger);
+        }
     </style>
 </head>
 <body>
@@ -644,7 +691,7 @@
     <header class="app-header">
         <div class="header-content">
             <div class="logo">
-                <i class="fas fa-gift"></i>
+                <i class="fas fa-gem"></i>
                 <span>NFT Gifts</span>
             </div>
             <div class="user-info" id="user-info">
@@ -664,20 +711,20 @@
                     <i class="fas fa-gem"></i>
                 </div>
                 <h1>NFT-подарки из Telegram</h1>
-                <p>Покупайте и продавайте уникальные NFT-подарки из Telegram за белорусские рубли. Вывод средств на карту Белкарт или по номеру телефона.</p>
+                <p>Продавайте свои NFT-подарки за BYN и получайте деньги мгновенно на карту или телефон</p>
                 <div class="hero-btns" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
                     <button class="btn" onclick="showPage('inventory')">
                         <i class="fas fa-box"></i> Мой инвентарь
                     </button>
                     <button class="btn btn-secondary" onclick="showPage('sell')">
-                        <i class="fas fa-tag"></i> Продать NFT
+                        <i class="fas fa-money-bill-wave"></i> Продать NFT
                     </button>
                 </div>
             </div>
 
             <div class="section-title">
                 <h2>Как это работает</h2>
-                <p>Простой способ получить и продать NFT-подарки</p>
+                <p>Быстрая продажа NFT с мгновенным выводом</p>
             </div>
 
             <div class="nft-grid">
@@ -687,27 +734,27 @@
                     </div>
                     <div class="nft-content">
                         <h3 class="nft-title">Получите NFT</h3>
-                        <p class="nft-description">Получайте NFT-подарки через Telegram. Все ваши подарки автоматически отображаются в инвентаре.</p>
+                        <p class="nft-description">Получайте NFT-подарки через Telegram. Все подарки автоматически появляются в инвентаре.</p>
                     </div>
                 </div>
 
                 <div class="nft-card">
                     <div class="nft-image">
-                        <i class="fas fa-eye"></i>
+                        <i class="fas fa-tag"></i>
                     </div>
                     <div class="nft-content">
-                        <h3 class="nft-title">Посмотрите подарок</h3>
-                        <p class="nft-description">Каждый NFT можно посмотреть по уникальной ссылке, которая ведет прямо к подарку в Telegram.</p>
+                        <h3 class="nft-title">Продайте</h3>
+                        <p class="nft-description">Выберите NFT из инвентаря и установите цену. Система автоматически находит покупателя.</p>
                     </div>
                 </div>
 
                 <div class="nft-card">
                     <div class="nft-image">
-                        <i class="fas fa-money-bill-wave"></i>
+                        <i class="fas fa-wallet"></i>
                     </div>
                     <div class="nft-content">
-                        <h3 class="nft-title">Продайте за BYN</h3>
-                        <p class="nft-description">Продавайте свои NFT-подарки за белорусские рубли и выводите деньги на карту или телефон.</p>
+                        <h3 class="nft-title">Получите деньги</h3>
+                        <p class="nft-description">Сразу после продажи деньги приходят на вашу карту Белкарт или телефон.</p>
                     </div>
                 </div>
             </div>
@@ -733,7 +780,7 @@
                 </div>
                 <div class="stat-card">
                     <h3 id="estimated-value">0</h3>
-                    <p>Примерная стоимость</p>
+                    <p>BYN</p>
                 </div>
             </div>
 
@@ -752,46 +799,97 @@
         </div>
     </section>
 
-    <!-- Страница продажи -->
+    <!-- Страница продажи с выводом -->
     <section id="sell-page" class="page">
         <div class="container">
             <div class="section-title">
-                <h2>Продать NFT-подарок</h2>
-                <p>Выберите подарок из инвентаря и установите цену</p>
+                <h2>Продать NFT с выводом средств</h2>
+                <p>Продайте NFT и получите деньги мгновенно</p>
             </div>
 
-            <div class="form-section">
-                <div class="form-group">
-                    <label>Выберите NFT для продажи</label>
-                    <div id="nft-selector-list">
-                        <div class="loading">
-                            <div class="loading-spinner"></div>
-                            <p>Загрузка доступных NFT...</p>
+            <div class="sell-withdraw-section">
+                <!-- Шаг 1: Выбор NFT -->
+                <div class="sell-step">
+                    <div class="step-title">
+                        <span class="step-number">1</span>
+                        Выберите NFT для продажи
+                    </div>
+                    <div class="form-group">
+                        <div id="nft-selector-list">
+                            <div class="loading">
+                                <div class="loading-spinner"></div>
+                                <p>Загрузка доступных NFT...</p>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <form id="sellForm">
+                <!-- Шаг 2: Установка цены -->
+                <div class="sell-step">
+                    <div class="step-title">
+                        <span class="step-number">2</span>
+                        Установите цену продажи
+                    </div>
                     <div class="form-group">
                         <label for="sellPrice">Цена продажи (BYN)</label>
-                        <input type="number" id="sellPrice" class="form-control" min="10" placeholder="Укажите цену в BYN" required>
-                        <small style="color: var(--gray); display: block; margin-top: 5px;">Минимум 10 BYN</small>
+                        <input type="number" id="sellPrice" class="form-control" min="10" placeholder="Минимум 10 BYN" required>
+                        <small style="color: var(--text-gray); display: block; margin-top: 5px;">Комиссия системы: 5%</small>
+                    </div>
+                </div>
+
+                <!-- Шаг 3: Вывод средств -->
+                <div class="sell-step">
+                    <div class="step-title">
+                        <span class="step-number">3</span>
+                        Куда перевести деньги
+                    </div>
+                    <div class="form-group">
+                        <label>Способ получения</label>
+                        <div class="payment-methods">
+                            <div class="payment-method active" onclick="selectWithdrawMethod('card')">
+                                <i class="fas fa-credit-card"></i>
+                                <h4>Карта Белкарт</h4>
+                                <p>Мгновенное зачисление</p>
+                            </div>
+                            <div class="payment-method" onclick="selectWithdrawMethod('phone')">
+                                <i class="fas fa-phone"></i>
+                                <h4>Номер телефона</h4>
+                                <p>Любой оператор Беларуси</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="form-group">
-                        <label for="sellDescription">Описание для покупателя</label>
-                        <textarea id="sellDescription" class="form-control" rows="3" placeholder="Опишите ваш NFT-подарок..." required></textarea>
+                        <label for="withdraw-details">Номер карты или телефона</label>
+                        <input type="text" id="withdraw-details" class="form-control" placeholder="XXXX XXXX XXXX XXXX или +375 (XX) XXX-XX-XX" required>
                     </div>
 
                     <div class="form-group">
-                        <label for="sellContact">Контакт для связи (Telegram)</label>
-                        <input type="text" id="sellContact" class="form-control" value="" readonly>
+                        <label for="sellDescription">Комментарий для покупателя (необязательно)</label>
+                        <textarea id="sellDescription" class="form-control" rows="3" placeholder="Опишите ваш NFT-подарок..."></textarea>
                     </div>
+                </div>
 
-                    <button type="submit" class="btn btn-secondary" style="width: 100%; padding: 18px;">
-                        <i class="fas fa-tag"></i> Выставить на продажу
-                    </button>
-                </form>
+                <!-- Итоговая информация -->
+                <div class="sell-step" style="background: rgba(0, 212, 170, 0.1); border-left-color: var(--success);">
+                    <div class="step-title">
+                        <span class="step-number">!</span>
+                        Информация о продаже
+                    </div>
+                    <div id="sale-summary" style="color: var(--text-gray);">
+                        <p>После подтверждения:</p>
+                        <ul style="margin: 10px 0 10px 20px;">
+                            <li>NFT будет автоматически выставлен на продажу</li>
+                            <li>Система найдет покупателя в течение 5 минут</li>
+                            <li>После продажи деньги поступят мгновенно</li>
+                            <li>Вы получите уведомление в Telegram</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-secondary" style="width: 100%; padding: 18px; font-size: 1.1rem;" onclick="processSale()">
+                    <i class="fas fa-bolt"></i> Продать NFT с мгновенным выводом
+                </button>
             </div>
         </div>
     </section>
@@ -815,7 +913,7 @@
 
             <div class="profile-tabs">
                 <a href="#" class="profile-tab active" onclick="showProfileTab('stats')">Статистика</a>
-                <a href="#" class="profile-tab" onclick="showProfileTab('withdraw')">Вывод средств</a>
+                <a href="#" class="profile-tab" onclick="showProfileTab('history')">История продаж</a>
                 <a href="#" class="profile-tab" onclick="showProfileTab('help')">Помощь</a>
                 <a href="#" class="profile-tab" onclick="showProfileTab('contacts')">Контакты</a>
             </div>
@@ -838,7 +936,7 @@
                 </div>
 
                 <div class="form-section">
-                    <h3 style="margin-bottom: 20px;">Настройки выплат</h3>
+                    <h3 style="margin-bottom: 20px; color: var(--text-light);">Сохраненные реквизиты</h3>
                     <div class="form-group">
                         <label for="withdraw-phone">Номер для выплат</label>
                         <input type="tel" id="withdraw-phone" class="form-control" placeholder="+375 (XX) XXX-XX-XX">
@@ -853,57 +951,39 @@
                 </div>
             </div>
 
-            <!-- Вкладка вывода средств -->
-            <div id="profile-withdraw-tab" class="profile-tab-content" style="display: none;">
+            <!-- Вкладка истории продаж -->
+            <div id="profile-history-tab" class="profile-tab-content" style="display: none;">
                 <div class="form-section">
-                    <h3 style="margin-bottom: 20px;">Вывод средств</h3>
-                    <div class="form-group">
-                        <label for="withdraw-amount">Сумма (BYN)</label>
-                        <input type="number" id="withdraw-amount" class="form-control" min="10" placeholder="Минимум 10 BYN" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Куда перевести</label>
-                        <div class="payment-methods">
-                            <div class="payment-method active" onclick="selectWithdrawMethod('card')">
-                                <i class="fas fa-credit-card"></i>
-                                <h4>На карту</h4>
-                                <p>Белкарт</p>
-                            </div>
-                            <div class="payment-method" onclick="selectWithdrawMethod('phone')">
-                                <i class="fas fa-phone"></i>
-                                <h4>На телефон</h4>
-                                <p>Любой оператор</p>
-                            </div>
+                    <h3 style="margin-bottom: 20px; color: var(--text-light);">История продаж</h3>
+                    <div id="sales-history">
+                        <div class="empty-state">
+                            <i class="fas fa-history"></i>
+                            <h3>История пуста</h3>
+                            <p>У вас еще не было продаж</p>
                         </div>
                     </div>
-                    <button class="btn btn-secondary" style="width: 100%;" onclick="requestWithdraw()">
-                        <i class="fas fa-paper-plane"></i> Запросить вывод
-                    </button>
                 </div>
             </div>
 
             <!-- Вкладка помощи -->
             <div id="profile-help-tab" class="profile-tab-content" style="display: none;">
                 <div class="form-section">
-                    <h3 style="margin-bottom: 20px;">Помощь и поддержка</h3>
+                    <h3 style="margin-bottom: 20px; color: var(--text-light);">Помощь и поддержка</h3>
                     <div class="form-group">
-                        <h4><i class="fas fa-question-circle"></i> Как получить NFT-подарок?</h4>
-                        <p>NFT-подарки отправляются вам через Telegram. После получения они автоматически появляются в вашем инвентаре.</p>
+                        <h4><i class="fas fa-question-circle"></i> Как работает продажа NFT?</h4>
+                        <p>1. Выберите NFT из инвентаря<br>
+                        2. Установите цену и способ получения денег<br>
+                        3. Подтвердите продажу<br>
+                        4. Система автоматически находит покупателя<br>
+                        5. Деньги приходят мгновенно на указанные реквизиты</p>
                     </div>
                     <div class="form-group">
-                        <h4><i class="fas fa-question-circle"></i> Как посмотреть NFT-подарок?</h4>
-                        <p>В разделе "Инвентарь" нажмите кнопку "Посмотреть подарок" под нужным NFT. Откроется ссылка на подарок в Telegram.</p>
+                        <h4><i class="fas fa-question-circle"></i> Сколько времени занимает продажа?</h4>
+                        <p>В 90% случаев продажа происходит в течение 5 минут. В редких случаях может потребоваться до 24 часов.</p>
                     </div>
                     <div class="form-group">
-                        <h4><i class="fas fa-question-circle"></i> Как продать NFT?</h4>
-                        <p>1. Перейдите в раздел "Продажа"<br>
-                        2. Выберите NFT из вашего инвентаря<br>
-                        3. Установите цену и описание<br>
-                        4. Разместите объявление о продаже</p>
-                    </div>
-                    <div class="form-group">
-                        <h4><i class="fas fa-question-circle"></i> Как получить деньги?</h4>
-                        <p>Вывод средств доступен на карту Белкарт или по номеру телефона любого белорусского оператора. Минимальная сумма вывода - 10 BYN.</p>
+                        <h4><i class="fas fa-question-circle"></i> Какие комиссии?</h4>
+                        <p>Комиссия системы составляет 5% от суммы продажи. Вы получаете на 5% меньше указанной цены.</p>
                     </div>
                 </div>
             </div>
@@ -911,7 +991,7 @@
             <!-- Вкладка контактов -->
             <div id="profile-contacts-tab" class="profile-tab-content" style="display: none;">
                 <div class="form-section">
-                    <h3 style="margin-bottom: 20px;">Контакты</h3>
+                    <h3 style="margin-bottom: 20px; color: var(--text-light);">Контакты</h3>
                     <div class="form-group">
                         <h4><i class="fas fa-headset"></i> Техническая поддержка</h4>
                         <p><i class="fas fa-envelope"></i> Email: support@nft-gifts.by</p>
@@ -920,12 +1000,10 @@
                     </div>
                     <div class="form-group">
                         <h4><i class="fas fa-clock"></i> Время работы</h4>
-                        <p>Пн-Пт: 9:00 - 18:00<br>
-                        Сб: 10:00 - 16:00<br>
-                        Вс: выходной</p>
+                        <p>Круглосуточно, 24/7</p>
                     </div>
                     <button class="btn" onclick="showModal('contact-modal')">
-                        <i class="fas fa-paper-plane"></i> Написать сообщение
+                        <i class="fas fa-paper-plane"></i> Написать в поддержку
                     </button>
                 </div>
             </div>
@@ -935,13 +1013,13 @@
     <!-- Модальное окно просмотра NFT -->
     <div id="view-nft-modal" class="modal">
         <div class="modal-content">
-            <h3 style="margin-bottom: 20px;">Просмотр NFT-подарка</h3>
+            <h3 style="margin-bottom: 20px; color: var(--text-light);">Просмотр NFT-подарка</h3>
             <div class="form-group">
-                <p>Ссылка на ваш NFT-подарок в Telegram:</p>
-                <div style="background: #f5f5f5; padding: 15px; border-radius: 10px; margin: 15px 0; word-break: break-all;">
+                <p style="color: var(--text-gray); margin-bottom: 15px;">Ссылка на ваш NFT-подарок в Telegram:</p>
+                <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; margin: 15px 0; word-break: break-all;">
                     <a href="#" id="nft-link" target="_blank" style="color: var(--primary); text-decoration: none;"></a>
                 </div>
-                <p style="color: var(--gray); font-size: 0.9rem;">Нажмите на ссылку, чтобы открыть подарок в Telegram.</p>
+                <p style="color: var(--text-gray); font-size: 0.9rem;">Нажмите на ссылку, чтобы открыть подарок в Telegram.</p>
             </div>
             <div style="display: flex; gap: 10px; margin-top: 30px;">
                 <button class="btn" style="flex: 1;" onclick="openNFTLink()">
@@ -954,10 +1032,31 @@
         </div>
     </div>
 
+    <!-- Модальное окно продажи -->
+    <div id="sale-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 20px; color: var(--text-light);">Подтверждение продажи</h3>
+            <div class="form-group">
+                <p style="color: var(--text-gray); margin-bottom: 15px;" id="sale-confirmation-text"></p>
+                <div style="background: rgba(0, 212, 170, 0.1); padding: 15px; border-radius: 10px; margin: 15px 0;">
+                    <p style="color: var(--success); margin: 0;"><i class="fas fa-info-circle"></i> Деньги поступят в течение 5 минут после продажи</p>
+                </div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 30px;">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="confirmSale()">
+                    <i class="fas fa-check"></i> Подтвердить продажу
+                </button>
+                <button class="btn btn-outline" style="flex: 1;" onclick="hideModal('sale-modal')">
+                    Отмена
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Модальное окно поддержки -->
     <div id="contact-modal" class="modal">
         <div class="modal-content">
-            <h3 style="margin-bottom: 20px;">Написать в поддержку</h3>
+            <h3 style="margin-bottom: 20px; color: var(--text-light);">Написать в поддержку</h3>
             <div class="form-group">
                 <label for="message-subject">Тема</label>
                 <input type="text" id="message-subject" class="form-control" placeholder="Тема сообщения">
@@ -977,6 +1076,9 @@
         </div>
     </div>
 
+    <!-- Уведомление -->
+    <div id="notification" class="notification"></div>
+
     <!-- Нижнее меню навигации -->
     <nav class="bottom-nav">
         <a href="#" class="nav-item active" onclick="showPage('home')">
@@ -993,9 +1095,9 @@
         </a>
         <a href="#" class="nav-item" onclick="showPage('sell')">
             <div class="nav-icon">
-                <i class="fas fa-tag"></i>
+                <i class="fas fa-money-bill-wave"></i>
             </div>
-            <span class="nav-label">Продажа</span>
+            <span class="nav-label">Продать NFT</span>
         </a>
         <a href="#" class="nav-item" onclick="showPage('profile')">
             <div class="nav-icon">
@@ -1009,26 +1111,19 @@
         // Telegram Web App
         let tg = window.Telegram.WebApp;
         let currentUser = null;
+        let currentNFTs = [];
+        let selectedNFT = null;
         
-        // Пример данных из файла nft.txt (в реальности нужно загружать с сервера)
-        // Формат: "id тг - ссылка1, ссылка2, ..."
-        const nftDataText = `14849294 - https://t.me/nft/SwissWatch-22366
-12345678 - https://t.me/nft/GoldCrown-44512, https://t.me/nft/DragonFire-88901
-98765432 - https://t.me/nft/CyberRobot-33467
-55555555 - https://t.me/nft/UnicornMagic-77654, https://t.me/nft/SpaceShip-11223, https://t.me/nft/CrystalBall-99887
-11111111 - https://t.me/nft/PhoenixFire-44332`;
-
         // Инициализация приложения
         document.addEventListener('DOMContentLoaded', function() {
             // Инициализация Telegram Web App
-            tg.expand();
-            tg.enableClosingConfirmation();
+            if (tg) {
+                tg.expand();
+                tg.enableClosingConfirmation();
+            }
             
             // Загрузка данных пользователя из Telegram
             loadUserData();
-            
-            // Инициализация форм
-            initForms();
             
             // Установка обработчиков событий
             setupEventListeners();
@@ -1036,130 +1131,116 @@
         
         // Загрузка данных пользователя из Telegram
         function loadUserData() {
-            const user = tg.initDataUnsafe?.user;
+            let user = null;
             
-            if (user) {
-                currentUser = user;
-                
-                // Установка данных в шапке
-                document.getElementById('user-name').textContent = `@${user.username || 'user'}`;
-                document.getElementById('user-avatar').src = user.photo_url || 
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
-                
-                // Установка данных в профиле
-                document.getElementById('profile-full-name').textContent = 
-                    `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь Telegram';
-                document.getElementById('profile-username-text').textContent = `@${user.username || 'user'}`;
-                document.getElementById('profile-user-id').textContent = user.id;
-                document.getElementById('profile-avatar-img').src = user.photo_url || 
-                    `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
-                    
-                // Установка контакта в форме продажи
-                document.getElementById('sellContact').value = `@${user.username || user.id}`;
-                
-                // Загрузка NFT пользователя
-                loadUserNFTs();
-                
-                // Сохранение в localStorage для офлайн-доступа
-                localStorage.setItem('telegramUser', JSON.stringify(user));
-            } else {
-                // Загрузка из localStorage если нет данных Telegram
-                const savedUser = JSON.parse(localStorage.getItem('telegramUser'));
-                if (savedUser) {
-                    currentUser = savedUser;
-                    
-                    document.getElementById('user-name').textContent = `@${savedUser.username || 'user'}`;
-                    document.getElementById('user-avatar').src = savedUser.photo_url || 
-                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${savedUser.id}`;
-                    
-                    document.getElementById('profile-full-name').textContent = 
-                        `${savedUser.first_name || ''} ${savedUser.last_name || ''}`.trim() || 'Пользователь Telegram';
-                    document.getElementById('profile-username-text').textContent = `@${savedUser.username || 'user'}`;
-                    document.getElementById('profile-user-id').textContent = savedUser.id;
-                    document.getElementById('profile-avatar-img').src = savedUser.photo_url || 
-                        `https://api.dicebear.com/7.x/avataaars/svg?seed=${savedUser.id}`;
-                        
-                    document.getElementById('sellContact').value = `@${savedUser.username || savedUser.id}`;
-                    
-                    loadUserNFTs();
-                } else {
-                    // Демо-режим для тестирования
-                    currentUser = { id: '14849294', username: 'demo_user', first_name: 'Демо', last_name: 'Пользователь' };
-                    document.getElementById('user-name').textContent = '@demo_user';
-                    document.getElementById('profile-full-name').textContent = 'Демо Пользователь';
-                    document.getElementById('profile-username-text').textContent = '@demo_user';
-                    document.getElementById('profile-user-id').textContent = '14849294';
-                    document.getElementById('sellContact').value = '@demo_user';
-                    
-                    loadUserNFTs();
-                }
+            // Пытаемся получить данные из Telegram Web App
+            if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                user = tg.initDataUnsafe.user;
             }
+            
+            // Если нет данных из Telegram, используем демо-данные
+            if (!user) {
+                user = {
+                    id: '14849294',
+                    username: 'demo_user',
+                    first_name: 'Демо',
+                    last_name: 'Пользователь',
+                    photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=14849294'
+                };
+            }
+            
+            currentUser = user;
+            
+            // Установка данных в шапке
+            document.getElementById('user-name').textContent = `@${user.username || 'user'}`;
+            document.getElementById('user-avatar').src = user.photo_url || 
+                `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
+            
+            // Установка данных в профиле
+            document.getElementById('profile-full-name').textContent = 
+                `${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Пользователь Telegram';
+            document.getElementById('profile-username-text').textContent = `@${user.username || 'user'}`;
+            document.getElementById('profile-user-id').textContent = user.id;
+            document.getElementById('profile-avatar-img').src = user.photo_url || 
+                `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
+            
+            // Загрузка NFT пользователя
+            loadUserNFTs();
+            
+            // Сохранение в localStorage для офлайн-доступа
+            localStorage.setItem('telegramUser', JSON.stringify(user));
         }
         
-        // Загрузка NFT пользователя из данных файла nft.txt
+        // Загрузка NFT пользователя
         function loadUserNFTs(forceRefresh = false) {
             if (!currentUser) {
-                document.getElementById('inventory-list').innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-user-slash"></i>
-                        <h3>Пользователь не найден</h3>
-                        <p>Войдите через Telegram для доступа к инвентарю</p>
-                    </div>
-                `;
+                showNotification('Войдите через Telegram для доступа к инвентарю', 'error');
                 return;
             }
             
             // Показать состояние загрузки
-            document.getElementById('inventory-list').innerHTML = `
-                <div class="loading">
-                    <div class="loading-spinner"></div>
-                    <p>Загрузка ваших NFT...</p>
-                </div>
-            `;
-            
-            // Имитация загрузки данных с сервера
-            setTimeout(() => {
-                // Парсим данные из текстового файла
-                const nfts = parseNFTData(currentUser.id);
-                
-                // Обновляем статистику
-                updateInventoryStats(nfts);
-                
-                // Отображаем NFT
-                displayUserNFTs(nfts);
-                
-                // Загружаем NFT для продажи
-                loadNftsForSelling(nfts);
-            }, forceRefresh ? 1000 : 500);
-        }
-        
-        // Парсинг данных из формата nft.txt
-        function parseNFTData(userId) {
-            const lines = nftDataText.split('\n');
-            const userNFTs = [];
-            
-            for (const line of lines) {
-                const parts = line.split(' - ');
-                if (parts.length !== 2) continue;
-                
-                const lineUserId = parts[0].trim();
-                if (lineUserId === userId.toString()) {
-                    const nftLinks = parts[1].split(', ');
-                    
-                    nftLinks.forEach((link, index) => {
-                        userNFTs.push({
-                            id: index + 1,
-                            link: link.trim(),
-                            name: getNFTNameFromLink(link),
-                            status: 'available',
-                            date: getRandomDate()
-                        });
-                    });
-                    break;
-                }
+            if (document.getElementById('inventory-list')) {
+                document.getElementById('inventory-list').innerHTML = `
+                    <div class="loading">
+                        <div class="loading-spinner"></div>
+                        <p>Загрузка ваших NFT...</p>
+                    </div>
+                `;
             }
             
-            return userNFTs;
+            // Имитация загрузки данных
+            setTimeout(() => {
+                // Пример данных из файла nft.txt
+                const nftData = {
+                    '14849294': [
+                        'https://t.me/nft/SwissWatch-22366'
+                    ],
+                    '12345678': [
+                        'https://t.me/nft/GoldCrown-44512',
+                        'https://t.me/nft/DragonFire-88901'
+                    ],
+                    '98765432': [
+                        'https://t.me/nft/CyberRobot-33467'
+                    ],
+                    '55555555': [
+                        'https://t.me/nft/UnicornMagic-77654',
+                        'https://t.me/nft/SpaceShip-11223',
+                        'https://t.me/nft/CrystalBall-99887'
+                    ],
+                    '11111111': [
+                        'https://t.me/nft/PhoenixFire-44332'
+                    ]
+                };
+                
+                // Получаем NFT для текущего пользователя
+                const userNFTs = nftData[currentUser.id] || [];
+                currentNFTs = [];
+                
+                // Преобразуем в нужный формат
+                userNFTs.forEach((link, index) => {
+                    currentNFTs.push({
+                        id: index + 1,
+                        link: link,
+                        name: getNFTNameFromLink(link),
+                        status: 'available',
+                        date: getRandomDate(),
+                        price: Math.floor(Math.random() * 200) + 50 // Случайная цена 50-250 BYN
+                    });
+                });
+                
+                // Обновляем статистику
+                updateInventoryStats();
+                
+                // Отображаем NFT в инвентаре
+                displayUserNFTs();
+                
+                // Загружаем NFT для продажи
+                loadNftsForSelling();
+                
+                if (forceRefresh) {
+                    showNotification('Инвентарь обновлен', 'success');
+                }
+            }, forceRefresh ? 1000 : 500);
         }
         
         // Получение названия NFT из ссылки
@@ -1167,7 +1248,7 @@
             // Извлекаем название из ссылки
             const match = link.match(/\/nft\/([^\/]+)/);
             if (match && match[1]) {
-                const name = match[1].replace(/-/g, ' ').replace(/\d+$/, '');
+                const name = match[1].replace(/-/g, ' ').replace(/\d+$/g, '');
                 return name.charAt(0).toUpperCase() + name.slice(1);
             }
             return 'NFT Подарок';
@@ -1182,21 +1263,24 @@
         }
         
         // Обновление статистики инвентаря
-        function updateInventoryStats(nfts) {
-            const total = nfts.length;
-            const available = nfts.filter(nft => nft.status === 'available').length;
-            const estimatedValue = total * 100; // Примерная оценка
+        function updateInventoryStats() {
+            const total = currentNFTs.length;
+            const available = currentNFTs.filter(nft => nft.status === 'available').length;
+            const estimatedValue = currentNFTs.reduce((sum, nft) => sum + nft.price, 0);
             
-            document.getElementById('total-nfts').textContent = total;
-            document.getElementById('available-nfts').textContent = available;
-            document.getElementById('estimated-value').textContent = estimatedValue;
+            if (document.getElementById('total-nfts')) {
+                document.getElementById('total-nfts').textContent = total;
+                document.getElementById('available-nfts').textContent = available;
+                document.getElementById('estimated-value').textContent = estimatedValue;
+            }
         }
         
-        // Отображение NFT пользователя
-        function displayUserNFTs(nfts) {
+        // Отображение NFT пользователя в инвентаре
+        function displayUserNFTs() {
             const inventoryList = document.getElementById('inventory-list');
+            if (!inventoryList) return;
             
-            if (nfts.length === 0) {
+            if (currentNFTs.length === 0) {
                 inventoryList.innerHTML = `
                     <div class="empty-state">
                         <i class="fas fa-box-open"></i>
@@ -1209,7 +1293,7 @@
             
             let html = '<div class="nft-grid">';
             
-            nfts.forEach(nft => {
+            currentNFTs.forEach(nft => {
                 html += `
                     <div class="nft-card">
                         <div class="nft-image">
@@ -1218,9 +1302,15 @@
                         <div class="nft-content">
                             <h3 class="nft-title">${nft.name}</h3>
                             <p class="nft-description">Получен: ${nft.date}</p>
-                            <button class="btn" style="width: 100%;" onclick="viewNFT('${nft.link}')">
-                                <i class="fas fa-eye"></i> Посмотреть подарок
-                            </button>
+                            <p class="nft-description">Примерная стоимость: ${nft.price} BYN</p>
+                            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                                <button class="btn" style="flex: 1;" onclick="viewNFT('${nft.link}', '${nft.name}')">
+                                    <i class="fas fa-eye"></i> Посмотреть
+                                </button>
+                                <button class="btn btn-outline" style="flex: 1;" onclick="selectNFTForSale(${nft.id})">
+                                    <i class="fas fa-tag"></i> Продать
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1230,28 +1320,11 @@
             inventoryList.innerHTML = html;
         }
         
-        // Просмотр NFT по ссылке
-        function viewNFT(link) {
-            document.getElementById('nft-link').textContent = link;
-            document.getElementById('nft-link').href = link;
-            showModal('view-nft-modal');
-        }
-        
-        // Открытие ссылки NFT
-        function openNFTLink() {
-            const link = document.getElementById('nft-link').href;
-            window.open(link, '_blank');
-            hideModal('view-nft-modal');
-        }
-        
         // Загрузка NFT для продажи
-        function loadNftsForSelling(nfts = null) {
-            if (!nfts) {
-                nfts = parseNFTData(currentUser?.id || '');
-            }
-            
-            const availableNFTs = nfts.filter(nft => nft.status === 'available');
+        function loadNftsForSelling() {
+            const availableNFTs = currentNFTs.filter(nft => nft.status === 'available');
             const selectorList = document.getElementById('nft-selector-list');
+            if (!selectorList) return;
             
             if (availableNFTs.length === 0) {
                 selectorList.innerHTML = `
@@ -1268,13 +1341,14 @@
             
             availableNFTs.forEach(nft => {
                 html += `
-                    <div class="nft-selector" data-id="${nft.id}" data-link="${nft.link}">
+                    <div class="nft-selector" data-id="${nft.id}" onclick="selectNFTForSale(${nft.id})">
                         <div class="nft-selector-img">
                             <i class="fas fa-question-circle"></i>
                         </div>
                         <div>
                             <h4 style="margin-bottom: 5px;">${nft.name}</h4>
-                            <p style="color: var(--gray); font-size: 0.9rem;">Получен: ${nft.date}</p>
+                            <p style="color: var(--text-gray); font-size: 0.9rem;">Получен: ${nft.date}</p>
+                            <p style="color: var(--primary); font-size: 0.9rem; margin-top: 5px;">Примерная цена: ${nft.price} BYN</p>
                         </div>
                     </div>
                 `;
@@ -1282,29 +1356,238 @@
             
             selectorList.innerHTML = html;
             
-            // Добавляем обработчики кликов
-            document.querySelectorAll('.nft-selector').forEach(selector => {
-                selector.addEventListener('click', function() {
-                    document.querySelectorAll('.nft-selector').forEach(s => {
-                        s.classList.remove('selected');
-                    });
-                    this.classList.add('selected');
-                    
-                    // Устанавливаем рекомендуемую цену
-                    document.getElementById('sellPrice').value = 100; // Базовая цена
-                });
-            });
-            
             // Выбираем первый NFT по умолчанию
             if (availableNFTs.length > 0) {
-                selectorList.firstChild.click();
+                selectNFTForSale(availableNFTs[0].id);
             }
+        }
+        
+        // Выбор NFT для продажи
+        function selectNFTForSale(nftId) {
+            selectedNFT = currentNFTs.find(nft => nft.id === nftId);
+            
+            if (!selectedNFT) return;
+            
+            // Обновляем UI выбора
+            document.querySelectorAll('.nft-selector').forEach(selector => {
+                selector.classList.remove('selected');
+            });
+            
+            const selectedElement = document.querySelector(`.nft-selector[data-id="${nftId}"]`);
+            if (selectedElement) {
+                selectedElement.classList.add('selected');
+            }
+            
+            // Устанавливаем рекомендуемую цену
+            document.getElementById('sellPrice').value = selectedNFT.price;
+            
+            // Загружаем сохраненные реквизиты
+            loadSavedWithdrawDetails();
+        }
+        
+        // Загрузка сохраненных реквизитов для вывода
+        function loadSavedWithdrawDetails() {
+            const savedSettings = JSON.parse(localStorage.getItem('withdrawSettings')) || {};
+            document.getElementById('withdraw-details').value = savedSettings.card || savedSettings.phone || '';
+        }
+        
+        // Просмотр NFT по ссылке
+        function viewNFT(link, name) {
+            document.getElementById('nft-link').textContent = link;
+            document.getElementById('nft-link').href = link;
+            showModal('view-nft-modal');
+        }
+        
+        // Открытие ссылки NFT
+        function openNFTLink() {
+            const link = document.getElementById('nft-link').href;
+            window.open(link, '_blank');
+            hideModal('view-nft-modal');
+        }
+        
+        // Процесс продажи NFT
+        function processSale() {
+            const price = document.getElementById('sellPrice').value;
+            const withdrawDetails = document.getElementById('withdraw-details').value;
+            const description = document.getElementById('sellDescription').value;
+            const method = document.querySelector('.payment-method.active h4').textContent;
+            
+            if (!selectedNFT) {
+                showNotification('Выберите NFT для продажи', 'error');
+                return;
+            }
+            
+            if (!price || price < 10) {
+                showNotification('Минимальная цена продажи - 10 BYN', 'error');
+                return;
+            }
+            
+            if (!withdrawDetails) {
+                showNotification('Укажите номер карты или телефона для получения денег', 'error');
+                return;
+            }
+            
+            // Рассчитываем сумму после комиссии
+            const commission = price * 0.05;
+            const finalAmount = price - commission;
+            
+            // Показываем модальное окно подтверждения
+            document.getElementById('sale-confirmation-text').innerHTML = `
+                Вы продаете: <strong>${selectedNFT.name}</strong><br>
+                Цена продажи: <strong>${price} BYN</strong><br>
+                Комиссия (5%): <strong>${commission.toFixed(2)} BYN</strong><br>
+                Вы получите: <strong>${finalAmount.toFixed(2)} BYN</strong><br>
+                Способ получения: <strong>${method}</strong><br>
+                Реквизиты: <strong>${withdrawDetails}</strong>
+            `;
+            
+            showModal('sale-modal');
+        }
+        
+        // Подтверждение продажи
+        function confirmSale() {
+            const price = parseFloat(document.getElementById('sellPrice').value);
+            const withdrawDetails = document.getElementById('withdraw-details').value;
+            const method = document.querySelector('.payment-method.active h4').textContent;
+            
+            // Обновляем статус NFT
+            selectedNFT.status = 'sold';
+            selectedNFT.soldPrice = price;
+            selectedNFT.soldDate = new Date().toLocaleDateString('ru-RU');
+            
+            // Сохраняем реквизиты
+            const isCard = method.includes('Карта');
+            const withdrawSettings = {
+                [isCard ? 'card' : 'phone']: withdrawDetails
+            };
+            localStorage.setItem('withdrawSettings', JSON.stringify(withdrawSettings));
+            
+            // Обновляем статистику продаж
+            updateSalesStats(price);
+            
+            // Обновляем инвентарь
+            updateInventoryStats();
+            displayUserNFTs();
+            loadNftsForSelling();
+            
+            // Скрываем модальное окно
+            hideModal('sale-modal');
+            
+            // Показываем успешное уведомление
+            showNotification(`NFT продан за ${price} BYN! Деньги поступят в течение 5 минут`, 'success');
+            
+            // Очищаем форму
+            document.getElementById('sellPrice').value = '';
+            document.getElementById('withdraw-details').value = '';
+            document.getElementById('sellDescription').value = '';
+            
+            // Возвращаемся в инвентарь через 3 секунды
+            setTimeout(() => {
+                showPage('inventory');
+            }, 3000);
+        }
+        
+        // Обновление статистики продаж
+        function updateSalesStats(price) {
+            let stats = JSON.parse(localStorage.getItem('salesStats')) || {
+                sold: 0,
+                earned: 0,
+                rating: 0,
+                history: []
+            };
+            
+            stats.sold += 1;
+            stats.earned += parseFloat(price);
+            stats.rating = Math.min(5, stats.rating + 0.1);
+            
+            // Добавляем в историю
+            stats.history.unshift({
+                nftName: selectedNFT.name,
+                price: price,
+                date: new Date().toLocaleDateString('ru-RU'),
+                method: document.querySelector('.payment-method.active h4').textContent
+            });
+            
+            // Ограничиваем историю 10 последними продажами
+            stats.history = stats.history.slice(0, 10);
+            
+            localStorage.setItem('salesStats', JSON.stringify(stats));
+            
+            // Обновляем отображение
+            document.getElementById('stats-sold').textContent = stats.sold;
+            document.getElementById('stats-earned').textContent = stats.earned.toFixed(2);
+            document.getElementById('stats-rating').textContent = stats.rating.toFixed(1);
+            
+            // Обновляем историю продаж
+            updateSalesHistory(stats.history);
+        }
+        
+        // Обновление истории продаж
+        function updateSalesHistory(history) {
+            const historyElement = document.getElementById('sales-history');
+            if (!historyElement) return;
+            
+            if (history.length === 0) {
+                historyElement.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-history"></i>
+                        <h3>История пуста</h3>
+                        <p>У вас еще не было продаж</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            let html = '<div style="display: flex; flex-direction: column; gap: 15px;">';
+            
+            history.forEach(sale => {
+                html += `
+                    <div style="background: rgba(255, 255, 255, 0.05); padding: 15px; border-radius: 10px; border-left: 3px solid var(--primary);">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <strong style="color: var(--text-light);">${sale.nftName}</strong>
+                            <span style="color: var(--success); font-weight: bold;">${sale.price} BYN</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; margin-top: 5px; font-size: 0.9rem;">
+                            <span style="color: var(--text-gray);">${sale.date}</span>
+                            <span style="color: var(--text-gray);">${sale.method}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            historyElement.innerHTML = html;
+        }
+        
+        // Выбор способа вывода средств
+        function selectWithdrawMethod(method) {
+            document.querySelectorAll('.payment-method').forEach(m => {
+                m.classList.remove('active');
+            });
+            event.target.closest('.payment-method').classList.add('active');
+        }
+        
+        // Сохранение настроек выплат
+        function saveWithdrawSettings() {
+            const phone = document.getElementById('withdraw-phone').value;
+            const card = document.getElementById('withdraw-card').value;
+            
+            const settings = {};
+            if (phone) settings.phone = phone;
+            if (card) settings.card = card;
+            
+            localStorage.setItem('withdrawSettings', JSON.stringify(settings));
+            showNotification('Настройки сохранены', 'success');
         }
         
         // Инициализация авторизации через Telegram
         function initTelegramAuth() {
-            tg.showAlert('Данные обновлены из вашего аккаунта Telegram');
-            loadUserData();
+            if (tg) {
+                tg.showAlert('Данные обновлены из вашего аккаунта Telegram');
+                loadUserData();
+            } else {
+                showNotification('Функция доступна только в Telegram', 'error');
+            }
         }
         
         // Переключение между страницами
@@ -1356,7 +1639,7 @@
             document.querySelectorAll('.profile-tab').forEach(tab => {
                 tab.classList.remove('active');
             });
-            event?.target.classList.add('active');
+            event.target.classList.add('active');
             
             // Скрыть все вкладки контента
             document.querySelectorAll('.profile-tab-content').forEach(content => {
@@ -1365,76 +1648,12 @@
             
             // Показать выбранную вкладку
             document.getElementById(`profile-${tabId}-tab`).style.display = 'block';
-        }
-        
-        // Выбор способа вывода
-        function selectWithdrawMethod(method) {
-            document.querySelectorAll('#profile-withdraw-tab .payment-method').forEach(m => {
-                m.classList.remove('active');
-            });
-            event?.target.classList.add('active');
-        }
-        
-        // Сохранение настроек выплат
-        function saveWithdrawSettings() {
-            const phone = document.getElementById('withdraw-phone').value;
-            const card = document.getElementById('withdraw-card').value;
             
-            localStorage.setItem('withdrawSettings', JSON.stringify({ phone, card }));
-            tg.showAlert('Настройки сохранены!');
-        }
-        
-        // Запрос вывода средств
-        function requestWithdraw() {
-            const amount = document.getElementById('withdraw-amount').value;
-            
-            if (!amount || amount < 10) {
-                tg.showAlert('Минимальная сумма вывода - 10 BYN');
-                return;
+            // Если это вкладка истории, загружаем историю
+            if (tabId === 'history') {
+                const stats = JSON.parse(localStorage.getItem('salesStats')) || { history: [] };
+                updateSalesHistory(stats.history);
             }
-            
-            tg.showAlert(`Запрос на вывод ${amount} BYN отправлен! Средства поступят в течение 24 часов.`);
-            document.getElementById('withdraw-amount').value = '';
-        }
-        
-        // Инициализация форм
-        function initForms() {
-            // Форма продажи
-            document.getElementById('sellForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                
-                const price = document.getElementById('sellPrice').value;
-                const description = document.getElementById('sellDescription').value;
-                const selectedNft = document.querySelector('.nft-selector.selected');
-                
-                if (!selectedNft) {
-                    tg.showAlert('Выберите NFT для продажи');
-                    return;
-                }
-                
-                if (price && description) {
-                    const nftName = selectedNft.querySelector('h4').textContent;
-                    tg.showAlert(`NFT "${nftName}" выставлен на продажу за ${price} BYN!`);
-                    this.reset();
-                    showPage('inventory');
-                }
-            });
-        }
-        
-        // Установка обработчиков событий
-        function setupEventListeners() {
-            // Загрузка сохраненных настроек
-            const savedSettings = JSON.parse(localStorage.getItem('withdrawSettings'));
-            if (savedSettings) {
-                document.getElementById('withdraw-phone').value = savedSettings.phone || '';
-                document.getElementById('withdraw-card').value = savedSettings.card || '';
-            }
-            
-            // Загрузка статистики продаж
-            const salesStats = JSON.parse(localStorage.getItem('salesStats')) || { sold: 0, earned: 0, rating: 0 };
-            document.getElementById('stats-sold').textContent = salesStats.sold;
-            document.getElementById('stats-earned').textContent = salesStats.earned;
-            document.getElementById('stats-rating').textContent = salesStats.rating.toFixed(1);
         }
         
         // Показать модальное окно
@@ -1447,20 +1666,50 @@
             document.getElementById(modalId).classList.remove('active');
         }
         
+        // Показать уведомление
+        function showNotification(message, type = 'success') {
+            const notification = document.getElementById('notification');
+            notification.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+        }
+        
         // Отправка сообщения в поддержку
         function sendSupportMessage() {
             const subject = document.getElementById('message-subject').value;
             const text = document.getElementById('message-text').value;
             
             if (!text) {
-                tg.showAlert('Введите текст сообщения');
+                showNotification('Введите текст сообщения', 'error');
                 return;
             }
             
-            tg.showAlert('Сообщение отправлено в поддержку! Ответим в течение 24 часов.');
+            showNotification('Сообщение отправлено в поддержку! Ответим в течение 24 часов.', 'success');
             hideModal('contact-modal');
             document.getElementById('message-subject').value = '';
             document.getElementById('message-text').value = '';
+        }
+        
+        // Установка обработчиков событий
+        function setupEventListeners() {
+            // Загрузка сохраненных настроек
+            const savedSettings = JSON.parse(localStorage.getItem('withdrawSettings')) || {};
+            if (savedSettings.phone) {
+                document.getElementById('withdraw-phone').value = savedSettings.phone;
+            }
+            if (savedSettings.card) {
+                document.getElementById('withdraw-card').value = savedSettings.card;
+            }
+            
+            // Загрузка статистики продаж
+            const stats = JSON.parse(localStorage.getItem('salesStats')) || { sold: 0, earned: 0, rating: 0 };
+            document.getElementById('stats-sold').textContent = stats.sold;
+            document.getElementById('stats-earned').textContent = stats.earned.toFixed(2);
+            document.getElementById('stats-rating').textContent = stats.rating.toFixed(1);
         }
     </script>
 </body>
