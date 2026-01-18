@@ -684,6 +684,39 @@
         .notification.error {
             background: var(--danger);
         }
+        
+        /* NFT селектор */
+        .nft-selector {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border: 2px solid var(--border-color);
+            border-radius: 16px;
+            margin-bottom: 15px;
+            cursor: pointer;
+            transition: var(--transition);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .nft-selector:hover, .nft-selector.selected {
+            border-color: var(--primary);
+            background: rgba(157, 78, 221, 0.1);
+            transform: translateX(5px);
+        }
+        
+        .nft-selector-img {
+            width: 70px;
+            height: 70px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2A2A3E, #3A3A4E);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-light);
+            font-size: 2rem;
+            margin-right: 20px;
+            flex-shrink: 0;
+        }
     </style>
 </head>
 <body>
@@ -1113,6 +1146,7 @@
         let currentUser = null;
         let currentNFTs = [];
         let selectedNFT = null;
+        let nftDataFromFile = null;
         
         // Инициализация приложения
         document.addEventListener('DOMContentLoaded', function() {
@@ -1141,11 +1175,11 @@
             // Если нет данных из Telegram, используем демо-данные
             if (!user) {
                 user = {
-                    id: '14849294',
-                    username: 'demo_user',
-                    first_name: 'Демо',
+                    id: '7621683704', // Тестовый ID для проверки
+                    username: 'test_user',
+                    first_name: 'Тестовый',
                     last_name: 'Пользователь',
-                    photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=14849294'
+                    photo_url: 'https://api.dicebear.com/7.x/avataaars/svg?seed=7621683704'
                 };
             }
             
@@ -1164,11 +1198,84 @@
             document.getElementById('profile-avatar-img').src = user.photo_url || 
                 `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`;
             
-            // Загрузка NFT пользователя
-            loadUserNFTs();
+            // Сначала загружаем данные из файла nft.txt, затем NFT пользователя
+            loadNFTDataFromFile().then(() => {
+                loadUserNFTs();
+            }).catch(error => {
+                console.error('Ошибка загрузки данных nft.txt:', error);
+                // Используем демо-данные если файл не загрузился
+                useDemoNFTData();
+                loadUserNFTs();
+            });
             
             // Сохранение в localStorage для офлайн-доступа
             localStorage.setItem('telegramUser', JSON.stringify(user));
+        }
+        
+        // Загрузка данных из файла nft.txt
+        async function loadNFTDataFromFile() {
+            try {
+                // Пытаемся загрузить файл nft.txt с сервера
+                const response = await fetch('nft.txt');
+                
+                if (!response.ok) {
+                    throw new Error(`Ошибка загрузки: ${response.status}`);
+                }
+                
+                const text = await response.text();
+                console.log('Загруженный текст из nft.txt:', text);
+                
+                // Парсим данные из файла
+                nftDataFromFile = parseNFTDataFromText(text);
+                console.log('Парсированные данные:', nftDataFromFile);
+                
+            } catch (error) {
+                console.error('Не удалось загрузить файл nft.txt:', error);
+                throw error;
+            }
+        }
+        
+        // Парсинг данных из текста файла nft.txt
+        function parseNFTDataFromText(text) {
+            const lines = text.split('\n');
+            const nftData = {};
+            
+            lines.forEach(line => {
+                // Пропускаем пустые строки
+                if (!line.trim()) return;
+                
+                // Разделяем строку по дефису с пробелами
+                const parts = line.split(' - ');
+                if (parts.length !== 2) {
+                    console.warn('Некорректный формат строки:', line);
+                    return;
+                }
+                
+                const userId = parts[0].trim();
+                const nftLinks = parts[1].split(', ').map(link => link.trim());
+                
+                // Сохраняем данные
+                nftData[userId] = nftLinks;
+            });
+            
+            return nftData;
+        }
+        
+        // Использование демо-данных если файл не загрузился
+        function useDemoNFTData() {
+            nftDataFromFile = {
+                '7621683704': [
+                    'https://t.me/nft/watch-76216',
+                    'https://t.me/nft/golden-watch-12345'
+                ],
+                '14849294': [
+                    'https://t.me/nft/SwissWatch-22366'
+                ],
+                '12345678': [
+                    'https://t.me/nft/GoldCrown-44512',
+                    'https://t.me/nft/DragonFire-88901'
+                ]
+            };
         }
         
         // Загрузка NFT пользователя
@@ -1190,30 +1297,10 @@
             
             // Имитация загрузки данных
             setTimeout(() => {
-                // Пример данных из файла nft.txt
-                const nftData = {
-                    '14849294': [
-                        'https://t.me/nft/SwissWatch-22366'
-                    ],
-                    '12345678': [
-                        'https://t.me/nft/GoldCrown-44512',
-                        'https://t.me/nft/DragonFire-88901'
-                    ],
-                    '98765432': [
-                        'https://t.me/nft/CyberRobot-33467'
-                    ],
-                    '55555555': [
-                        'https://t.me/nft/UnicornMagic-77654',
-                        'https://t.me/nft/SpaceShip-11223',
-                        'https://t.me/nft/CrystalBall-99887'
-                    ],
-                    '11111111': [
-                        'https://t.me/nft/PhoenixFire-44332'
-                    ]
-                };
+                // Получаем NFT для текущего пользователя из загруженных данных
+                const userNFTs = nftDataFromFile[currentUser.id] || [];
+                console.log(`NFT для пользователя ${currentUser.id}:`, userNFTs);
                 
-                // Получаем NFT для текущего пользователя
-                const userNFTs = nftData[currentUser.id] || [];
                 currentNFTs = [];
                 
                 // Преобразуем в нужный формат
@@ -1227,6 +1314,8 @@
                         price: Math.floor(Math.random() * 200) + 50 // Случайная цена 50-250 BYN
                     });
                 });
+                
+                console.log('Сформированные NFT:', currentNFTs);
                 
                 // Обновляем статистику
                 updateInventoryStats();
@@ -1286,6 +1375,9 @@
                         <i class="fas fa-box-open"></i>
                         <h3>Инвентарь пуст</h3>
                         <p>У вас пока нет NFT-подарков. Получите подарок через Telegram, и он появится здесь.</p>
+                        <p style="margin-top: 10px; color: var(--primary);">
+                            <i class="fas fa-info-circle"></i> Ваш ID: ${currentUser.id}
+                        </p>
                     </div>
                 `;
                 return;
