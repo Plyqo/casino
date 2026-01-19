@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🛍️ Магазин с Telegram ботом</title>
+    <!-- Подключаем Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --success: #10b981;
+            --danger: #ef4444;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .logo i {
+            font-size: 3rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        
+        /* Информация о пользователе */
+        .user-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .user-details {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        
+        .user-data {
+            flex: 1;
+        }
+        
+        .user-data h3 {
+            margin-bottom: 5px;
+        }
+        
+        .user-id {
+            font-family: monospace;
+            background: rgba(0,0,0,0.2);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+        }
+        
+        .telegram-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            border-radius: 10px;
+        }
+        
+        /* Товары */
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .product-card {
+            background: white;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+        }
+        
+        .product-badge {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: var(--success);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .product-info {
+            padding: 25px;
+        }
+        
+        .product-title {
+            font-size: 1.4rem;
+            color: #2d3748;
+            margin-bottom: 10px;
+        }
+        
+        .product-description {
+            color: #718096;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+        }
+        
+        .product-price {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 20px;
+        }
+        
+        /* Кнопки */
+        .btn {
+            padding: 15px 30px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        .btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .btn-buy {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .btn-success {
+            background: var(--success);
+            color: white;
+        }
+        
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+        
+        /* Статус покупки */
+        .purchase-status {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            z-index: 1000;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            transition: transform 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        
+        .purchase-status.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        
+        .purchase-status h3 {
+            margin-bottom: 15px;
+            color: #2d3748;
+        }
+        
+        .purchase-status p {
+            color: #718096;
+            margin-bottom: 20px;
+        }
+        
+        .telegram-notification {
+            background: #0088cc;
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        /* Уведомления */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: none;
+            z-index: 1001;
+            max-width: 400px;
+            border-left: 5px solid;
+        }
+        
+        .notification.show {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+        
+        .notification.success {
+            border-left-color: var(--success);
+        }
+        
+        .notification.error {
+            border-left-color: var(--danger);
+        }
+        
+        .notification.info {
+            border-left-color: var(--primary);
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        /* История покупок */
+        .purchase-history {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            margin-top: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+        }
+        
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .history-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Загрузчик */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.9);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loader.hidden {
+            display: none;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .products-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .user-info {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Загрузчик -->
+    <div class="loader" id="loader">
+        <div class="spinner"></div>
+        <h3>Загрузка Telegram Web App...</h3>
+        <p>Если загрузка длится более 10 секунд, откройте через Telegram бота</p>
+    </div>
+    
+    <div class="container" id="mainContent" style="display: none;">
+        <!-- Шапка -->
+        <header>
+            <div class="logo">
+                <i class="fab fa-telegram"></i>
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <h1>🛒 Магазин в Telegram</h1>
+            <p class="subtitle">Купите товар прямо в Telegram с мгновенным подтверждением</p>
+        </header>
+        
+        <!-- Информация о пользователе -->
+        <div class="user-info" id="userInfo">
+            <div class="user-details">
+                <div class="user-avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <div class="user-data">
+                    <h3 id="userName">Загрузка...</h3>
+                    <div class="user-id">ID: <span id="userId">загрузка...</span></div>
+                </div>
+            </div>
+            <div class="telegram-status" id="telegramStatus">
+                <i class="fab fa-telegram"></i>
+                <span>Telegram Web App активен</span>
+            </div>
+        </div>
+        
+        <!-- Товары -->
+        <div class="products-grid">
+            <!-- Товар 1 -->
+            <div class="product-card">
+                <div class="product-badge">🔥 Хит продаж</div>
+                <img src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800" 
+                     alt="Наушники" class="product-image">
+                <div class="product-info">
+                    <h3 class="product-title">Беспроводные наушники</h3>
+                    <p class="product-description">Премиум качество звука, шумоподавление, 30 часов работы</p>
+                    <div class="product-price">$129.99</div>
+                    <button class="btn btn-buy" onclick="buyProduct('Беспроводные наушники', 129.99)">
+                        <i class="fas fa-shopping-cart"></i> Купить сейчас
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Товар 2 -->
+            <div class="product-card">
+                <div class="product-badge">🎉 Новинка</div>
+                <img src="https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800" 
+                     alt="Фотоаппарат" class="product-image">
+                <div class="product-info">
+                    <h3 class="product-title">Зеркальный фотоаппарат</h3>
+                    <p class="product-description">24.2 МП, 4K видео, поворотный сенсорный экран</p>
+                    <div class="product-price">$899.99</div>
+                    <button class="btn btn-buy" onclick="buyProduct('Зеркальный фотоаппарат', 899.99)">
+                        <i class="fas fa-shopping-cart"></i> Купить сейчас
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Товар 3 -->
+            <div class="product-card">
+                <div class="product-badge">⚡ Акция</div>
+                <img src="https://images.unsplash.com/photo-1546868871-7041f2a55e12?ixlib=rb-4.0.3&auto=format&fit=crop&w=800" 
+                     alt="Часы" class="product-image">
+                <div class="product-info">
+                    <h3 class="product-title">Умные часы</h3>
+                    <p class="product-description">Отслеживание здоровья, уведомления, водонепроницаемость</p>
+                    <div class="product-price">$249.99</div>
+                    <button class="btn btn-buy" onclick="buyProduct('Умные часы', 249.99)">
+                        <i class="fas fa-shopping-cart"></i> Купить сейчас
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Инструкция -->
+        <div class="purchase-history">
+            <h3><i class="fas fa-info-circle"></i> Как работает покупка:</h3>
+            <div class="history-item">
+                <div>1. Нажмите "Купить сейчас" на товаре</div>
+                <i class="fas fa-mouse-pointer" style="color: var(--primary);"></i>
+            </div>
+            <div class="history-item">
+                <div>2. Бот отправит вам сообщение в Telegram с кнопками "Да/Нет"</div>
+                <i class="fab fa-telegram" style="color: #0088cc;"></i>
+            </div>
+            <div class="history-item">
+                <div>3. Нажмите "Да" в Telegram для подтверждения</div>
+                <i class="fas fa-check" style="color: var(--success);"></i>
+            </div>
+            <div class="history-item">
+                <div>4. На сайте появится сообщение "Вы купили [товар]"</div>
+                <i class="fas fa-shopping-bag" style="color: var(--secondary);"></i>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Статус покупки -->
+    <div class="purchase-status" id="purchaseStatus">
+        <h3 id="purchaseTitle">Ожидание подтверждения</h3>
+        <p id="purchaseMessage">Мы отправили запрос на подтверждение в ваш Telegram</p>
+        
+        <div class="telegram-notification">
+            <i class="fab fa-telegram" style="font-size: 2rem;"></i>
+            <div style="text-align: left;">
+                <strong>Telegram Bot</strong>
+                <div>Вы хотите купить "<span id="productNamePreview"></span>" за $<span id="productPricePreview"></span>?</div>
+                <div style="font-size: 0.9rem; margin-top: 5px;">Нажмите "Да" в Telegram чтобы подтвердить покупку</div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button class="btn btn-success" onclick="checkPurchaseStatus()">
+                <i class="fas fa-sync-alt"></i> Проверить статус
+            </button>
+            <button class="btn btn-danger" onclick="hidePurchaseStatus()" style="margin-top: 10px;">
+                <i class="fas fa-times"></i> Закрыть
+            </button>
+        </div>
+    </div>
+    
+    <!-- Уведомления -->
+    <div class="notification" id="notification">
+        <i class="fas fa-bell" style="float: right; color: #718096;"></i>
+        <h4 id="notificationTitle">Уведомление</h4>
+        <p id="notificationMessage">Сообщение</p>
+    </div>
+
+    <script>
+        // ==================== КОНСТАНТЫ ====================
+        const BOT_TOKEN = '8237589845:AAHrY2PIpVZFNuoPxkNpnSr9IIOTnpZQcFQ'; // Ваш токен бота
+        let currentPurchase = null;
+        let purchaseHistory = JSON.parse(localStorage.getItem('purchaseHistory')) || [];
+        let tg = null;
+        let userChatId = null;
+        
+        // ==================== ИНИЦИАЛИЗАЦИЯ ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTelegramWebApp();
+        });
+        
+        function initializeTelegramWebApp() {
+            // Проверяем, загружен ли Telegram Web App
+            if (window.Telegram && Telegram.WebApp) {
+                tg = Telegram.WebApp;
+                
+                // Инициализируем Web App
+                tg.ready();
+                tg.expand();
+                
+                // Получаем данные пользователя
+                const user = tg.initDataUnsafe.user;
+                
+                if (user) {
+                    // Сохраняем Chat ID пользователя
+                    userChatId = user.id;
+                    
+                    // Показываем информацию о пользователе
+                    document.getElementById('userId').textContent = userChatId;
+                    document.getElementById('userName').textContent = 
+                        `${user.first_name || ''} ${user.last_name || ''}`.trim() || 
+                        (user.username ? `@${user.username}` : 'Пользователь');
+                    
+                    // Запрашиваем тестовое сообщение
+                    sendTestNotification();
+                } else {
+                    showNotification('warning', 'Внимание', 'Не удалось получить данные пользователя. Откройте через Telegram бота.');
+                }
+                
+                // Скрываем загрузчик и показываем контент
+                setTimeout(() => {
+                    document.getElementById('loader').classList.add('hidden');
+                    document.getElementById('mainContent').style.display = 'block';
+                }, 1000);
+                
+            } else {
+                // Если не в Telegram Web App
+                document.getElementById('loader').innerHTML = `
+                    <div style="text-align: center; padding: 40px;">
+                        <h2 style="color: #dc3545;">⚠️ Откройте через Telegram</h2>
+                        <p>Этот магазин работает только внутри Telegram</p>
+                        <p>Создайте бота через @BotFather и добавьте кнопку Web App</p>
+                        <div style="margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
+                            <strong>Для демо-режима:</strong>
+                            <div style="margin-top: 10px;">
+                                <input type="text" id="demoChatId" placeholder="Введите Chat ID" 
+                                       style="padding: 10px; width: 200px; border: 1px solid #ddd;">
+                                <button onclick="enableDemoMode()" 
+                                        style="background: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 5px; margin-left: 10px;">
+                                    Включить демо
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+        
+        // ==================== ФУНКЦИИ ПОКУПКИ ====================
+        function buyProduct(productName, price) {
+            // Проверяем, определен ли Chat ID
+            if (!userChatId) {
+                showNotification('error', 'Ошибка', 'Не удалось определить ваш Chat ID');
+                return;
+            }
+            
+            // Создаем уникальный ID для покупки
+            const purchaseId = 'purchase_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // Сохраняем текущую покупку
+            currentPurchase = {
+                id: purchaseId,
+                productName: productName,
+                price: price,
+                status: 'pending',
+                timestamp: Date.now(),
+                userId: userChatId
+            };
+            
+            // Показываем статус покупки
+            document.getElementById('productNamePreview').textContent = productName;
+            document.getElementById('productPricePreview').textContent = price;
+            document.getElementById('purchaseStatus').classList.add('show');
+            
+            // Отправляем уведомление в Telegram
+            sendTelegramNotification(productName, price, purchaseId);
+            
+            showNotification('success', 'Запрос отправлен', 'Проверьте Telegram для подтверждения покупки');
+        }
+        
+        // Отправка уведомления в Telegram
+        async function sendTelegramNotification(productName, price, purchaseId) {
+            const message = `🛒 *Запрос на покупку*\n\n` +
+                           `Пользователь хочет купить:\n` +
+                           `*${productName}*\n` +
+                           `Цена: *$${price}*\n\n` +
+                           `ID покупки: \`${purchaseId}\`\n\n` +
+                           `Подтвердите покупку:`;
+            
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: userChatId,
+                        text: message,
+                        parse_mode: 'Markdown',
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    { 
+                                        text: '✅ Да, купить', 
+                                        callback_data: `confirm_${purchaseId}_${userChatId}`
+                                    },
+                                    { 
+                                        text: '❌ Нет, отменить', 
+                                        callback_data: `cancel_${purchaseId}_${userChatId}`
+                                    }
+                                ]
+                            ]
+                        }
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (!data.ok) {
+                    showNotification('error', 'Ошибка отправки', data.description || 'Не удалось отправить сообщение');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                showNotification('error', 'Ошибка сети', 'Проверьте подключение к интернету');
+            }
+        }
+        
+        // Проверка статуса покупки
+        function checkPurchaseStatus() {
+            if (!currentPurchase) {
+                showNotification('error', 'Нет активных покупок', 'Сначала выберите товар');
+                return;
+            }
+            
+            // В реальном приложении здесь будет запрос к серверу
+            // Для демонстрации показываем текущий статус
+            showNotification('info', 'Статус покупки', 
+                `Товар: ${currentPurchase.productName}\n` +
+                `Статус: ${currentPurchase.status === 'confirmed' ? '✅ Подтверждено' : '⏳ Ожидание'}\n` +
+                `ID покупки: ${currentPurchase.id}`);
+        }
+        
+        // Симуляция обработки callback от Telegram (для демо)
+        function simulateTelegramCallback(action, purchaseId) {
+            if (!currentPurchase || currentPurchase.id !== purchaseId) {
+                return;
+            }
+            
+            if (action === 'confirm') {
+                // Подтверждение покупки
+                currentPurchase.status = 'confirmed';
+                currentPurchase.confirmedAt = Date.now();
+                
+                // Добавляем в историю
+                purchaseHistory.push({
+                    ...currentPurchase,
+                    completed: true
+                });
+                
+                // Сохраняем историю
+                localStorage.setItem('purchaseHistory', JSON.stringify(purchaseHistory));
+                
+                // Показываем успешное сообщение
+                document.getElementById('purchaseTitle').textContent = '✅ Покупка подтверждена!';
+                document.getElementById('purchaseMessage').innerHTML = 
+                    `<h2 style="color: var(--success);">Вы купили "${currentPurchase.productName}"!</h2>` +
+                    `<p>Спасибо за покупку! Товар добавлен в вашу историю.</p>`;
+                
+                // Обновляем историю покупок
+                updatePurchaseHistory();
+                
+                showNotification('success', '🎉 Покупка завершена!', 
+                    `Товар "${currentPurchase.productName}" успешно куплен за $${currentPurchase.price}`);
+                
+            } else if (action === 'cancel') {
+                // Отмена покупки
+                currentPurchase.status = 'cancelled';
+                
+                document.getElementById('purchaseTitle').textContent = '❌ Покупка отменена';
+                document.getElementById('purchaseMessage').textContent = 'Вы отменили покупку';
+                
+                showNotification('error', 'Покупка отменена', 'Вы отклонили предложение');
+            }
+        }
+        
+        // Отправка тестового уведомления
+        async function sendTestNotification() {
+            try {
+                await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: userChatId,
+                        text: '🛍️ *Добро пожаловать в магазин!*\n\nТеперь вы можете покупать товары прямо здесь. При покупке вы получите подтверждение в этот чат.',
+                        parse_mode: 'Markdown'
+                    })
+                });
+                
+            } catch (error) {
+                console.log('Test notification skipped or failed');
+            }
+        }
+        
+        // Обновление истории покупок
+        function updatePurchaseHistory() {
+            // Создаем блок истории если его нет
+            let historySection = document.querySelector('.purchase-history');
+            if (!historySection) {
+                historySection = document.createElement('div');
+                historySection.className = 'purchase-history';
+                historySection.innerHTML = '<h3><i class="fas fa-history"></i> История покупок</h3>';
+                document.querySelector('.container').appendChild(historySection);
+            }
+            
+            // Добавляем последнюю покупку
+            if (currentPurchase && currentPurchase.status === 'confirmed') {
+                const historyItem = document.createElement('div');
+                historyItem.className = 'history-item';
+                historyItem.innerHTML = `
+                    <div>
+                        <strong>${currentPurchase.productName}</strong>
+                        <div style="font-size: 0.9rem; color: #718096;">
+                            ${new Date(currentPurchase.timestamp).toLocaleString()}
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold; color: var(--primary);">$${currentPurchase.price}</div>
+                        <div style="color: var(--success);">✅ Куплено</div>
+                    </div>
+                `;
+                
+                // Вставляем в начало истории
+                const historyList = historySection.querySelector('#historyList') || historySection;
+                const firstItem = historyList.querySelector('.history-item');
+                if (firstItem) {
+                    historyList.insertBefore(historyItem, firstItem);
+                } else {
+                    historyList.appendChild(historyItem);
+                }
+            }
+        }
+        
+        // ==================== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ====================
+        function hidePurchaseStatus() {
+            document.getElementById('purchaseStatus').classList.remove('show');
+        }
+        
+        function showNotification(type, title, message) {
+            const notification = document.getElementById('notification');
+            const notificationTitle = document.getElementById('notificationTitle');
+            const notificationMessage = document.getElementById('notificationMessage');
+            
+            notification.className = `notification ${type} show`;
+            notificationTitle.textContent = title;
+            notificationMessage.textContent = message;
+            
+            // Автоматическое скрытие
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 5000);
+            
+            // Если это успешное уведомление о покупке, вибрируем
+            if (type === 'success' && navigator.vibrate) {
+                navigator.vibrate([100, 50, 100]);
+            }
+        }
+        
+        // Демо-режим для тестирования вне Telegram
+        function enableDemoMode() {
+            const demoChatId = document.getElementById('demoChatId').value;
+            if (!demoChatId) {
+                alert('Введите Chat ID для демо-режима');
+                return;
+            }
+            
+            userChatId = demoChatId;
+            document.getElementById('userId').textContent = demoChatId;
+            document.getElementById('userName').textContent = 'Демо1 пользователь';
+            document.getElementById('telegramStatus').innerHTML = '<i class="fas fa-flask"></i> Демо-режим активен';
+            
+            document.getElementById('loader').classList.add('hidden');
+            document.getElementById('mainContent').style.display = 'block';
+            
+            showNotification('info', 'Демо-режим', 'Теперь вы можете тестировать покупки');
+        }
+        
+        // ==================== ДЕМО-КНОПКИ ====================
+        // Добавляем кнопки для демонстрации
+        document.body.innerHTML += `
+            <div style="position: fixed; bottom: 20px; left: 20px; z-index: 1000;">
+                <div style="background: white; padding: 15px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2);">
+                    <div style="font-weight: bold; margin-bottom: 10px; color: #718096; font-size: 0.9rem;">Демо-управление:</div>
+                    <button onclick="simulateTelegramCallback('confirm', currentPurchase?.id)" 
+                            style="background: var(--success); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; font-size: 0.9rem;">
+                        <i class="fas fa-check"></i> Симулировать "Да"
+                    </button>
+                    <button onclick="simulateTelegramCallback('cancel', currentPurchase?.id)" 
+                            style="background: var(--danger); color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; margin: 5px; font-size: 0.9rem;">
+                        <i class="fas fa-times"></i> Симулировать "Нет"
+                    </button>
+                </div>
+            </div>
+            
+            <div style="position: fixed; top: 20px; left: 20px; z-index: 1000;">
+                <div style="background: white; padding: 20px; border-radius: 15px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); max-width: 400px;">
+                    <h4 style="color: #2d3748; margin-bottom: 15px; font-size: 1rem;">📋 Информация о боте:</h4>
+                    <div style="color: #718096; font-size: 0.9rem; margin-bottom: 15px;">
+                        <p><strong>Токен бота:</strong> ${BOT_TOKEN.substring(0, 15)}...</p>
+                        <p><strong>Ваш Chat ID:</strong> <span id="currentChatId">${userChatId || 'не определен'}</span></p>
+                        <p><strong>Статус:</strong> <span id="connectionStatus">${tg ? 'Telegram Web App' : 'Демо-режим'}</span></p>
+                    </div>
+                    <button onclick="copyBotToken()" 
+                            style="background: var(--primary); color: white; border: none; padding: 10px 15px; border-radius: 8px; cursor: pointer; font-size: 0.9rem; width: 100%;">
+                        <i class="fas fa-copy"></i> Скопировать токен
+                    </button>
+                </div>
+            </div>
+        `;
+        
+        function copyBotToken() {
+            navigator.clipboard.writeText(BOT_TOKEN).then(() => {
+                showNotification('success', 'Токен скопирован', 'Токен бота скопирован в буфер обмена');
+            });
+        }
+        
+        // Обновляем отображение Chat ID
+        setInterval(() => {
+            if (userChatId) {
+                document.getElementById('currentChatId').textContent = userChatId;
+            }
+        }, 1000);
+        
+        // Проверяем наличие Telegram Web App каждые 2 секунды
+        setInterval(() => {
+            if (!tg && window.Telegram && Telegram.WebApp) {
+                location.reload(); // Перезагружаем если Telegram загрузился
+            }
+        }, 2000);
+    </script>
+</body>
+</html>
