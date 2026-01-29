@@ -340,20 +340,20 @@
         const SKELETON_SHOOT_RANGE = 450;
         const SKELETON_PROJECTILE_SPEED = 8;
         const BAT_SIZE = 20;
-        const BAT_SPEED = 4.5; // Увеличена скорость летучих мышей
+        const BAT_SPEED = 4.5;
         const BAT_VISION_RANGE = 500;
-        const BAT_ATTACK_TIME = 120; // 2 секунды при 60 FPS
+        const BAT_ATTACK_TIME = 120;
         const LASER_LENGTH = 200;
         const PLAYER_LIVES = 3;
         const RESPAWN_TIME = 3;
         
-        // Камера
+        // Камера - УВЕЛИЧИЛИ ОБЗОР
         const camera = {
             x: 0,
             y: 0,
             width: 800,
             height: 600,
-            zoom: 1.5,
+            zoom: 1.0, // Уменьшили зум для большего обзора
             followSpeed: 0.2
         };
         
@@ -408,7 +408,7 @@
             batAttackProgress: 0
         };
         
-        // ========== ГЕНЕРАЦИЯ КАРТЫ (без изменений) ==========
+        // ========== ГЕНЕРАЦИЯ КАРТЫ ==========
         function generateMap() {
             console.log("Генерация новой карты...");
             
@@ -795,7 +795,6 @@
             return true;
         }
         
-        // Функция для проверки движения летучей мыши с учетом стен
         function batCanMoveTo(x, y) {
             if (isWall(x, y)) return false;
             
@@ -814,7 +813,6 @@
             return true;
         }
         
-        // Функция для летучих мышей - они могут летать, но не через стены
         function moveBatTowards(bat, targetX, targetY) {
             const dx = targetX - bat.x;
             const dy = targetY - bat.y;
@@ -824,13 +822,11 @@
                 const moveX = bat.x + (dx/dist) * BAT_SPEED;
                 const moveY = bat.y + (dy/dist) * BAT_SPEED;
                 
-                // Проверяем, может ли мышь переместиться в новую позицию
                 if (batCanMoveTo(moveX, moveY)) {
                     bat.x = moveX;
                     bat.y = moveY;
                     return true;
                 } else {
-                    // Если не может, пытаемся обойти
                     const angles = [Math.PI/4, -Math.PI/4, Math.PI/2, -Math.PI/2, 3*Math.PI/4, -3*Math.PI/4];
                     for (const angle of angles) {
                         const newX = bat.x + Math.cos(angle) * BAT_SPEED;
@@ -912,7 +908,6 @@
                         door.open = true;
                         gameState.map[door.y][door.x] = 0;
                     });
-                    console.log("Малый ключ найден!");
                 }
             }
             
@@ -928,7 +923,6 @@
                         door.open = true;
                         gameState.map[door.y][door.x] = 0;
                     });
-                    console.log("Основной ключ найден!");
                 }
             }
             
@@ -952,7 +946,6 @@
                 const dist = Math.sqrt(dx*dx + dy*dy);
                 
                 if (dist < (PLAYER_SIZE/2 + spike.size/2)) {
-                    console.log("Игрок погиб на шипах!");
                     playerDie();
                     break;
                 }
@@ -988,7 +981,6 @@
                 if (gameState.attackingBat === closestBat) {
                     gameState.batAttackProgress++;
                     if (gameState.batAttackProgress >= BAT_ATTACK_TIME) {
-                        console.log("Игрок погиб от летучей мыши!");
                         playerDie();
                         gameState.batAttackProgress = 0;
                     }
@@ -1038,7 +1030,6 @@
                         
                         if (gameState.chestsOpened >= gameState.chestsTotal && gameState.key) {
                             gameState.key.visible = true;
-                            console.log("Все сундуки открыты! Основной ключ появился!");
                         }
                     }
                 }
@@ -1067,12 +1058,15 @@
         function updateCamera() {
             const player = gameState.player;
             
+            // Целевая позиция - игрок по центру
             const targetX = player.x - camera.width/(2*camera.zoom);
             const targetY = player.y - camera.height/(2*camera.zoom);
             
+            // Плавное следование
             camera.x += (targetX - camera.x) * camera.followSpeed;
             camera.y += (targetY - camera.y) * camera.followSpeed;
             
+            // Ограничение
             const maxX = MAP_WIDTH*TILE_SIZE - camera.width/camera.zoom;
             const maxY = MAP_HEIGHT*TILE_SIZE - camera.height/camera.zoom;
             
@@ -1145,7 +1139,7 @@
             
             const player = gameState.player;
             
-            // Получаем мировые координаты мыши из позиции прицела
+            // ВАЖНО: Преобразуем экранные координаты мыши в мировые координаты
             const mouseWorldX = (gameState.mouseX / camera.zoom) + camera.x;
             const mouseWorldY = (gameState.mouseY / camera.zoom) + camera.y;
             
@@ -1253,7 +1247,6 @@
                 const dist = Math.sqrt(dx*dx + dy*dy);
                 
                 if (dist < (PROJECTILE_SIZE + PLAYER_SIZE/2)) {
-                    console.log("Игрок погиб от снаряда врага!");
                     gameState.enemyProjectiles.splice(i, 1);
                     playerDie();
                     break;
@@ -1400,7 +1393,7 @@
             const player = gameState.player;
             if (player.respawning) return;
             
-            // Обычные враги (без изменений)
+            // Обычные враги
             for (const enemy of gameState.enemies) {
                 const dx = player.x - enemy.x;
                 const dy = player.y - enemy.y;
@@ -1489,13 +1482,12 @@
                     );
                     
                     if (collisionDist < (PLAYER_SIZE/2 + ENEMY_SIZE/2) - 4) {
-                        console.log("Игрок погиб от врага!");
                         playerDie();
                     }
                 }
             }
             
-            // Скелеты (без изменений)
+            // Скелеты
             for (const skeleton of gameState.skeletons) {
                 const dx = player.x - skeleton.x;
                 const dy = player.y - skeleton.y;
@@ -1566,13 +1558,12 @@
                     );
                     
                     if (collisionDist < (PLAYER_SIZE/2 + ENEMY_SIZE/2) - 4) {
-                        console.log("Игрок погиб от скелета!");
                         playerDie();
                     }
                 }
             }
             
-            // Летучие мыши (исправлены - теперь не проходят сквозь стены)
+            // Летучие мыши
             for (const bat of gameState.bats) {
                 const dx = player.x - bat.x;
                 const dy = player.y - bat.y;
@@ -1622,8 +1613,6 @@
             gameState.player.invulnerableTimer = 120;
             gameState.attackingBat = null;
             gameState.batAttackProgress = 0;
-            
-            console.log("Новый уровень! Счет: " + gameState.score);
             
             gameState.map = generateMap();
             generateEnemies();
@@ -1818,7 +1807,7 @@
             const player = gameState.player;
             const scale = camera.zoom;
             
-            // Получаем мировые координаты мыши из позиции прицела
+            // ВАЖНО: Используем те же вычисления, что и в shootProjectile
             const mouseWorldX = (gameState.mouseX / camera.zoom) + camera.x;
             const mouseWorldY = (gameState.mouseY / camera.zoom) + camera.y;
             
@@ -2039,7 +2028,6 @@
                         ctx.stroke();
                     }
                     
-                    // Если эта мышь атакует игрока, показываем индикатор
                     if (gameState.attackingBat === bat) {
                         const attackPercent = gameState.batAttackProgress / BAT_ATTACK_TIME;
                         ctx.fillStyle = `rgba(255, 0, 255, ${0.3 + attackPercent * 0.7})`;
@@ -2168,8 +2156,6 @@
         
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
         function initGame() {
-            console.log("Инициализация новой игры...");
-            
             gameState.player = {
                 x: 0,
                 y: 0,
@@ -2221,8 +2207,6 @@
             document.getElementById('chestProgress').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
             document.getElementById('respawnScreen').style.display = 'none';
-            
-            console.log("Игра началась!");
             
             requestAnimationFrame(gameLoop);
         }
@@ -2285,7 +2269,6 @@
         canvas.focus();
         canvas.addEventListener('click', () => canvas.focus());
         
-        // Инициализация позиции мыши по центру
         gameState.mouseX = canvas.width / 2;
         gameState.mouseY = canvas.height / 2;
         crosshair.style.left = gameState.mouseX + 'px';
