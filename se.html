@@ -1,0 +1,1832 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Лабиринт Шахт</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+        
+        body {
+            background-color: #000;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            overflow: auto;
+            padding: 20px;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background-color: #0a0a0a;
+            border: 2px solid #333;
+            margin: 0 auto;
+        }
+        
+        .game-over {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 20;
+            color: white;
+            display: none;
+        }
+        
+        .game-over h2 {
+            color: #ff5555;
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+        
+        .game-over p {
+            font-size: 24px;
+            margin-bottom: 30px;
+        }
+        
+        .restart-btn {
+            background-color: #ff5555;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .restart-btn:hover {
+            background-color: #ff7777;
+            transform: scale(1.05);
+        }
+        
+        .chest-progress {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            display: none;
+            z-index: 10;
+            text-align: center;
+            min-width: 300px;
+            border: 2px solid #8B4513;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #333;
+            border-radius: 10px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #ff9900;
+            width: 0%;
+            transition: width 0.3s;
+            border-radius: 10px;
+        }
+        
+        .chest-indicator {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            font-size: 16px;
+            z-index: 10;
+            text-align: center;
+            border: 2px solid #8B4513;
+        }
+        
+        .controls-info {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        .controls-info h3 {
+            color: #ff9900;
+            margin-bottom: 10px;
+        }
+        
+        .controls-info p {
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <div class="chest-indicator" id="chestIndicator">Сундуков: 0/3</div>
+    <div class="chest-progress" id="chestProgress">
+        <div id="chestText">Открытие сундука... (Удерживайте E)</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+    </div>
+    <div class="game-over" id="gameOverScreen">
+        <h2>ПОРАЖЕНИЕ</h2>
+        <p>Счет: <span id="finalScore">0</span></p>
+        <button class="restart-btn" id="restartBtn">Новая игра</button>
+    </div>
+    
+    <div class="controls-info">
+        <h3>Управление</h3>
+        <p><strong>WASD</strong> - движение | <strong>ЛКМ/Пробел</strong> - стрельба | <strong>E</strong> - открыть сундук</p>
+        <p>Сначала найдите малый ключ (желтый), затем откройте 3 сундука, после чего появится основной ключ (оранжевый)</p>
+    </div>
+
+    <script>
+        // ========== НАСТРОЙКИ ==========
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Увеличиваем размер игры
+        canvas.width = 1200;
+        canvas.height = 800;
+        
+        // Константы игры
+        const TILE_SIZE = 40; // Увеличиваем тайлы
+        const MAP_WIDTH = 60; // Увеличиваем карту
+        const MAP_HEIGHT = 45; // Увеличиваем карту
+        const PLAYER_SIZE = 20; // Увеличиваем игрока
+        const PLAYER_SPEED = 5.5;
+        const PROJECTILE_SPEED = 11;
+        const PROJECTILE_SIZE = 6;
+        const PLAYER_SHOOT_DELAY = 500; // 0.5 секунды задержка
+        const ENEMY_SIZE = 24;
+        const ENEMY_SPEED = 2.2;
+        const ENEMY_VISION_RANGE = 300;
+        const SKELETON_SPEED = 1.5;
+        const SKELETON_SHOOT_RANGE = 400;
+        const SKELETON_PROJECTILE_SPEED = 7;
+        const LASER_LENGTH = 150;
+        
+        // Камера - НОРМАЛЬНАЯ, видно всё
+        const camera = {
+            x: 0,
+            y: 0,
+            width: canvas.width,
+            height: canvas.height,
+            followSpeed: 0.1 // Плавное следование
+        };
+        
+        // Состояние игры
+        const gameState = {
+            player: {
+                x: 0,
+                y: 0,
+                hasKey: false,
+                hasSmallKey: false,
+                lastShotTime: 0,
+                canShoot: true,
+                openingChest: null,
+                chestProgress: 0
+            },
+            projectiles: [],
+            enemyProjectiles: [],
+            enemies: [],
+            skeletons: [],
+            map: [],
+            spikes: [],
+            chests: [],
+            key: null,
+            smallKey: null,
+            exit: null,
+            doors: [],
+            smallDoors: [],
+            score: 0,
+            gameOver: false,
+            mouseX: 0,
+            mouseY: 0,
+            keys: {
+                w: false,
+                a: false,
+                s: false,
+                d: false,
+                e: false
+            },
+            chestsOpened: 0,
+            chestsTotal: 3,
+            lastUpdateTime: 0
+        };
+        
+        // ========== ОПТИМИЗИРОВАННАЯ ГЕНЕРАЦИЯ КАРТЫ ==========
+        function generateMap() {
+            console.log("Генерация новой карты...");
+            
+            const map = [];
+            for (let y = 0; y < MAP_HEIGHT; y++) {
+                map[y] = [];
+                for (let x = 0; x < MAP_WIDTH; x++) {
+                    map[y][x] = 1; // 1 = стена, 0 = проход
+                }
+            }
+            
+            // Стартовая позиция
+            const startX = 5;
+            const startY = Math.floor(MAP_HEIGHT / 2);
+            gameState.player.x = startX * TILE_SIZE + TILE_SIZE / 2;
+            gameState.player.y = startY * TILE_SIZE + TILE_SIZE / 2;
+            map[startY][startX] = 0;
+            
+            // Генерация лабиринта
+            generateMaze(map, startX, startY);
+            
+            // 3 открытых пространства
+            const spaces = createOpenSpaces(map);
+            
+            // Шипы
+            createSpikes(map, spaces);
+            
+            // Размещение объектов
+            placeSmallKey(map);
+            placeChests(map, spaces);
+            placeMainKey(map);
+            placeExit(map);
+            createDoors(map);
+            
+            // Проверяем проходимость
+            ensureAccessibility(map);
+            
+            console.log("Карта сгенерирована, врагов будет: 15 обычных, 10 скелетов");
+            return map;
+        }
+        
+        function generateMaze(map, startX, startY) {
+            const stack = [{x: startX, y: startY}];
+            const dirs = [[0,-2],[2,0],[0,2],[-2,0]];
+            
+            while (stack.length > 0) {
+                const current = stack[stack.length-1];
+                const neighbors = [];
+                
+                for (const [dx, dy] of dirs) {
+                    const nx = current.x + dx;
+                    const ny = current.y + dy;
+                    const bx = current.x + dx/2;
+                    const by = current.y + dy/2;
+                    
+                    if (nx > 1 && nx < MAP_WIDTH-2 && ny > 1 && ny < MAP_HEIGHT-2 && 
+                        map[ny][nx] === 1 && map[by][bx] === 1) {
+                        neighbors.push({nx, ny, bx, by});
+                    }
+                }
+                
+                if (neighbors.length > 0) {
+                    const next = neighbors[Math.floor(Math.random()*neighbors.length)];
+                    map[next.ny][next.nx] = 0;
+                    map[next.by][next.bx] = 0;
+                    stack.push({x: next.nx, y: next.ny});
+                } else {
+                    stack.pop();
+                }
+            }
+            
+            // Дополнительные проходы
+            for (let i = 0; i < 200; i++) {
+                const x = Math.floor(Math.random()*(MAP_WIDTH-4))+2;
+                const y = Math.floor(Math.random()*(MAP_HEIGHT-4))+2;
+                
+                if (map[y][x] === 1) {
+                    let walls = 0;
+                    if (x>0 && map[y][x-1]===0) walls++;
+                    if (x<MAP_WIDTH-1 && map[y][x+1]===0) walls++;
+                    if (y>0 && map[y-1][x]===0) walls++;
+                    if (y<MAP_HEIGHT-1 && map[y+1][x]===0) walls++;
+                    
+                    if (walls >= 2) map[y][x] = 0;
+                }
+            }
+        }
+        
+        function createOpenSpaces(map) {
+            const spaces = [
+                {x: Math.floor(MAP_WIDTH*0.25), y: Math.floor(MAP_HEIGHT*0.25), size: 5},
+                {x: Math.floor(MAP_WIDTH*0.75), y: Math.floor(MAP_HEIGHT*0.25), size: 4},
+                {x: Math.floor(MAP_WIDTH*0.5), y: Math.floor(MAP_HEIGHT*0.75), size: 6}
+            ];
+            
+            spaces.forEach(space => {
+                for (let dy = -space.size; dy <= space.size; dy++) {
+                    for (let dx = -space.size; dx <= space.size; dx++) {
+                        const x = space.x + dx;
+                        const y = space.y + dy;
+                        if (x >= 0 && x < MAP_WIDTH && y >= 0 && y < MAP_HEIGHT) {
+                            map[y][x] = 0;
+                        }
+                    }
+                }
+            });
+            
+            return spaces;
+        }
+        
+        function createSpikes(map, spaces) {
+            gameState.spikes = [];
+            
+            // Немного шипов в проходах
+            for (let y = 0; y < MAP_HEIGHT; y++) {
+                for (let x = 0; x < MAP_WIDTH; x++) {
+                    if (map[y][x] === 0) {
+                        // 2% шанс в проходах
+                        if (Math.random() < 0.02) {
+                            // Проверяем, не рядом ли со стартом
+                            const startX = Math.floor(gameState.player.x/TILE_SIZE);
+                            const startY = Math.floor(gameState.player.y/TILE_SIZE);
+                            const dist = Math.sqrt((x-startX)**2 + (y-startY)**2);
+                            
+                            if (dist > 10) {
+                                gameState.spikes.push({
+                                    x: x*TILE_SIZE + TILE_SIZE/2,
+                                    y: y*TILE_SIZE + TILE_SIZE/2,
+                                    size: TILE_SIZE/2
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Шипы в открытых пространствах
+            spaces.forEach(space => {
+                for (let i = 0; i < space.size*2; i++) {
+                    const dx = Math.floor(Math.random()*(space.size*2+1))-space.size;
+                    const dy = Math.floor(Math.random()*(space.size*2+1))-space.size;
+                    const x = space.x + dx;
+                    const y = space.y + dy;
+                    
+                    if (x>=0 && x<MAP_WIDTH && y>=0 && y<MAP_HEIGHT && map[y][x]===0) {
+                        const existing = gameState.spikes.find(s => 
+                            Math.floor(s.x/TILE_SIZE)===x && Math.floor(s.y/TILE_SIZE)===y
+                        );
+                        
+                        if (!existing) {
+                            gameState.spikes.push({
+                                x: x*TILE_SIZE + TILE_SIZE/2,
+                                y: y*TILE_SIZE + TILE_SIZE/2,
+                                size: TILE_SIZE/2
+                            });
+                        }
+                    }
+                }
+            });
+        }
+        
+        function placeSmallKey(map) {
+            for (let attempts = 0; attempts < 100; attempts++) {
+                const x = Math.floor(Math.random()*(MAP_WIDTH-8))+4;
+                const y = Math.floor(Math.random()*(MAP_HEIGHT-8))+4;
+                
+                if (map[y][x] === 0) {
+                    const playerX = Math.floor(gameState.player.x/TILE_SIZE);
+                    const playerY = Math.floor(gameState.player.y/TILE_SIZE);
+                    const dist = Math.sqrt((x-playerX)**2 + (y-playerY)**2);
+                    
+                    const hasSpike = gameState.spikes.find(s => 
+                        Math.floor(s.x/TILE_SIZE)===x && Math.floor(s.y/TILE_SIZE)===y
+                    );
+                    
+                    if (dist > 15 && !hasSpike) {
+                        gameState.smallKey = {
+                            x: x*TILE_SIZE + TILE_SIZE/2,
+                            y: y*TILE_SIZE + TILE_SIZE/2,
+                            collected: false
+                        };
+                        return;
+                    }
+                }
+            }
+        }
+        
+        function placeChests(map, spaces) {
+            gameState.chests = [];
+            
+            spaces.forEach(space => {
+                let placed = false;
+                for (let attempts = 0; attempts < 30 && !placed; attempts++) {
+                    const dx = Math.floor(Math.random()*(space.size*2+1))-space.size;
+                    const dy = Math.floor(Math.random()*(space.size*2+1))-space.size;
+                    const x = space.x + dx;
+                    const y = space.y + dy;
+                    
+                    if (x>=0 && x<MAP_WIDTH && y>=0 && y<MAP_HEIGHT && map[y][x]===0) {
+                        const hasSpike = gameState.spikes.find(s => 
+                            Math.floor(s.x/TILE_SIZE)===x && Math.floor(s.y/TILE_SIZE)===y
+                        );
+                        
+                        if (!hasSpike) {
+                            gameState.chests.push({
+                                x: x*TILE_SIZE + TILE_SIZE/2,
+                                y: y*TILE_SIZE + TILE_SIZE/2,
+                                opened: false,
+                                opening: false,
+                                progress: 0
+                            });
+                            placed = true;
+                        }
+                    }
+                }
+            });
+            
+            gameState.chestsTotal = gameState.chests.length;
+            updateChestIndicator();
+        }
+        
+        function placeMainKey(map) {
+            for (let attempts = 0; attempts < 100; attempts++) {
+                const x = Math.floor(MAP_WIDTH*0.85) + Math.floor(Math.random()*(MAP_WIDTH*0.1));
+                const y = Math.floor(MAP_HEIGHT*0.85) + Math.floor(Math.random()*(MAP_HEIGHT*0.1));
+                
+                if (x>=0 && x<MAP_WIDTH && y>=0 && y<MAP_HEIGHT && map[y][x]===0) {
+                    gameState.key = {
+                        x: x*TILE_SIZE + TILE_SIZE/2,
+                        y: y*TILE_SIZE + TILE_SIZE/2,
+                        collected: false,
+                        visible: false
+                    };
+                    return;
+                }
+            }
+        }
+        
+        function placeExit(map) {
+            for (let attempts = 0; attempts < 100; attempts++) {
+                const x = Math.floor(Math.random()*(MAP_WIDTH*0.15));
+                const y = Math.floor(Math.random()*(MAP_HEIGHT*0.15));
+                
+                if (x>=0 && x<MAP_WIDTH && y>=0 && y<MAP_HEIGHT && map[y][x]===0) {
+                    gameState.exit = {
+                        x: x*TILE_SIZE + TILE_SIZE/2,
+                        y: y*TILE_SIZE + TILE_SIZE/2
+                    };
+                    return;
+                }
+            }
+        }
+        
+        function createDoors(map) {
+            gameState.doors = [];
+            gameState.smallDoors = [];
+            
+            // Большие двери
+            const doorPositions = [
+                {x: Math.floor(MAP_WIDTH*0.65), y: Math.floor(MAP_HEIGHT*0.5)},
+                {x: Math.floor(MAP_WIDTH*0.55), y: Math.floor(MAP_HEIGHT*0.65)}
+            ];
+            
+            doorPositions.forEach(pos => {
+                if (pos.x>=0 && pos.x<MAP_WIDTH && pos.y>=0 && pos.y<MAP_HEIGHT) {
+                    gameState.doors.push({
+                        x: pos.x,
+                        y: pos.y,
+                        open: false
+                    });
+                    map[pos.y][pos.x] = 2;
+                }
+            });
+            
+            // Маленькие двери
+            const smallDoorPos = [
+                {x: Math.floor(MAP_WIDTH*0.45), y: Math.floor(MAP_HEIGHT*0.45)}
+            ];
+            
+            smallDoorPos.forEach(pos => {
+                if (pos.x>=0 && pos.x<MAP_WIDTH && pos.y>=0 && pos.y<MAP_HEIGHT) {
+                    gameState.smallDoors.push({
+                        x: pos.x,
+                        y: pos.y,
+                        open: false
+                    });
+                    map[pos.y][pos.x] = 3;
+                }
+            });
+        }
+        
+        function ensureAccessibility(map) {
+            // Убираем шипы в радиусе 3 клеток от важных объектов
+            const importantTiles = [];
+            
+            if (gameState.smallKey) {
+                importantTiles.push({
+                    x: Math.floor(gameState.smallKey.x/TILE_SIZE),
+                    y: Math.floor(gameState.smallKey.y/TILE_SIZE)
+                });
+            }
+            
+            gameState.chests.forEach(chest => {
+                importantTiles.push({
+                    x: Math.floor(chest.x/TILE_SIZE),
+                    y: Math.floor(chest.y/TILE_SIZE)
+                });
+            });
+            
+            if (gameState.key) {
+                importantTiles.push({
+                    x: Math.floor(gameState.key.x/TILE_SIZE),
+                    y: Math.floor(gameState.key.y/TILE_SIZE)
+                });
+            }
+            
+            if (gameState.exit) {
+                importantTiles.push({
+                    x: Math.floor(gameState.exit.x/TILE_SIZE),
+                    y: Math.floor(gameState.exit.y/TILE_SIZE)
+                });
+            }
+            
+            importantTiles.forEach(tile => {
+                for (let dy = -3; dy <= 3; dy++) {
+                    for (let dx = -3; dx <= 3; dx++) {
+                        const x = tile.x + dx;
+                        const y = tile.y + dy;
+                        
+                        if (x>=0 && x<MAP_WIDTH && y>=0 && y<MAP_HEIGHT) {
+                            gameState.spikes = gameState.spikes.filter(s => 
+                                !(Math.floor(s.x/TILE_SIZE)===x && Math.floor(s.y/TILE_SIZE)===y)
+                            );
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateChestIndicator() {
+            document.getElementById('chestIndicator').textContent = 
+                `Сундуков: ${gameState.chestsOpened}/${gameState.chestsTotal}`;
+        }
+        
+        // ========== КОЛЛИЗИИ ==========
+        function isWall(x, y) {
+            const tileX = Math.floor(x/TILE_SIZE);
+            const tileY = Math.floor(y/TILE_SIZE);
+            
+            if (tileX<0 || tileX>=MAP_WIDTH || tileY<0 || tileY>=MAP_HEIGHT) {
+                return true;
+            }
+            
+            const tile = gameState.map[tileY][tileX];
+            return tile === 1 || tile === 2 || tile === 3;
+        }
+        
+        function canMoveTo(x, y, size = PLAYER_SIZE) {
+            if (isWall(x, y)) return false;
+            
+            const radius = size/2;
+            const points = [
+                {x, y: y-radius},
+                {x, y: y+radius},
+                {x: x-radius, y},
+                {x: x+radius, y}
+            ];
+            
+            for (const point of points) {
+                if (isWall(point.x, point.y)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        function enemyCanMoveTo(x, y) {
+            // Для врагов проверяем более строго
+            if (!canMoveTo(x, y, ENEMY_SIZE)) return false;
+            
+            // Дополнительная проверка для врагов
+            const radius = ENEMY_SIZE/2;
+            const angles = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
+            
+            for (const angle of angles) {
+                const checkX = x + Math.cos(angle)*radius;
+                const checkY = y + Math.sin(angle)*radius;
+                
+                if (isWall(checkX, checkY)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        // ========== ДВИЖЕНИЕ ИГРОКА ==========
+        function movePlayer() {
+            if (gameState.gameOver) return;
+            
+            const player = gameState.player;
+            const keys = gameState.keys;
+            
+            let moveX = 0, moveY = 0;
+            if (keys.w) moveY -= PLAYER_SPEED;
+            if (keys.s) moveY += PLAYER_SPEED;
+            if (keys.a) moveX -= PLAYER_SPEED;
+            if (keys.d) moveX += PLAYER_SPEED;
+            
+            if (moveX !== 0 && moveY !== 0) {
+                moveX *= 0.7071;
+                moveY *= 0.7071;
+            }
+            
+            // Движение по X
+            if (moveX !== 0) {
+                const newX = player.x + moveX;
+                if (canMoveTo(newX, player.y)) {
+                    player.x = newX;
+                }
+            }
+            
+            // Движение по Y
+            if (moveY !== 0) {
+                const newY = player.y + moveY;
+                if (canMoveTo(player.x, newY)) {
+                    player.y = newY;
+                }
+            }
+            
+            // Сбор ключей
+            checkKeyCollection();
+            checkChestInteraction();
+            checkSpikeCollision();
+            
+            // Обновление задержки выстрела
+            const currentTime = Date.now();
+            if (currentTime - player.lastShotTime > PLAYER_SHOOT_DELAY) {
+                player.canShoot = true;
+            }
+        }
+        
+        function checkKeyCollection() {
+            const player = gameState.player;
+            
+            // Малый ключ
+            if (gameState.smallKey && !gameState.smallKey.collected) {
+                const dx = player.x - gameState.smallKey.x;
+                const dy = player.y - gameState.smallKey.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist < (PLAYER_SIZE/2 + 12)) {
+                    gameState.smallKey.collected = true;
+                    player.hasSmallKey = true;
+                    gameState.smallDoors.forEach(door => {
+                        door.open = true;
+                        gameState.map[door.y][door.x] = 0;
+                    });
+                    console.log("Малый ключ найден!");
+                }
+            }
+            
+            // Основной ключ
+            if (gameState.key && !gameState.key.collected && gameState.key.visible) {
+                const dx = player.x - gameState.key.x;
+                const dy = player.y - gameState.key.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist < (PLAYER_SIZE/2 + 12)) {
+                    gameState.key.collected = true;
+                    player.hasKey = true;
+                    gameState.doors.forEach(door => {
+                        door.open = true;
+                        gameState.map[door.y][door.x] = 0;
+                    });
+                    console.log("Основной ключ найден!");
+                }
+            }
+            
+            // Выход
+            if (gameState.exit && player.hasKey) {
+                const dx = player.x - gameState.exit.x;
+                const dy = player.y - gameState.exit.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist < (PLAYER_SIZE/2 + 18)) {
+                    nextLevel();
+                }
+            }
+        }
+        
+        function checkSpikeCollision() {
+            const player = gameState.player;
+            
+            for (const spike of gameState.spikes) {
+                const dx = player.x - spike.x;
+                const dy = player.y - spike.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist < (PLAYER_SIZE/2 + spike.size/2)) {
+                    console.log("Игрок погиб на шипах!");
+                    gameState.gameOver = true;
+                    document.getElementById('finalScore').textContent = gameState.score;
+                    document.getElementById('gameOverScreen').style.display = 'flex';
+                    break;
+                }
+            }
+        }
+        
+        function checkChestInteraction() {
+            const player = gameState.player;
+            const keys = gameState.keys;
+            
+            // Сбрасываем прогресс если отошли
+            if (player.openingChest) {
+                const chest = player.openingChest;
+                const dx = player.x - chest.x;
+                const dy = player.y - chest.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist > 60 || !keys.e) {
+                    player.openingChest = null;
+                    player.chestProgress = 0;
+                    chest.opening = false;
+                    chest.progress = 0;
+                    document.getElementById('chestProgress').style.display = 'none';
+                } else {
+                    player.chestProgress++;
+                    chest.progress = player.chestProgress;
+                    
+                    const progressPercent = Math.min(100, (player.chestProgress/600)*100);
+                    document.getElementById('progressFill').style.width = progressPercent + '%';
+                    
+                    if (player.chestProgress >= 600) {
+                        chest.opened = true;
+                        chest.opening = false;
+                        player.openingChest = null;
+                        player.chestProgress = 0;
+                        gameState.chestsOpened++;
+                        updateChestIndicator();
+                        document.getElementById('chestProgress').style.display = 'none';
+                        
+                        if (gameState.chestsOpened >= gameState.chestsTotal && gameState.key) {
+                            gameState.key.visible = true;
+                            console.log("Все сундуки открыты! Основной ключ появился!");
+                        }
+                    }
+                }
+            } else if (keys.e) {
+                // Ищем ближайший сундук
+                for (const chest of gameState.chests) {
+                    if (!chest.opened) {
+                        const dx = player.x - chest.x;
+                        const dy = player.y - chest.y;
+                        const dist = Math.sqrt(dx*dx + dy*dy);
+                        
+                        if (dist < 60) {
+                            player.openingChest = chest;
+                            chest.opening = true;
+                            player.chestProgress = 0;
+                            document.getElementById('chestProgress').style.display = 'block';
+                            document.getElementById('chestText').textContent = `Открытие сундука... (Удерживайте E)`;
+                            document.getElementById('progressFill').style.width = '0%';
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        
+        // ========== КАМЕРА ==========
+        function updateCamera() {
+            const player = gameState.player;
+            
+            // Целевая позиция - игрок по центру
+            const targetX = player.x - camera.width/2;
+            const targetY = player.y - camera.height/2;
+            
+            // Плавное следование
+            camera.x += (targetX - camera.x) * camera.followSpeed;
+            camera.y += (targetY - camera.y) * camera.followSpeed;
+            
+            // Ограничение
+            const maxX = MAP_WIDTH*TILE_SIZE - camera.width;
+            const maxY = MAP_HEIGHT*TILE_SIZE - camera.height;
+            
+            camera.x = Math.max(0, Math.min(maxX, camera.x));
+            camera.y = Math.max(0, Math.min(maxY, camera.y));
+        }
+        
+        // ========== СНАРЯДЫ ==========
+        function shootProjectile() {
+            if (gameState.gameOver || !gameState.player.canShoot) return;
+            
+            const player = gameState.player;
+            const mouseWorldX = gameState.mouseX + camera.x;
+            const mouseWorldY = gameState.mouseY + camera.y;
+            
+            const dx = mouseWorldX - player.x;
+            const dy = mouseWorldY - player.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist < 10) return;
+            
+            const dirX = dx/dist;
+            const dirY = dy/dist;
+            
+            gameState.projectiles.push({
+                x: player.x + dirX*(PLAYER_SIZE/2 + 8),
+                y: player.y + dirY*(PLAYER_SIZE/2 + 8),
+                dirX,
+                dirY,
+                speed: PROJECTILE_SPEED
+            });
+            
+            player.canShoot = false;
+            player.lastShotTime = Date.now();
+        }
+        
+        function updateProjectiles() {
+            // Снаряды игрока
+            for (let i = gameState.projectiles.length-1; i >= 0; i--) {
+                const proj = gameState.projectiles[i];
+                
+                proj.x += proj.dirX * proj.speed;
+                proj.y += proj.dirY * proj.speed;
+                
+                if (proj.x<0 || proj.x>MAP_WIDTH*TILE_SIZE || proj.y<0 || proj.y>MAP_HEIGHT*TILE_SIZE || isWall(proj.x, proj.y)) {
+                    gameState.projectiles.splice(i, 1);
+                    continue;
+                }
+                
+                // Проверка по врагам
+                for (let j = gameState.enemies.length-1; j >= 0; j--) {
+                    const enemy = gameState.enemies[j];
+                    const dx = proj.x - enemy.x;
+                    const dy = proj.y - enemy.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (dist < (PROJECTILE_SIZE + ENEMY_SIZE/2)) {
+                        gameState.enemies.splice(j, 1);
+                        gameState.projectiles.splice(i, 1);
+                        gameState.score += 10;
+                        console.log("Враг уничтожен! Очков: " + gameState.score);
+                        break;
+                    }
+                }
+                
+                // Проверка по скелетам
+                for (let j = gameState.skeletons.length-1; j >= 0; j--) {
+                    const skeleton = gameState.skeletons[j];
+                    const dx = proj.x - skeleton.x;
+                    const dy = proj.y - skeleton.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    
+                    if (dist < (PROJECTILE_SIZE + ENEMY_SIZE/2)) {
+                        gameState.skeletons.splice(j, 1);
+                        gameState.projectiles.splice(i, 1);
+                        gameState.score += 20;
+                        console.log("Скелет уничтожен! Очков: " + gameState.score);
+                        break;
+                    }
+                }
+            }
+            
+            // Снаряды врагов
+            for (let i = gameState.enemyProjectiles.length-1; i >= 0; i--) {
+                const proj = gameState.enemyProjectiles[i];
+                
+                proj.x += proj.dirX * proj.speed;
+                proj.y += proj.dirY * proj.speed;
+                
+                if (proj.x<0 || proj.x>MAP_WIDTH*TILE_SIZE || proj.y<0 || proj.y>MAP_HEIGHT*TILE_SIZE || isWall(proj.x, proj.y)) {
+                    gameState.enemyProjectiles.splice(i, 1);
+                    continue;
+                }
+                
+                // Проверка по игроку
+                const player = gameState.player;
+                const dx = proj.x - player.x;
+                const dy = proj.y - player.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist < (PROJECTILE_SIZE + PLAYER_SIZE/2)) {
+                    console.log("Игрок погиб от снаряда врага!");
+                    gameState.gameOver = true;
+                    document.getElementById('finalScore').textContent = gameState.score;
+                    document.getElementById('gameOverScreen').style.display = 'flex';
+                    break;
+                }
+            }
+        }
+        
+        // ========== ВРАГИ (ИСПРАВЛЕННЫЕ) ==========
+        function generateEnemies() {
+            gameState.enemies = [];
+            gameState.skeletons = [];
+            
+            // Увеличиваем количество врагов
+            console.log("Генерация врагов...");
+            
+            // Обычные враги - много!
+            for (let i = 0; i < 15; i++) {
+                let placed = false;
+                for (let attempts = 0; attempts < 50 && !placed; attempts++) {
+                    const x = Math.floor(Math.random()*(MAP_WIDTH-6)+3)*TILE_SIZE + TILE_SIZE/2;
+                    const y = Math.floor(Math.random()*(MAP_HEIGHT-6)+3)*TILE_SIZE + TILE_SIZE/2;
+                    
+                    if (!isWall(x, y) && enemyCanMoveTo(x, y)) {
+                        // Проверяем на шипы
+                        const hasSpike = gameState.spikes.find(s => 
+                            Math.abs(s.x - x) < TILE_SIZE && Math.abs(s.y - y) < TILE_SIZE
+                        );
+                        
+                        if (!hasSpike) {
+                            const dx = x - gameState.player.x;
+                            const dy = y - gameState.player.y;
+                            const dist = Math.sqrt(dx*dx + dy*dy);
+                            
+                            if (dist > 300) { // Подальше от игрока
+                                gameState.enemies.push({
+                                    x,
+                                    y,
+                                    speed: ENEMY_SPEED,
+                                    state: 'patrol',
+                                    patrolTarget: {
+                                        x: x + (Math.random()*300-150),
+                                        y: y + (Math.random()*300-150)
+                                    },
+                                    stuckTimer: 0
+                                });
+                                placed = true;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Скелеты - много!
+            for (let i = 0; i < 10; i++) {
+                let placed = false;
+                for (let attempts = 0; attempts < 50 && !placed; attempts++) {
+                    const x = Math.floor(Math.random()*(MAP_WIDTH-6)+3)*TILE_SIZE + TILE_SIZE/2;
+                    const y = Math.floor(Math.random()*(MAP_HEIGHT-6)+3)*TILE_SIZE + TILE_SIZE/2;
+                    
+                    if (!isWall(x, y) && enemyCanMoveTo(x, y)) {
+                        const hasSpike = gameState.spikes.find(s => 
+                            Math.abs(s.x - x) < TILE_SIZE && Math.abs(s.y - y) < TILE_SIZE
+                        );
+                        
+                        if (!hasSpike) {
+                            const dx = x - gameState.player.x;
+                            const dy = y - gameState.player.y;
+                            const dist = Math.sqrt(dx*dx + dy*dy);
+                            
+                            if (dist > 350) { // Подальше от игрока
+                                gameState.skeletons.push({
+                                    x,
+                                    y,
+                                    speed: SKELETON_SPEED,
+                                    state: 'patrol',
+                                    patrolTarget: {
+                                        x: x + (Math.random()*300-150),
+                                        y: y + (Math.random()*300-150)
+                                    },
+                                    shootCooldown: Math.floor(Math.random() * 60),
+                                    stuckTimer: 0
+                                });
+                                placed = true;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            console.log(`Сгенерировано врагов: ${gameState.enemies.length} обычных, ${gameState.skeletons.length} скелетов`);
+        }
+        
+        function hasLineOfSight(x1, y1, x2, y2) {
+            const steps = 20;
+            const dx = (x2 - x1) / steps;
+            const dy = (y2 - y1) / steps;
+            
+            for (let i = 0; i <= steps; i++) {
+                const checkX = x1 + dx * i;
+                const checkY = y1 + dy * i;
+                
+                if (isWall(checkX, checkY)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        function updateEnemies() {
+            const player = gameState.player;
+            
+            // Обычные враги
+            for (const enemy of gameState.enemies) {
+                const dx = player.x - enemy.x;
+                const dy = player.y - enemy.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist < ENEMY_VISION_RANGE && hasLineOfSight(enemy.x, enemy.y, player.x, player.y)) {
+                    enemy.state = 'chase';
+                    enemy.stuckTimer = 0;
+                    
+                    // Двигаемся к игроку с проверкой стен
+                    if (dist > ENEMY_SIZE) {
+                        const moveDist = Math.min(enemy.speed, dist - ENEMY_SIZE/2);
+                        if (moveDist > 0) {
+                            const targetX = enemy.x + (dx/dist)*moveDist;
+                            const targetY = enemy.y + (dy/dist)*moveDist;
+                            
+                            if (enemyCanMoveTo(targetX, targetY)) {
+                                enemy.x = targetX;
+                                enemy.y = targetY;
+                            } else {
+                                // Пробуем обойти препятствие
+                                enemy.stuckTimer++;
+                                if (enemy.stuckTimer > 40) {
+                                    enemy.state = 'patrol';
+                                    enemy.patrolTarget = {
+                                        x: enemy.x + (Math.random()*300-150),
+                                        y: enemy.y + (Math.random()*300-150)
+                                    };
+                                }
+                            }
+                        }
+                    }
+                } else if (enemy.state === 'chase') {
+                    // Продолжаем преследование
+                    if (dist > ENEMY_SIZE) {
+                        const moveDist = Math.min(enemy.speed * 0.7, dist - ENEMY_SIZE/2);
+                        if (moveDist > 0) {
+                            const targetX = enemy.x + (dx/dist)*moveDist;
+                            const targetY = enemy.y + (dy/dist)*moveDist;
+                            
+                            if (enemyCanMoveTo(targetX, targetY)) {
+                                enemy.x = targetX;
+                                enemy.y = targetY;
+                            }
+                        }
+                    }
+                    
+                    if (Math.random() < 0.01) {
+                        enemy.state = 'patrol';
+                        enemy.patrolTarget = {
+                            x: enemy.x + (Math.random()*300-150),
+                            y: enemy.y + (Math.random()*300-150)
+                        };
+                    }
+                } else {
+                    // Патрулирование
+                    const targetDx = enemy.patrolTarget.x - enemy.x;
+                    const targetDy = enemy.patrolTarget.y - enemy.y;
+                    const targetDist = Math.sqrt(targetDx*targetDx + targetDy*targetDy);
+                    
+                    if (targetDist > 30) {
+                        const moveDist = Math.min(enemy.speed * 0.5, targetDist);
+                        if (moveDist > 0) {
+                            const moveX = enemy.x + (targetDx/targetDist)*moveDist;
+                            const moveY = enemy.y + (targetDy/targetDist)*moveDist;
+                            
+                            if (enemyCanMoveTo(moveX, moveY)) {
+                                enemy.x = moveX;
+                                enemy.y = moveY;
+                            } else {
+                                enemy.patrolTarget = {
+                                    x: enemy.x + (Math.random()*300-150),
+                                    y: enemy.y + (Math.random()*300-150)
+                                };
+                            }
+                        }
+                    } else {
+                        enemy.patrolTarget = {
+                            x: enemy.x + (Math.random()*300-150),
+                            y: enemy.y + (Math.random()*300-150)
+                        };
+                    }
+                }
+                
+                // Столкновение с игроком - ИСПРАВЛЕНО!
+                const collisionDist = Math.sqrt(
+                    Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2)
+                );
+                
+                // Уменьшаем радиус столкновения для более реалистичного касания
+                if (collisionDist < (PLAYER_SIZE/2 + ENEMY_SIZE/2) - 2) {
+                    console.log("Игрок погиб от врага! Расстояние: " + collisionDist);
+                    gameState.gameOver = true;
+                    document.getElementById('finalScore').textContent = gameState.score;
+                    document.getElementById('gameOverScreen').style.display = 'flex';
+                }
+            }
+            
+            // Скелеты
+            for (const skeleton of gameState.skeletons) {
+                const dx = player.x - skeleton.x;
+                const dy = player.y - skeleton.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                skeleton.shootCooldown--;
+                
+                if (dist < SKELETON_SHOOT_RANGE && hasLineOfSight(skeleton.x, skeleton.y, player.x, player.y)) {
+                    // Стрельба
+                    if (skeleton.shootCooldown <= 0) {
+                        const dirX = dx/dist;
+                        const dirY = dy/dist;
+                        
+                        gameState.enemyProjectiles.push({
+                            x: skeleton.x + dirX*(ENEMY_SIZE/2 + 8),
+                            y: skeleton.y + dirY*(ENEMY_SIZE/2 + 8),
+                            dirX,
+                            dirY,
+                            speed: SKELETON_PROJECTILE_SPEED
+                        });
+                        
+                        skeleton.shootCooldown = 40 + Math.random()*40;
+                    }
+                    
+                    // Движение
+                    if (dist > ENEMY_SIZE*2) {
+                        const moveDist = Math.min(skeleton.speed * 0.4, dist - ENEMY_SIZE);
+                        if (moveDist > 0) {
+                            const targetX = skeleton.x + (dx/dist)*moveDist;
+                            const targetY = skeleton.y + (dy/dist)*moveDist;
+                            
+                            if (enemyCanMoveTo(targetX, targetY)) {
+                                skeleton.x = targetX;
+                                skeleton.y = targetY;
+                            }
+                        }
+                    }
+                } else {
+                    // Патрулирование
+                    const targetDx = skeleton.patrolTarget.x - skeleton.x;
+                    const targetDy = skeleton.patrolTarget.y - skeleton.y;
+                    const targetDist = Math.sqrt(targetDx*targetDx + targetDy*targetDy);
+                    
+                    if (targetDist > 30) {
+                        const moveDist = Math.min(skeleton.speed * 0.3, targetDist);
+                        if (moveDist > 0) {
+                            const moveX = skeleton.x + (targetDx/targetDist)*moveDist;
+                            const moveY = skeleton.y + (targetDy/targetDist)*moveDist;
+                            
+                            if (enemyCanMoveTo(moveX, moveY)) {
+                                skeleton.x = moveX;
+                                skeleton.y = moveY;
+                            } else {
+                                skeleton.patrolTarget = {
+                                    x: skeleton.x + (Math.random()*300-150),
+                                    y: skeleton.y + (Math.random()*300-150)
+                                };
+                            }
+                        }
+                    } else {
+                        skeleton.patrolTarget = {
+                            x: skeleton.x + (Math.random()*300-150),
+                            y: skeleton.y + (Math.random()*300-150)
+                        };
+                    }
+                }
+                
+                // Столкновение скелета с игроком - ИСПРАВЛЕНО!
+                const collisionDist = Math.sqrt(
+                    Math.pow(player.x - skeleton.x, 2) + Math.pow(player.y - skeleton.y, 2)
+                );
+                
+                if (collisionDist < (PLAYER_SIZE/2 + ENEMY_SIZE/2) - 2) {
+                    console.log("Игрок погиб от скелета! Расстояние: " + collisionDist);
+                    gameState.gameOver = true;
+                    document.getElementById('finalScore').textContent = gameState.score;
+                    document.getElementById('gameOverScreen').style.display = 'flex';
+                }
+            }
+        }
+        
+        function nextLevel() {
+            gameState.score += 100;
+            gameState.player.hasKey = false;
+            gameState.player.hasSmallKey = false;
+            gameState.player.openingChest = null;
+            gameState.player.chestProgress = 0;
+            gameState.chestsOpened = 0;
+            
+            console.log("Новый уровень! Счет: " + gameState.score);
+            
+            gameState.map = generateMap();
+            generateEnemies();
+            gameState.projectiles = [];
+            gameState.enemyProjectiles = [];
+            
+            if (gameState.key) {
+                gameState.key.collected = false;
+                gameState.key.visible = false;
+            }
+            if (gameState.smallKey) gameState.smallKey.collected = false;
+            
+            updateChestIndicator();
+            document.getElementById('chestProgress').style.display = 'none';
+        }
+        
+        // ========== ОТРИСОВКА ==========
+        function drawMap() {
+            const startX = Math.max(0, Math.floor(camera.x/TILE_SIZE));
+            const startY = Math.max(0, Math.floor(camera.y/TILE_SIZE));
+            const endX = Math.min(MAP_WIDTH, Math.ceil((camera.x + camera.width)/TILE_SIZE));
+            const endY = Math.min(MAP_HEIGHT, Math.ceil((camera.y + camera.height)/TILE_SIZE));
+            
+            for (let y = startY; y < endY; y++) {
+                for (let x = startX; x < endX; x++) {
+                    const tileX = x*TILE_SIZE - camera.x;
+                    const tileY = y*TILE_SIZE - camera.y;
+                    const tile = gameState.map[y][x];
+                    
+                    if (tile === 1) {
+                        // Стена
+                        ctx.fillStyle = '#555555';
+                        ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#666666';
+                        ctx.fillRect(tileX+2, tileY+2, TILE_SIZE-4, TILE_SIZE-4);
+                    } else if (tile === 2) {
+                        // Дверь
+                        ctx.fillStyle = gameState.player.hasSmallKey ? '#8B4513' : '#654321';
+                        ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = gameState.player.hasSmallKey ? '#A0522D' : '#8B4513';
+                        ctx.fillRect(tileX+3, tileY+3, TILE_SIZE-6, TILE_SIZE-6);
+                    } else if (tile === 3) {
+                        // Маленькая дверь
+                        ctx.fillStyle = '#8B4513';
+                        ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
+                        ctx.fillStyle = '#A0522D';
+                        ctx.fillRect(tileX+6, tileY+6, TILE_SIZE-12, TILE_SIZE-12);
+                    } else if (tile === 0) {
+                        // Пол
+                        ctx.fillStyle = '#333333';
+                        ctx.fillRect(tileX, tileY, TILE_SIZE, TILE_SIZE);
+                    }
+                }
+            }
+        }
+        
+        function drawSpikes() {
+            for (const spike of gameState.spikes) {
+                const screenX = spike.x - camera.x;
+                const screenY = spike.y - camera.y;
+                
+                // Только если в поле зрения камеры
+                if (screenX > -60 && screenX < camera.width+60 && 
+                    screenY > -60 && screenY < camera.height+60) {
+                    // Основание
+                    ctx.fillStyle = '#444444';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, spike.size/2, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Шипы (3 острия)
+                    ctx.fillStyle = '#ff0000';
+                    for (let i = 0; i < 3; i++) {
+                        const angle = (i * 2 * Math.PI / 3) + Math.PI/2;
+                        ctx.beginPath();
+                        ctx.moveTo(screenX, screenY);
+                        ctx.lineTo(
+                            screenX + Math.cos(angle) * spike.size/2,
+                            screenY + Math.sin(angle) * spike.size/2
+                        );
+                        ctx.lineTo(
+                            screenX + Math.cos(angle + Math.PI/6) * spike.size/3,
+                            screenY + Math.sin(angle + Math.PI/6) * spike.size/3
+                        );
+                        ctx.closePath();
+                        ctx.fill();
+                    }
+                }
+            }
+        }
+        
+        function drawChests() {
+            for (const chest of gameState.chests) {
+                const screenX = chest.x - camera.x;
+                const screenY = chest.y - camera.y;
+                
+                if (screenX > -60 && screenX < camera.width+60 && 
+                    screenY > -60 && screenY < camera.height+60) {
+                    
+                    if (chest.opened) {
+                        // Открытый сундук
+                        ctx.fillStyle = '#8B4513';
+                        ctx.fillRect(screenX-20, screenY-15, 40, 25);
+                        
+                        ctx.fillStyle = '#D2691E';
+                        ctx.fillRect(screenX-16, screenY-10, 32, 8);
+                        
+                        // Сокровища
+                        ctx.fillStyle = '#FFD700';
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, 8, 0, Math.PI*2);
+                        ctx.fill();
+                        
+                        // Монетки
+                        ctx.fillStyle = '#FFC125';
+                        ctx.beginPath();
+                        ctx.arc(screenX-8, screenY+3, 4, 0, Math.PI*2);
+                        ctx.fill();
+                        
+                        ctx.beginPath();
+                        ctx.arc(screenX+8, screenY-3, 4, 0, Math.PI*2);
+                        ctx.fill();
+                    } else {
+                        // Закрытый сундук
+                        ctx.fillStyle = '#8B4513';
+                        ctx.fillRect(screenX-20, screenY-15, 40, 30);
+                        
+                        ctx.fillStyle = '#D2691E';
+                        ctx.fillRect(screenX-16, screenY-10, 32, 20);
+                        
+                        // Замок
+                        ctx.fillStyle = '#FFD700';
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY-3, 6, 0, Math.PI*2);
+                        ctx.fill();
+                        
+                        // Ключевое отверстие
+                        ctx.fillStyle = '#000';
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY-3, 2, 0, Math.PI*2);
+                        ctx.fill();
+                        
+                        // Если игрок открывает этот сундук
+                        if (chest.opening) {
+                            ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+                            ctx.fillRect(screenX-20, screenY-15, 40, 30);
+                        }
+                    }
+                }
+            }
+        }
+        
+        function drawPlayer() {
+            const player = gameState.player;
+            const screenX = player.x - camera.x;
+            const screenY = player.y - camera.y;
+            
+            // Тело
+            ctx.fillStyle = '#4a9de3';
+            ctx.beginPath();
+            ctx.arc(screenX, screenY, PLAYER_SIZE/2, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Глаз
+            const mouseWorldX = gameState.mouseX + camera.x;
+            const mouseWorldY = gameState.mouseY + camera.y;
+            const angle = Math.atan2(mouseWorldY - player.y, mouseWorldX - player.x);
+            
+            const eyeX = screenX + Math.cos(angle)*(PLAYER_SIZE/4);
+            const eyeY = screenY + Math.sin(angle)*(PLAYER_SIZE/4);
+            
+            ctx.fillStyle = 'white';
+            ctx.beginPath();
+            ctx.arc(eyeX, eyeY, PLAYER_SIZE/6, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.fillStyle = '#222';
+            ctx.beginPath();
+            ctx.arc(eyeX, eyeY, PLAYER_SIZE/12, 0, Math.PI*2);
+            ctx.fill();
+            
+            // Оружие
+            ctx.strokeStyle = '#333';
+            ctx.lineWidth = 3;
+            ctx.beginPath();
+            ctx.moveTo(screenX, screenY);
+            ctx.lineTo(screenX + Math.cos(angle)*(PLAYER_SIZE/2+10), 
+                      screenY + Math.sin(angle)*(PLAYER_SIZE/2+10));
+            ctx.stroke();
+        }
+        
+        function drawLaserSight() {
+            if (gameState.gameOver) return;
+            
+            const player = gameState.player;
+            const mouseWorldX = gameState.mouseX + camera.x;
+            const mouseWorldY = gameState.mouseY + camera.y;
+            
+            const dx = mouseWorldX - player.x;
+            const dy = mouseWorldY - player.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist < 10) return;
+            
+            const dirX = dx/dist;
+            const dirY = dy/dist;
+            const screenX = player.x - camera.x;
+            const screenY = player.y - camera.y;
+            
+            let laserLength = LASER_LENGTH;
+            for (let i = 0; i < LASER_LENGTH; i += 5) {
+                const checkX = player.x + dirX*i;
+                const checkY = player.y + dirY*i;
+                
+                if (isWall(checkX, checkY)) {
+                    laserLength = i;
+                    break;
+                }
+            }
+            
+            ctx.strokeStyle = gameState.player.canShoot ? '#ff0000' : '#888888';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(screenX + dirX*(PLAYER_SIZE/2), 
+                      screenY + dirY*(PLAYER_SIZE/2));
+            ctx.lineTo(screenX + dirX*laserLength, 
+                      screenY + dirY*laserLength);
+            ctx.stroke();
+            
+            ctx.fillStyle = gameState.player.canShoot ? '#ff0000' : '#888888';
+            ctx.beginPath();
+            ctx.arc(screenX + dirX*laserLength, 
+                   screenY + dirY*laserLength, 4, 0, Math.PI*2);
+            ctx.fill();
+        }
+        
+        function drawProjectiles() {
+            // Снаряды игрока
+            ctx.fillStyle = '#f0a500';
+            for (const proj of gameState.projectiles) {
+                const screenX = proj.x - camera.x;
+                const screenY = proj.y - camera.y;
+                if (screenX > -20 && screenX < camera.width+20 && 
+                    screenY > -20 && screenY < camera.height+20) {
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, PROJECTILE_SIZE, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Свечение
+                    ctx.fillStyle = 'rgba(240, 165, 0, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, PROJECTILE_SIZE*1.5, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = '#f0a500';
+                }
+            }
+            
+            // Снаряды врагов
+            ctx.fillStyle = '#ff5555';
+            for (const proj of gameState.enemyProjectiles) {
+                const screenX = proj.x - camera.x;
+                const screenY = proj.y - camera.y;
+                if (screenX > -20 && screenX < camera.width+20 && 
+                    screenY > -20 && screenY < camera.height+20) {
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, PROJECTILE_SIZE, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Свечение
+                    ctx.fillStyle = 'rgba(255, 85, 85, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, PROJECTILE_SIZE*1.5, 0, Math.PI*2);
+                    ctx.fill();
+                    ctx.fillStyle = '#ff5555';
+                }
+            }
+        }
+        
+        function drawEnemies() {
+            // Обычные враги
+            for (const enemy of gameState.enemies) {
+                const screenX = enemy.x - camera.x;
+                const screenY = enemy.y - camera.y;
+                
+                if (screenX > -60 && screenX < camera.width+60 && 
+                    screenY > -60 && screenY < camera.height+60) {
+                    
+                    // Тело
+                    ctx.fillStyle = enemy.state === 'chase' ? '#ff4444' : '#d32f2f';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, ENEMY_SIZE/2, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Тень
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                    ctx.beginPath();
+                    ctx.arc(screenX + 2, screenY + 2, ENEMY_SIZE/2, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Глаз
+                    const player = gameState.player;
+                    const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
+                    
+                    const eyeX = screenX + Math.cos(angle)*(ENEMY_SIZE/4);
+                    const eyeY = screenY + Math.sin(angle)*(ENEMY_SIZE/4);
+                    
+                    ctx.fillStyle = 'white';
+                    ctx.beginPath();
+                    ctx.arc(eyeX, eyeY, ENEMY_SIZE/8, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    ctx.fillStyle = '#222';
+                    ctx.beginPath();
+                    ctx.arc(eyeX, eyeY, ENEMY_SIZE/12, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Если преследует - индикатор
+                    if (enemy.state === 'chase') {
+                        ctx.strokeStyle = '#ff4444';
+                        ctx.lineWidth = 2;
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, ENEMY_SIZE/2 + 8, 0, Math.PI*2);
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            // Скелеты
+            for (const skeleton of gameState.skeletons) {
+                const screenX = skeleton.x - camera.x;
+                const screenY = skeleton.y - camera.y;
+                
+                if (screenX > -60 && screenX < camera.width+60 && 
+                    screenY > -60 && screenY < camera.height+60) {
+                    
+                    // Тело скелета
+                    ctx.fillStyle = '#C0C0C0';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, ENEMY_SIZE/2, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Кости
+                    ctx.fillStyle = '#FFFFFF';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, ENEMY_SIZE/3, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Глаза
+                    const player = gameState.player;
+                    const angle = Math.atan2(player.y - skeleton.y, player.x - skeleton.x);
+                    
+                    const eyeX = screenX + Math.cos(angle)*(ENEMY_SIZE/4);
+                    const eyeY = screenY + Math.sin(angle)*(ENEMY_SIZE/4);
+                    
+                    ctx.fillStyle = '#0000FF';
+                    ctx.beginPath();
+                    ctx.arc(eyeX, eyeY, ENEMY_SIZE/8, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Зрачки
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.arc(eyeX, eyeY, ENEMY_SIZE/16, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Оружие скелета
+                    ctx.strokeStyle = '#808080';
+                    ctx.lineWidth = 3;
+                    ctx.beginPath();
+                    ctx.moveTo(screenX, screenY);
+                    ctx.lineTo(screenX + Math.cos(angle)*(ENEMY_SIZE/2+8), 
+                              screenY + Math.sin(angle)*(ENEMY_SIZE/2+8));
+                    ctx.stroke();
+                    
+                    // Тень
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
+                    ctx.beginPath();
+                    ctx.arc(screenX + 2, screenY + 2, ENEMY_SIZE/2, 0, Math.PI*2);
+                    ctx.fill();
+                }
+            }
+        }
+        
+        function drawKeysAndExit() {
+            // Малый ключ
+            if (gameState.smallKey && !gameState.smallKey.collected) {
+                const screenX = gameState.smallKey.x - camera.x;
+                const screenY = gameState.smallKey.y - camera.y;
+                
+                if (screenX > -30 && screenX < camera.width+30 && 
+                    screenY > -30 && screenY < camera.height+30) {
+                    
+                    // Ключ
+                    ctx.fillStyle = '#FFFF00';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, 14, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Свечение
+                    ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, 20, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Буква М
+                    ctx.fillStyle = '#000';
+                    ctx.font = 'bold 16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('М', screenX, screenY);
+                }
+            }
+            
+            // Основной ключ
+            if (gameState.key && !gameState.key.collected && gameState.key.visible) {
+                const screenX = gameState.key.x - camera.x;
+                const screenY = gameState.key.y - camera.y;
+                
+                if (screenX > -30 && screenX < camera.width+30 && 
+                    screenY > -30 && screenY < camera.height+30) {
+                    
+                    // Ключ
+                    ctx.fillStyle = '#FFA500';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, 16, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Свечение
+                    ctx.fillStyle = 'rgba(255, 165, 0, 0.3)';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, 24, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Буква К
+                    ctx.fillStyle = '#000';
+                    ctx.font = 'bold 18px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText('К', screenX, screenY);
+                }
+            }
+            
+            // Выход
+            if (gameState.exit) {
+                const screenX = gameState.exit.x - camera.x;
+                const screenY = gameState.exit.y - camera.y;
+                
+                if (screenX > -30 && screenX < camera.width+30 && 
+                    screenY > -30 && screenY < camera.height+30) {
+                    
+                    ctx.fillStyle = gameState.player.hasKey ? '#00FF00' : '#555555';
+                    ctx.beginPath();
+                    ctx.arc(screenX, screenY, 20, 0, Math.PI*2);
+                    ctx.fill();
+                    
+                    // Свечение если открыт
+                    if (gameState.player.hasKey) {
+                        ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, 28, 0, Math.PI*2);
+                        ctx.fill();
+                    }
+                    
+                    // Стрелка
+                    ctx.fillStyle = '#000';
+                    ctx.beginPath();
+                    ctx.moveTo(screenX-10, screenY-8);
+                    ctx.lineTo(screenX+10, screenY);
+                    ctx.lineTo(screenX-10, screenY+8);
+                    ctx.closePath();
+                    ctx.fill();
+                }
+            }
+        }
+        
+        // ========== ОСНОВНОЙ ЦИКЛ ==========
+        function gameLoop(timestamp) {
+            const deltaTime = timestamp - gameState.lastUpdateTime;
+            gameState.lastUpdateTime = timestamp;
+            
+            movePlayer();
+            updateCamera();
+            updateProjectiles();
+            updateEnemies();
+            
+            // Очистка всего canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Отрисовка игры
+            drawMap();
+            drawSpikes();
+            drawChests();
+            drawKeysAndExit();
+            drawProjectiles();
+            drawEnemies();
+            drawPlayer();
+            drawLaserSight();
+            
+            if (!gameState.gameOver) {
+                requestAnimationFrame(gameLoop);
+            }
+        }
+        
+        // ========== ИНИЦИАЛИЗАЦИЯ ==========
+        function initGame() {
+            console.log("Инициализация новой игры...");
+            
+            gameState.player = {
+                x: 0,
+                y: 0,
+                hasKey: false,
+                hasSmallKey: false,
+                lastShotTime: 0,
+                canShoot: true,
+                openingChest: null,
+                chestProgress: 0
+            };
+            gameState.projectiles = [];
+            gameState.enemyProjectiles = [];
+            gameState.enemies = [];
+            gameState.skeletons = [];
+            gameState.spikes = [];
+            gameState.chests = [];
+            gameState.key = null;
+            gameState.smallKey = null;
+            gameState.exit = null;
+            gameState.doors = [];
+            gameState.smallDoors = [];
+            gameState.score = 0;
+            gameState.gameOver = false;
+            gameState.chestsOpened = 0;
+            gameState.chestsTotal = 3;
+            gameState.lastUpdateTime = 0;
+            
+            gameState.map = generateMap();
+            generateEnemies();
+            
+            camera.x = gameState.player.x - camera.width/2;
+            camera.y = gameState.player.y - camera.height/2;
+            
+            updateChestIndicator();
+            document.getElementById('chestProgress').style.display = 'none';
+            document.getElementById('gameOverScreen').style.display = 'none';
+            
+            console.log("Игра началась! Управление: WASD - движение, ЛКМ/Пробел - стрельба, E - открыть сундук");
+            
+            requestAnimationFrame(gameLoop);
+        }
+        
+        // ========== УПРАВЛЕНИЕ ==========
+        document.addEventListener('keydown', (e) => {
+            const key = e.key.toLowerCase();
+            if (key in gameState.keys) {
+                gameState.keys[key] = true;
+            }
+            
+            if (key === ' ' || key === 'spacebar') {
+                shootProjectile();
+                e.preventDefault();
+            }
+            
+            // Для отладки
+            if (key === 'r') {
+                initGame();
+            }
+        });
+        
+        document.addEventListener('keyup', (e) => {
+            const key = e.key.toLowerCase();
+            if (key in gameState.keys) {
+                gameState.keys[key] = false;
+            }
+        });
+        
+        canvas.addEventListener('mousemove', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            gameState.mouseX = e.clientX - rect.left;
+            gameState.mouseY = e.clientY - rect.top;
+        });
+        
+        canvas.addEventListener('mousedown', (e) => {
+            if (e.button === 0) {
+                shootProjectile();
+                e.preventDefault();
+            }
+        });
+        
+        document.getElementById('restartBtn').addEventListener('click', initGame);
+        
+        window.addEventListener('load', initGame);
+        
+        // Фокус на canvas для управления
+        canvas.tabIndex = 0;
+        canvas.focus();
+        canvas.addEventListener('click', () => canvas.focus());
+    </script>
+</body>
+</html>
