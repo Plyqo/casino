@@ -254,6 +254,22 @@
             font-size: 20px;
             margin-bottom: 10px;
         }
+        
+        .bat-attack-indicator {
+            position: absolute;
+            top: 120px;
+            right: 20px;
+            background-color: rgba(139, 0, 139, 0.8);
+            padding: 10px 20px;
+            border-radius: 10px;
+            color: white;
+            font-size: 14px;
+            z-index: 10;
+            text-align: center;
+            border: 2px solid #FF00FF;
+            pointer-events: none;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -264,6 +280,7 @@
             <div class="chest-indicator" id="chestIndicator">Сундуков: 0/3</div>
             <div class="lives-indicator" id="livesIndicator">Жизни: ❤❤❤</div>
             <div class="score-indicator" id="scoreIndicator">Счет: 0</div>
+            <div class="bat-attack-indicator" id="batAttackIndicator">Мышь атакует: 0%</div>
             <div class="chest-progress" id="chestProgress">
                 <div id="chestText">Открытие сундука... (Удерживайте E)</div>
                 <div class="progress-bar">
@@ -288,6 +305,7 @@
             <p><strong>ЛКМ/Пробел</strong> - стрельба</p>
             <p><strong>E</strong> - открыть сундук</p>
             <p><strong>3 жизни</strong>, потом новый уровень</p>
+            <p><strong>Летучие мыши</strong>: убивают за 2 секунды</p>
         </div>
     </div>
 
@@ -307,14 +325,14 @@
         window.addEventListener('resize', resizeCanvas);
         
         // Константы игры
-        const TILE_SIZE = 60; // Увеличиваем тайлы для лучшего обзора
-        const MAP_WIDTH = 40; // Уменьшаем карту для лучшей производительности
-        const MAP_HEIGHT = 30; // Уменьшаем карту для лучшей производительности
+        const TILE_SIZE = 60;
+        const MAP_WIDTH = 40;
+        const MAP_HEIGHT = 30;
         const PLAYER_SIZE = 24;
         const PLAYER_SPEED = 6;
         const PROJECTILE_SPEED = 12;
         const PROJECTILE_SIZE = 8;
-        const PLAYER_SHOOT_DELAY = 400; // 0.4 секунды задержка
+        const PLAYER_SHOOT_DELAY = 400;
         const ENEMY_SIZE = 28;
         const ENEMY_SPEED = 2.5;
         const ENEMY_VISION_RANGE = 400;
@@ -322,13 +340,14 @@
         const SKELETON_SHOOT_RANGE = 450;
         const SKELETON_PROJECTILE_SPEED = 8;
         const BAT_SIZE = 20;
-        const BAT_SPEED = 3.5;
+        const BAT_SPEED = 4.5; // Увеличена скорость летучих мышей
         const BAT_VISION_RANGE = 500;
+        const BAT_ATTACK_TIME = 120; // 2 секунды при 60 FPS
         const LASER_LENGTH = 200;
         const PLAYER_LIVES = 3;
-        const RESPAWN_TIME = 3; // секунды
+        const RESPAWN_TIME = 3;
         
-        // Камера - приближенная к игроку
+        // Камера
         const camera = {
             x: 0,
             y: 0,
@@ -372,8 +391,8 @@
             smallDoors: [],
             score: 0,
             gameOver: false,
-            mouseX: 0,
-            mouseY: 0,
+            mouseX: canvas.width / 2,
+            mouseY: canvas.height / 2,
             keys: {
                 w: false,
                 a: false,
@@ -384,10 +403,12 @@
             chestsOpened: 0,
             chestsTotal: 3,
             lastUpdateTime: 0,
-            crosshairVisible: true
+            crosshairVisible: true,
+            attackingBat: null,
+            batAttackProgress: 0
         };
         
-        // ========== ОПТИМИЗИРОВАННАЯ ГЕНЕРАЦИЯ КАРТЫ ==========
+        // ========== ГЕНЕРАЦИЯ КАРТЫ (без изменений) ==========
         function generateMap() {
             console.log("Генерация новой карты...");
             
@@ -395,11 +416,10 @@
             for (let y = 0; y < MAP_HEIGHT; y++) {
                 map[y] = [];
                 for (let x = 0; x < MAP_WIDTH; x++) {
-                    map[y][x] = 1; // 1 = стена, 0 = проход
+                    map[y][x] = 1;
                 }
             }
             
-            // Стартовая позиция
             const startX = 5;
             const startY = Math.floor(MAP_HEIGHT / 2);
             gameState.player.x = startX * TILE_SIZE + TILE_SIZE / 2;
@@ -408,23 +428,15 @@
             gameState.player.startY = gameState.player.y;
             map[startY][startX] = 0;
             
-            // Генерация лабиринта
             generateMaze(map, startX, startY);
             
-            // 3 открытых пространства
             const spaces = createOpenSpaces(map);
-            
-            // Шипы
             createSpikes(map, spaces);
-            
-            // Размещение объектов
             placeSmallKey(map);
             placeChests(map, spaces);
             placeMainKey(map);
             placeExit(map);
             createDoors(map);
-            
-            // Проверяем проходимость
             ensureAccessibility(map);
             
             console.log("Карта сгенерирована");
@@ -461,7 +473,6 @@
                 }
             }
             
-            // Дополнительные проходы
             for (let i = 0; i < 150; i++) {
                 const x = Math.floor(Math.random()*(MAP_WIDTH-4))+2;
                 const y = Math.floor(Math.random()*(MAP_HEIGHT-4))+2;
@@ -503,13 +514,10 @@
         function createSpikes(map, spaces) {
             gameState.spikes = [];
             
-            // Немного шипов в проходах
             for (let y = 0; y < MAP_HEIGHT; y++) {
                 for (let x = 0; x < MAP_WIDTH; x++) {
                     if (map[y][x] === 0) {
-                        // 2% шанс в проходах
                         if (Math.random() < 0.02) {
-                            // Проверяем, не рядом ли со стартом
                             const startX = Math.floor(gameState.player.x/TILE_SIZE);
                             const startY = Math.floor(gameState.player.y/TILE_SIZE);
                             const dist = Math.sqrt((x-startX)**2 + (y-startY)**2);
@@ -526,7 +534,6 @@
                 }
             }
             
-            // Шипы в открытых пространствах
             spaces.forEach(space => {
                 for (let i = 0; i < space.size*2; i++) {
                     const dx = Math.floor(Math.random()*(space.size*2+1))-space.size;
@@ -647,7 +654,6 @@
             gameState.doors = [];
             gameState.smallDoors = [];
             
-            // Большие двери
             const doorPositions = [
                 {x: Math.floor(MAP_WIDTH*0.65), y: Math.floor(MAP_HEIGHT*0.5)},
                 {x: Math.floor(MAP_WIDTH*0.55), y: Math.floor(MAP_HEIGHT*0.65)}
@@ -664,7 +670,6 @@
                 }
             });
             
-            // Маленькие двери
             const smallDoorPos = [
                 {x: Math.floor(MAP_WIDTH*0.45), y: Math.floor(MAP_HEIGHT*0.45)}
             ];
@@ -682,7 +687,6 @@
         }
         
         function ensureAccessibility(map) {
-            // Убираем шипы в радиусе 3 клеток от важных объектов
             const importantTiles = [];
             
             if (gameState.smallKey) {
@@ -744,6 +748,16 @@
             document.getElementById('scoreIndicator').textContent = `Счет: ${gameState.score}`;
         }
         
+        function updateBatAttackIndicator() {
+            if (gameState.attackingBat && gameState.batAttackProgress > 0) {
+                const percent = Math.min(100, (gameState.batAttackProgress / BAT_ATTACK_TIME) * 100);
+                document.getElementById('batAttackIndicator').textContent = `Мышь атакует: ${Math.round(percent)}%`;
+                document.getElementById('batAttackIndicator').style.display = 'block';
+            } else {
+                document.getElementById('batAttackIndicator').style.display = 'none';
+            }
+        }
+        
         // ========== КОЛЛИЗИИ ==========
         function isWall(x, y) {
             const tileX = Math.floor(x/TILE_SIZE);
@@ -781,12 +795,11 @@
             return true;
         }
         
-        function enemyCanMoveTo(x, y, size = ENEMY_SIZE) {
-            // Для врагов проверяем более строго
-            if (!canMoveTo(x, y, size)) return false;
+        // Функция для проверки движения летучей мыши с учетом стен
+        function batCanMoveTo(x, y) {
+            if (isWall(x, y)) return false;
             
-            // Дополнительная проверка для врагов
-            const radius = size/2;
+            const radius = BAT_SIZE/2;
             const angles = [0, Math.PI/4, Math.PI/2, 3*Math.PI/4, Math.PI, 5*Math.PI/4, 3*Math.PI/2, 7*Math.PI/4];
             
             for (const angle of angles) {
@@ -798,6 +811,39 @@
                 }
             }
             
+            return true;
+        }
+        
+        // Функция для летучих мышей - они могут летать, но не через стены
+        function moveBatTowards(bat, targetX, targetY) {
+            const dx = targetX - bat.x;
+            const dy = targetY - bat.y;
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            
+            if (dist > 0) {
+                const moveX = bat.x + (dx/dist) * BAT_SPEED;
+                const moveY = bat.y + (dy/dist) * BAT_SPEED;
+                
+                // Проверяем, может ли мышь переместиться в новую позицию
+                if (batCanMoveTo(moveX, moveY)) {
+                    bat.x = moveX;
+                    bat.y = moveY;
+                    return true;
+                } else {
+                    // Если не может, пытаемся обойти
+                    const angles = [Math.PI/4, -Math.PI/4, Math.PI/2, -Math.PI/2, 3*Math.PI/4, -3*Math.PI/4];
+                    for (const angle of angles) {
+                        const newX = bat.x + Math.cos(angle) * BAT_SPEED;
+                        const newY = bat.y + Math.sin(angle) * BAT_SPEED;
+                        if (batCanMoveTo(newX, newY)) {
+                            bat.x = newX;
+                            bat.y = newY;
+                            return true;
+                        }
+                    }
+                    return false;
+                }
+            }
             return true;
         }
         
@@ -819,7 +865,6 @@
                 moveY *= 0.7071;
             }
             
-            // Движение по X
             if (moveX !== 0) {
                 const newX = player.x + moveX;
                 if (canMoveTo(newX, player.y)) {
@@ -827,7 +872,6 @@
                 }
             }
             
-            // Движение по Y
             if (moveY !== 0) {
                 const newY = player.y + moveY;
                 if (canMoveTo(player.x, newY)) {
@@ -835,18 +879,16 @@
                 }
             }
             
-            // Сбор ключей
             checkKeyCollection();
             checkChestInteraction();
             checkSpikeCollision();
+            checkBatAttack();
             
-            // Обновление задержки выстрела
             const currentTime = Date.now();
             if (currentTime - player.lastShotTime > PLAYER_SHOOT_DELAY) {
                 player.canShoot = true;
             }
             
-            // Обновление неуязвимости
             if (player.invulnerable) {
                 player.invulnerableTimer--;
                 if (player.invulnerableTimer <= 0) {
@@ -858,7 +900,6 @@
         function checkKeyCollection() {
             const player = gameState.player;
             
-            // Малый ключ
             if (gameState.smallKey && !gameState.smallKey.collected) {
                 const dx = player.x - gameState.smallKey.x;
                 const dy = player.y - gameState.smallKey.y;
@@ -875,7 +916,6 @@
                 }
             }
             
-            // Основной ключ
             if (gameState.key && !gameState.key.collected && gameState.key.visible) {
                 const dx = player.x - gameState.key.x;
                 const dy = player.y - gameState.key.y;
@@ -892,7 +932,6 @@
                 }
             }
             
-            // Выход
             if (gameState.exit && player.hasKey) {
                 const dx = player.x - gameState.exit.x;
                 const dy = player.y - gameState.exit.y;
@@ -920,11 +959,55 @@
             }
         }
         
+        function checkBatAttack() {
+            const player = gameState.player;
+            if (player.invulnerable || player.respawning) {
+                gameState.attackingBat = null;
+                gameState.batAttackProgress = 0;
+                updateBatAttackIndicator();
+                return;
+            }
+            
+            let closestBat = null;
+            let closestDist = Infinity;
+            
+            for (const bat of gameState.bats) {
+                const dx = player.x - bat.x;
+                const dy = player.y - bat.y;
+                const dist = Math.sqrt(dx*dx + dy*dy);
+                
+                if (dist < (PLAYER_SIZE/2 + BAT_SIZE/2) + 10) {
+                    if (dist < closestDist) {
+                        closestDist = dist;
+                        closestBat = bat;
+                    }
+                }
+            }
+            
+            if (closestBat) {
+                if (gameState.attackingBat === closestBat) {
+                    gameState.batAttackProgress++;
+                    if (gameState.batAttackProgress >= BAT_ATTACK_TIME) {
+                        console.log("Игрок погиб от летучей мыши!");
+                        playerDie();
+                        gameState.batAttackProgress = 0;
+                    }
+                } else {
+                    gameState.attackingBat = closestBat;
+                    gameState.batAttackProgress = 1;
+                }
+            } else {
+                gameState.attackingBat = null;
+                gameState.batAttackProgress = 0;
+            }
+            
+            updateBatAttackIndicator();
+        }
+        
         function checkChestInteraction() {
             const player = gameState.player;
             const keys = gameState.keys;
             
-            // Сбрасываем прогресс если отошли
             if (player.openingChest) {
                 const chest = player.openingChest;
                 const dx = player.x - chest.x;
@@ -960,7 +1043,6 @@
                     }
                 }
             } else if (keys.e) {
-                // Ищем ближайший сундук
                 for (const chest of gameState.chests) {
                     if (!chest.opened) {
                         const dx = player.x - chest.x;
@@ -985,22 +1067,18 @@
         function updateCamera() {
             const player = gameState.player;
             
-            // Целевая позиция - игрок по центру
             const targetX = player.x - camera.width/(2*camera.zoom);
             const targetY = player.y - camera.height/(2*camera.zoom);
             
-            // Плавное следование
             camera.x += (targetX - camera.x) * camera.followSpeed;
             camera.y += (targetY - camera.y) * camera.followSpeed;
             
-            // Ограничение
             const maxX = MAP_WIDTH*TILE_SIZE - camera.width/camera.zoom;
             const maxY = MAP_HEIGHT*TILE_SIZE - camera.height/camera.zoom;
             
             camera.x = Math.max(0, Math.min(maxX, camera.x));
             camera.y = Math.max(0, Math.min(maxY, camera.y));
             
-            // Обновление позиции прицела
             updateCrosshair();
         }
         
@@ -1022,24 +1100,24 @@
             updateLivesIndicator();
             
             if (player.lives <= 0) {
-                // Полная смерть
                 gameState.gameOver = true;
                 document.getElementById('finalScore').textContent = gameState.score;
                 document.getElementById('gameOverScreen').style.display = 'flex';
             } else {
-                // Возрождение
                 player.respawning = true;
-                player.respawnTimer = RESPAWN_TIME * 60; // 60 FPS
+                player.respawnTimer = RESPAWN_TIME * 60;
                 player.invulnerable = true;
-                player.invulnerableTimer = 120; // 2 секунды неуязвимости
+                player.invulnerableTimer = 120;
                 
                 document.getElementById('remainingLives').textContent = player.lives;
                 document.getElementById('respawnTimer').textContent = RESPAWN_TIME;
                 document.getElementById('respawnScreen').style.display = 'flex';
                 
-                // Очищаем снаряды
                 gameState.projectiles = [];
                 gameState.enemyProjectiles = [];
+                gameState.attackingBat = null;
+                gameState.batAttackProgress = 0;
+                updateBatAttackIndicator();
             }
         }
         
@@ -1049,7 +1127,6 @@
             if (player.respawning) {
                 player.respawnTimer--;
                 
-                // Обновляем таймер на экране
                 const seconds = Math.ceil(player.respawnTimer / 60);
                 document.getElementById('respawnTimer').textContent = seconds;
                 
@@ -1067,8 +1144,10 @@
             if (gameState.gameOver || !gameState.player.canShoot || gameState.player.respawning) return;
             
             const player = gameState.player;
-            const mouseWorldX = gameState.mouseX + camera.x;
-            const mouseWorldY = gameState.mouseY + camera.y;
+            
+            // Получаем мировые координаты мыши из позиции прицела
+            const mouseWorldX = (gameState.mouseX / camera.zoom) + camera.x;
+            const mouseWorldY = (gameState.mouseY / camera.zoom) + camera.y;
             
             const dx = mouseWorldX - player.x;
             const dy = mouseWorldY - player.y;
@@ -1092,7 +1171,6 @@
         }
         
         function updateProjectiles() {
-            // Снаряды игрока
             for (let i = gameState.projectiles.length-1; i >= 0; i--) {
                 const proj = gameState.projectiles[i];
                 
@@ -1104,7 +1182,6 @@
                     continue;
                 }
                 
-                // Проверка по врагам
                 for (let j = gameState.enemies.length-1; j >= 0; j--) {
                     const enemy = gameState.enemies[j];
                     const dx = proj.x - enemy.x;
@@ -1120,7 +1197,6 @@
                     }
                 }
                 
-                // Проверка по скелетам
                 for (let j = gameState.skeletons.length-1; j >= 0; j--) {
                     const skeleton = gameState.skeletons[j];
                     const dx = proj.x - skeleton.x;
@@ -1136,7 +1212,6 @@
                     }
                 }
                 
-                // Проверка по летучим мышам
                 for (let j = gameState.bats.length-1; j >= 0; j--) {
                     const bat = gameState.bats[j];
                     const dx = proj.x - bat.x;
@@ -1148,12 +1223,17 @@
                         gameState.projectiles.splice(i, 1);
                         gameState.score += 15;
                         updateScoreIndicator();
+                        
+                        if (gameState.attackingBat === bat) {
+                            gameState.attackingBat = null;
+                            gameState.batAttackProgress = 0;
+                            updateBatAttackIndicator();
+                        }
                         break;
                     }
                 }
             }
             
-            // Снаряды врагов
             for (let i = gameState.enemyProjectiles.length-1; i >= 0; i--) {
                 const proj = gameState.enemyProjectiles[i];
                 
@@ -1165,7 +1245,6 @@
                     continue;
                 }
                 
-                // Проверка по игроку
                 const player = gameState.player;
                 if (player.respawning || player.invulnerable) continue;
                 
@@ -1188,14 +1267,13 @@
             gameState.skeletons = [];
             gameState.bats = [];
             
-            // Обычные враги
             for (let i = 0; i < 12; i++) {
                 let placed = false;
                 for (let attempts = 0; attempts < 50 && !placed; attempts++) {
                     const x = Math.floor(Math.random()*(MAP_WIDTH-6)+3)*TILE_SIZE + TILE_SIZE/2;
                     const y = Math.floor(Math.random()*(MAP_HEIGHT-6)+3)*TILE_SIZE + TILE_SIZE/2;
                     
-                    if (!isWall(x, y) && enemyCanMoveTo(x, y)) {
+                    if (!isWall(x, y) && canMoveTo(x, y, ENEMY_SIZE)) {
                         const hasSpike = gameState.spikes.find(s => 
                             Math.abs(s.x - x) < TILE_SIZE && Math.abs(s.y - y) < TILE_SIZE
                         );
@@ -1226,14 +1304,13 @@
                 }
             }
             
-            // Скелеты
             for (let i = 0; i < 8; i++) {
                 let placed = false;
                 for (let attempts = 0; attempts < 50 && !placed; attempts++) {
                     const x = Math.floor(Math.random()*(MAP_WIDTH-6)+3)*TILE_SIZE + TILE_SIZE/2;
                     const y = Math.floor(Math.random()*(MAP_HEIGHT-6)+3)*TILE_SIZE + TILE_SIZE/2;
                     
-                    if (!isWall(x, y) && enemyCanMoveTo(x, y)) {
+                    if (!isWall(x, y) && canMoveTo(x, y, ENEMY_SIZE)) {
                         const hasSpike = gameState.spikes.find(s => 
                             Math.abs(s.x - x) < TILE_SIZE && Math.abs(s.y - y) < TILE_SIZE
                         );
@@ -1265,14 +1342,13 @@
                 }
             }
             
-            // Летучие мыши
             for (let i = 0; i < 6; i++) {
                 let placed = false;
                 for (let attempts = 0; attempts < 50 && !placed; attempts++) {
                     const x = Math.floor(Math.random()*(MAP_WIDTH-6)+3)*TILE_SIZE + TILE_SIZE/2;
                     const y = Math.floor(Math.random()*(MAP_HEIGHT-6)+3)*TILE_SIZE + TILE_SIZE/2;
                     
-                    if (!isWall(x, y)) {
+                    if (!isWall(x, y) && batCanMoveTo(x, y)) {
                         const hasSpike = gameState.spikes.find(s => 
                             Math.abs(s.x - x) < TILE_SIZE && Math.abs(s.y - y) < TILE_SIZE
                         );
@@ -1292,7 +1368,8 @@
                                         x: x + (Math.random()*400-200),
                                         y: y + (Math.random()*400-200)
                                     },
-                                    stuckTimer: 0
+                                    stuckTimer: 0,
+                                    attackTimer: 0
                                 });
                                 placed = true;
                             }
@@ -1323,7 +1400,7 @@
             const player = gameState.player;
             if (player.respawning) return;
             
-            // Обычные враги
+            // Обычные враги (без изменений)
             for (const enemy of gameState.enemies) {
                 const dx = player.x - enemy.x;
                 const dy = player.y - enemy.y;
@@ -1339,7 +1416,7 @@
                             const targetX = enemy.x + (dx/dist)*moveDist;
                             const targetY = enemy.y + (dy/dist)*moveDist;
                             
-                            if (enemyCanMoveTo(targetX, targetY)) {
+                            if (canMoveTo(targetX, targetY, ENEMY_SIZE)) {
                                 enemy.x = targetX;
                                 enemy.y = targetY;
                                 enemy.stuckX = enemy.x;
@@ -1363,7 +1440,7 @@
                             const targetX = enemy.x + (dx/dist)*moveDist;
                             const targetY = enemy.y + (dy/dist)*moveDist;
                             
-                            if (enemyCanMoveTo(targetX, targetY)) {
+                            if (canMoveTo(targetX, targetY, ENEMY_SIZE)) {
                                 enemy.x = targetX;
                                 enemy.y = targetY;
                             }
@@ -1378,7 +1455,6 @@
                         };
                     }
                 } else {
-                    // Патрулирование
                     const targetDx = enemy.patrolTarget.x - enemy.x;
                     const targetDy = enemy.patrolTarget.y - enemy.y;
                     const targetDist = Math.sqrt(targetDx*targetDx + targetDy*targetDy);
@@ -1389,7 +1465,7 @@
                             const moveX = enemy.x + (targetDx/targetDist)*moveDist;
                             const moveY = enemy.y + (targetDy/targetDist)*moveDist;
                             
-                            if (enemyCanMoveTo(moveX, moveY)) {
+                            if (canMoveTo(moveX, moveY, ENEMY_SIZE)) {
                                 enemy.x = moveX;
                                 enemy.y = moveY;
                             } else {
@@ -1407,7 +1483,6 @@
                     }
                 }
                 
-                // Столкновение с игроком
                 if (!player.invulnerable && !player.respawning) {
                     const collisionDist = Math.sqrt(
                         Math.pow(player.x - enemy.x, 2) + Math.pow(player.y - enemy.y, 2)
@@ -1420,7 +1495,7 @@
                 }
             }
             
-            // Скелеты
+            // Скелеты (без изменений)
             for (const skeleton of gameState.skeletons) {
                 const dx = player.x - skeleton.x;
                 const dy = player.y - skeleton.y;
@@ -1429,7 +1504,6 @@
                 skeleton.shootCooldown--;
                 
                 if (dist < SKELETON_SHOOT_RANGE && hasLineOfSight(skeleton.x, skeleton.y, player.x, player.y)) {
-                    // Стрельба
                     if (skeleton.shootCooldown <= 0) {
                         const dirX = dx/dist;
                         const dirY = dy/dist;
@@ -1445,21 +1519,19 @@
                         skeleton.shootCooldown = 40 + Math.random()*40;
                     }
                     
-                    // Движение
                     if (dist > ENEMY_SIZE*2) {
                         const moveDist = Math.min(skeleton.speed * 0.4, dist - ENEMY_SIZE);
                         if (moveDist > 0) {
                             const targetX = skeleton.x + (dx/dist)*moveDist;
                             const targetY = skeleton.y + (dy/dist)*moveDist;
                             
-                            if (enemyCanMoveTo(targetX, targetY)) {
+                            if (canMoveTo(targetX, targetY, ENEMY_SIZE)) {
                                 skeleton.x = targetX;
                                 skeleton.y = targetY;
                             }
                         }
                     }
                 } else {
-                    // Патрулирование
                     const targetDx = skeleton.patrolTarget.x - skeleton.x;
                     const targetDy = skeleton.patrolTarget.y - skeleton.y;
                     const targetDist = Math.sqrt(targetDx*targetDx + targetDy*targetDy);
@@ -1470,7 +1542,7 @@
                             const moveX = skeleton.x + (targetDx/targetDist)*moveDist;
                             const moveY = skeleton.y + (targetDy/targetDist)*moveDist;
                             
-                            if (enemyCanMoveTo(moveX, moveY)) {
+                            if (canMoveTo(moveX, moveY, ENEMY_SIZE)) {
                                 skeleton.x = moveX;
                                 skeleton.y = moveY;
                             } else {
@@ -1488,7 +1560,6 @@
                     }
                 }
                 
-                // Столкновение скелета с игроком
                 if (!player.invulnerable && !player.respawning) {
                     const collisionDist = Math.sqrt(
                         Math.pow(player.x - skeleton.x, 2) + Math.pow(player.y - skeleton.y, 2)
@@ -1501,52 +1572,39 @@
                 }
             }
             
-            // Летучие мыши
+            // Летучие мыши (исправлены - теперь не проходят сквозь стены)
             for (const bat of gameState.bats) {
                 const dx = player.x - bat.x;
                 const dy = player.y - bat.y;
                 const dist = Math.sqrt(dx*dx + dy*dy);
                 
-                if (dist < BAT_VISION_RANGE) {
-                    // Преследование игрока
+                if (dist < BAT_VISION_RANGE && hasLineOfSight(bat.x, bat.y, player.x, player.y)) {
                     bat.state = 'chase';
-                    
-                    if (dist > BAT_SIZE) {
-                        const moveDist = Math.min(bat.speed, dist - BAT_SIZE/2);
-                        if (moveDist > 0) {
-                            bat.x += (dx/dist)*moveDist;
-                            bat.y += (dy/dist)*moveDist;
-                        }
-                    }
+                    moveBatTowards(bat, player.x, player.y);
                 } else {
-                    // Патрулирование
-                    const targetDx = bat.patrolTarget.x - bat.x;
-                    const targetDy = bat.patrolTarget.y - bat.y;
-                    const targetDist = Math.sqrt(targetDx*targetDx + targetDy*targetDy);
-                    
-                    if (targetDist > 40) {
-                        const moveDist = Math.min(bat.speed * 0.6, targetDist);
-                        if (moveDist > 0) {
-                            bat.x += (targetDx/targetDist)*moveDist;
-                            bat.y += (targetDy/targetDist)*moveDist;
+                    if (bat.state === 'chase') {
+                        if (Math.random() < 0.02) {
+                            bat.state = 'patrol';
+                            bat.patrolTarget = {
+                                x: bat.x + (Math.random()*400-200),
+                                y: bat.y + (Math.random()*400-200)
+                            };
+                        } else {
+                            moveBatTowards(bat, player.x, player.y);
                         }
                     } else {
-                        bat.patrolTarget = {
-                            x: bat.x + (Math.random()*400-200),
-                            y: bat.y + (Math.random()*400-200)
-                        };
-                    }
-                }
-                
-                // Столкновение летучей мыши с игроком
-                if (!player.invulnerable && !player.respawning) {
-                    const collisionDist = Math.sqrt(
-                        Math.pow(player.x - bat.x, 2) + Math.pow(player.y - bat.y, 2)
-                    );
-                    
-                    if (collisionDist < (PLAYER_SIZE/2 + BAT_SIZE/2) - 4) {
-                        console.log("Игрок погиб от летучей мыши!");
-                        playerDie();
+                        const targetDx = bat.patrolTarget.x - bat.x;
+                        const targetDy = bat.patrolTarget.y - bat.y;
+                        const targetDist = Math.sqrt(targetDx*targetDx + targetDy*targetDy);
+                        
+                        if (targetDist > 40) {
+                            moveBatTowards(bat, bat.patrolTarget.x, bat.patrolTarget.y);
+                        } else {
+                            bat.patrolTarget = {
+                                x: bat.x + (Math.random()*400-200),
+                                y: bat.y + (Math.random()*400-200)
+                            };
+                        }
                     }
                 }
             }
@@ -1562,6 +1620,8 @@
             gameState.player.lives = PLAYER_LIVES;
             gameState.player.invulnerable = true;
             gameState.player.invulnerableTimer = 120;
+            gameState.attackingBat = null;
+            gameState.batAttackProgress = 0;
             
             console.log("Новый уровень! Счет: " + gameState.score);
             
@@ -1579,6 +1639,7 @@
             updateChestIndicator();
             updateLivesIndicator();
             updateScoreIndicator();
+            updateBatAttackIndicator();
             document.getElementById('chestProgress').style.display = 'none';
         }
         
@@ -1597,25 +1658,21 @@
                     const tile = gameState.map[y][x];
                     
                     if (tile === 1) {
-                        // Стена
                         ctx.fillStyle = '#555555';
                         ctx.fillRect(tileX*scale, tileY*scale, TILE_SIZE*scale, TILE_SIZE*scale);
                         ctx.fillStyle = '#666666';
                         ctx.fillRect((tileX+2)*scale, (tileY+2)*scale, (TILE_SIZE-4)*scale, (TILE_SIZE-4)*scale);
                     } else if (tile === 2) {
-                        // Дверь
                         ctx.fillStyle = gameState.player.hasSmallKey ? '#8B4513' : '#654321';
                         ctx.fillRect(tileX*scale, tileY*scale, TILE_SIZE*scale, TILE_SIZE*scale);
                         ctx.fillStyle = gameState.player.hasSmallKey ? '#A0522D' : '#8B4513';
                         ctx.fillRect((tileX+3)*scale, (tileY+3)*scale, (TILE_SIZE-6)*scale, (TILE_SIZE-6)*scale);
                     } else if (tile === 3) {
-                        // Маленькая дверь
                         ctx.fillStyle = '#8B4513';
                         ctx.fillRect(tileX*scale, tileY*scale, TILE_SIZE*scale, TILE_SIZE*scale);
                         ctx.fillStyle = '#A0522D';
                         ctx.fillRect((tileX+6)*scale, (tileY+6)*scale, (TILE_SIZE-12)*scale, (TILE_SIZE-12)*scale);
                     } else if (tile === 0) {
-                        // Пол
                         ctx.fillStyle = '#333333';
                         ctx.fillRect(tileX*scale, tileY*scale, TILE_SIZE*scale, TILE_SIZE*scale);
                     }
@@ -1630,16 +1687,13 @@
                 const screenX = (spike.x - camera.x) * scale;
                 const screenY = (spike.y - camera.y) * scale;
                 
-                // Только если в поле зрения камеры
                 if (screenX > -60 && screenX < camera.width+60 && 
                     screenY > -60 && screenY < camera.height+60) {
-                    // Основание
                     ctx.fillStyle = '#444444';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, spike.size/2*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Шипы (3 острия)
                     ctx.fillStyle = '#ff0000';
                     for (let i = 0; i < 3; i++) {
                         const angle = (i * 2 * Math.PI / 3) + Math.PI/2;
@@ -1671,20 +1725,17 @@
                     screenY > -60 && screenY < camera.height+60) {
                     
                     if (chest.opened) {
-                        // Открытый сундук
                         ctx.fillStyle = '#8B4513';
                         ctx.fillRect(screenX-20*scale, screenY-15*scale, 40*scale, 25*scale);
                         
                         ctx.fillStyle = '#D2691E';
                         ctx.fillRect(screenX-16*scale, screenY-10*scale, 32*scale, 8*scale);
                         
-                        // Сокровища
                         ctx.fillStyle = '#FFD700';
                         ctx.beginPath();
                         ctx.arc(screenX, screenY, 8*scale, 0, Math.PI*2);
                         ctx.fill();
                         
-                        // Монетки
                         ctx.fillStyle = '#FFC125';
                         ctx.beginPath();
                         ctx.arc(screenX-8*scale, screenY+3*scale, 4*scale, 0, Math.PI*2);
@@ -1694,26 +1745,22 @@
                         ctx.arc(screenX+8*scale, screenY-3*scale, 4*scale, 0, Math.PI*2);
                         ctx.fill();
                     } else {
-                        // Закрытый сундук
                         ctx.fillStyle = '#8B4513';
                         ctx.fillRect(screenX-20*scale, screenY-15*scale, 40*scale, 30*scale);
                         
                         ctx.fillStyle = '#D2691E';
                         ctx.fillRect(screenX-16*scale, screenY-10*scale, 32*scale, 20*scale);
                         
-                        // Замок
                         ctx.fillStyle = '#FFD700';
                         ctx.beginPath();
                         ctx.arc(screenX, screenY-3*scale, 6*scale, 0, Math.PI*2);
                         ctx.fill();
                         
-                        // Ключевое отверстие
                         ctx.fillStyle = '#000';
                         ctx.beginPath();
                         ctx.arc(screenX, screenY-3*scale, 2*scale, 0, Math.PI*2);
                         ctx.fill();
                         
-                        // Если игрок открывает этот сундук
                         if (chest.opening) {
                             ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
                             ctx.fillRect(screenX-20*scale, screenY-15*scale, 40*scale, 30*scale);
@@ -1729,19 +1776,18 @@
             const screenX = (player.x - camera.x) * scale;
             const screenY = (player.y - camera.y) * scale;
             
-            if (player.respawning || player.invulnerable && Math.floor(Date.now()/200) % 2 === 0) {
-                return; // Мигание при возрождении/неуязвимости
+            if (player.respawning || (player.invulnerable && Math.floor(Date.now()/200) % 2 === 0)) {
+                return;
             }
             
-            // Тело
             ctx.fillStyle = '#4a9de3';
             ctx.beginPath();
             ctx.arc(screenX, screenY, PLAYER_SIZE/2*scale, 0, Math.PI*2);
             ctx.fill();
             
-            // Глаз
-            const mouseWorldX = gameState.mouseX + camera.x;
-            const mouseWorldY = gameState.mouseY + camera.y;
+            // Получаем мировые координаты мыши из позиции прицела
+            const mouseWorldX = (gameState.mouseX / camera.zoom) + camera.x;
+            const mouseWorldY = (gameState.mouseY / camera.zoom) + camera.y;
             const angle = Math.atan2(mouseWorldY - player.y, mouseWorldX - player.x);
             
             const eyeX = screenX + Math.cos(angle)*(PLAYER_SIZE/4*scale);
@@ -1757,7 +1803,6 @@
             ctx.arc(eyeX, eyeY, PLAYER_SIZE/12*scale, 0, Math.PI*2);
             ctx.fill();
             
-            // Оружие
             ctx.strokeStyle = '#333';
             ctx.lineWidth = 3*scale;
             ctx.beginPath();
@@ -1772,8 +1817,10 @@
             
             const player = gameState.player;
             const scale = camera.zoom;
-            const mouseWorldX = gameState.mouseX + camera.x;
-            const mouseWorldY = gameState.mouseY + camera.y;
+            
+            // Получаем мировые координаты мыши из позиции прицела
+            const mouseWorldX = (gameState.mouseX / camera.zoom) + camera.x;
+            const mouseWorldY = (gameState.mouseY / camera.zoom) + camera.y;
             
             const dx = mouseWorldX - player.x;
             const dy = mouseWorldY - player.y;
@@ -1816,7 +1863,6 @@
         function drawProjectiles() {
             const scale = camera.zoom;
             
-            // Снаряды игрока
             ctx.fillStyle = '#f0a500';
             for (const proj of gameState.projectiles) {
                 const screenX = (proj.x - camera.x) * scale;
@@ -1827,7 +1873,6 @@
                     ctx.arc(screenX, screenY, PROJECTILE_SIZE*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Свечение
                     ctx.fillStyle = 'rgba(240, 165, 0, 0.3)';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, PROJECTILE_SIZE*1.5*scale, 0, Math.PI*2);
@@ -1836,7 +1881,6 @@
                 }
             }
             
-            // Снаряды врагов
             ctx.fillStyle = '#ff5555';
             for (const proj of gameState.enemyProjectiles) {
                 const screenX = (proj.x - camera.x) * scale;
@@ -1847,7 +1891,6 @@
                     ctx.arc(screenX, screenY, PROJECTILE_SIZE*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Свечение
                     ctx.fillStyle = 'rgba(255, 85, 85, 0.3)';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, PROJECTILE_SIZE*1.5*scale, 0, Math.PI*2);
@@ -1860,7 +1903,6 @@
         function drawEnemies() {
             const scale = camera.zoom;
             
-            // Обычные враги
             for (const enemy of gameState.enemies) {
                 const screenX = (enemy.x - camera.x) * scale;
                 const screenY = (enemy.y - camera.y) * scale;
@@ -1868,19 +1910,16 @@
                 if (screenX > -60 && screenX < camera.width+60 && 
                     screenY > -60 && screenY < camera.height+60) {
                     
-                    // Тело
                     ctx.fillStyle = enemy.state === 'chase' ? '#ff4444' : '#d32f2f';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, ENEMY_SIZE/2*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Тень
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
                     ctx.beginPath();
                     ctx.arc(screenX + 2*scale, screenY + 2*scale, ENEMY_SIZE/2*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Глаз
                     const player = gameState.player;
                     const angle = Math.atan2(player.y - enemy.y, player.x - enemy.x);
                     
@@ -1897,7 +1936,6 @@
                     ctx.arc(eyeX, eyeY, ENEMY_SIZE/12*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Если преследует - индикатор
                     if (enemy.state === 'chase') {
                         ctx.strokeStyle = '#ff4444';
                         ctx.lineWidth = 2*scale;
@@ -1908,7 +1946,6 @@
                 }
             }
             
-            // Скелеты
             for (const skeleton of gameState.skeletons) {
                 const screenX = (skeleton.x - camera.x) * scale;
                 const screenY = (skeleton.y - camera.y) * scale;
@@ -1916,19 +1953,16 @@
                 if (screenX > -60 && screenX < camera.width+60 && 
                     screenY > -60 && screenY < camera.height+60) {
                     
-                    // Тело скелета
                     ctx.fillStyle = '#C0C0C0';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, ENEMY_SIZE/2*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Кости
                     ctx.fillStyle = '#FFFFFF';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, ENEMY_SIZE/3*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Глаза
                     const player = gameState.player;
                     const angle = Math.atan2(player.y - skeleton.y, player.x - skeleton.x);
                     
@@ -1940,13 +1974,11 @@
                     ctx.arc(eyeX, eyeY, ENEMY_SIZE/8*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Зрачки
                     ctx.fillStyle = '#000';
                     ctx.beginPath();
                     ctx.arc(eyeX, eyeY, ENEMY_SIZE/16*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Оружие скелета
                     ctx.strokeStyle = '#808080';
                     ctx.lineWidth = 3*scale;
                     ctx.beginPath();
@@ -1955,7 +1987,6 @@
                               screenY + Math.sin(angle)*(ENEMY_SIZE/2*scale+8*scale));
                     ctx.stroke();
                     
-                    // Тень
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
                     ctx.beginPath();
                     ctx.arc(screenX + 2*scale, screenY + 2*scale, ENEMY_SIZE/2*scale, 0, Math.PI*2);
@@ -1963,7 +1994,6 @@
                 }
             }
             
-            // Летучие мыши
             for (const bat of gameState.bats) {
                 const screenX = (bat.x - camera.x) * scale;
                 const screenY = (bat.y - camera.y) * scale;
@@ -1971,13 +2001,11 @@
                 if (screenX > -60 && screenX < camera.width+60 && 
                     screenY > -60 && screenY < camera.height+60) {
                     
-                    // Тело мыши
                     ctx.fillStyle = '#8B008B';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, BAT_SIZE/2*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Крылья
                     ctx.fillStyle = '#4B0082';
                     ctx.beginPath();
                     ctx.ellipse(screenX, screenY, BAT_SIZE*scale, BAT_SIZE/2*scale, Math.PI/4, 0, Math.PI*2);
@@ -1987,7 +2015,6 @@
                     ctx.ellipse(screenX, screenY, BAT_SIZE*scale, BAT_SIZE/2*scale, -Math.PI/4, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Глаза
                     const player = gameState.player;
                     const angle = Math.atan2(player.y - bat.y, player.x - bat.x);
                     
@@ -1999,19 +2026,26 @@
                     ctx.arc(eyeX, eyeY, BAT_SIZE/8*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Тень
                     ctx.fillStyle = 'rgba(0, 0, 0, 0.2)';
                     ctx.beginPath();
                     ctx.arc(screenX + 2*scale, screenY + 2*scale, BAT_SIZE/2*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Индикатор преследования
                     if (bat.state === 'chase') {
                         ctx.strokeStyle = '#FF00FF';
                         ctx.lineWidth = 2*scale;
                         ctx.beginPath();
                         ctx.arc(screenX, screenY, BAT_SIZE/2*scale + 6*scale, 0, Math.PI*2);
                         ctx.stroke();
+                    }
+                    
+                    // Если эта мышь атакует игрока, показываем индикатор
+                    if (gameState.attackingBat === bat) {
+                        const attackPercent = gameState.batAttackProgress / BAT_ATTACK_TIME;
+                        ctx.fillStyle = `rgba(255, 0, 255, ${0.3 + attackPercent * 0.7})`;
+                        ctx.beginPath();
+                        ctx.arc(screenX, screenY, (BAT_SIZE/2 + 10)*scale, 0, Math.PI*2);
+                        ctx.fill();
                     }
                 }
             }
@@ -2020,7 +2054,6 @@
         function drawKeysAndExit() {
             const scale = camera.zoom;
             
-            // Малый ключ
             if (gameState.smallKey && !gameState.smallKey.collected) {
                 const screenX = (gameState.smallKey.x - camera.x) * scale;
                 const screenY = (gameState.smallKey.y - camera.y) * scale;
@@ -2028,19 +2061,16 @@
                 if (screenX > -30 && screenX < camera.width+30 && 
                     screenY > -30 && screenY < camera.height+30) {
                     
-                    // Ключ
                     ctx.fillStyle = '#FFFF00';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, 14*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Свечение
                     ctx.fillStyle = 'rgba(255, 255, 0, 0.3)';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, 20*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Буква М
                     ctx.fillStyle = '#000';
                     ctx.font = `bold ${16*scale}px Arial`;
                     ctx.textAlign = 'center';
@@ -2049,7 +2079,6 @@
                 }
             }
             
-            // Основной ключ
             if (gameState.key && !gameState.key.collected && gameState.key.visible) {
                 const screenX = (gameState.key.x - camera.x) * scale;
                 const screenY = (gameState.key.y - camera.y) * scale;
@@ -2057,19 +2086,16 @@
                 if (screenX > -30 && screenX < camera.width+30 && 
                     screenY > -30 && screenY < camera.height+30) {
                     
-                    // Ключ
                     ctx.fillStyle = '#FFA500';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, 16*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Свечение
                     ctx.fillStyle = 'rgba(255, 165, 0, 0.3)';
                     ctx.beginPath();
                     ctx.arc(screenX, screenY, 24*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Буква К
                     ctx.fillStyle = '#000';
                     ctx.font = `bold ${18*scale}px Arial`;
                     ctx.textAlign = 'center';
@@ -2078,7 +2104,6 @@
                 }
             }
             
-            // Выход
             if (gameState.exit) {
                 const screenX = (gameState.exit.x - camera.x) * scale;
                 const screenY = (gameState.exit.y - camera.y) * scale;
@@ -2091,7 +2116,6 @@
                     ctx.arc(screenX, screenY, 20*scale, 0, Math.PI*2);
                     ctx.fill();
                     
-                    // Свечение если открыт
                     if (gameState.player.hasKey) {
                         ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
                         ctx.beginPath();
@@ -2099,7 +2123,6 @@
                         ctx.fill();
                     }
                     
-                    // Стрелка
                     ctx.fillStyle = '#000';
                     ctx.beginPath();
                     ctx.moveTo(screenX-10*scale, screenY-8*scale);
@@ -2122,10 +2145,8 @@
             updateEnemies();
             updateRespawn();
             
-            // Очистка всего canvas
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Отрисовка игры с учетом масштаба
             ctx.save();
             ctx.scale(camera.zoom, camera.zoom);
             
@@ -2184,6 +2205,8 @@
             gameState.chestsTotal = 3;
             gameState.lastUpdateTime = 0;
             gameState.crosshairVisible = true;
+            gameState.attackingBat = null;
+            gameState.batAttackProgress = 0;
             
             gameState.map = generateMap();
             generateEnemies();
@@ -2194,6 +2217,7 @@
             updateChestIndicator();
             updateLivesIndicator();
             updateScoreIndicator();
+            updateBatAttackIndicator();
             document.getElementById('chestProgress').style.display = 'none';
             document.getElementById('gameOverScreen').style.display = 'none';
             document.getElementById('respawnScreen').style.display = 'none';
@@ -2215,7 +2239,6 @@
                 e.preventDefault();
             }
             
-            // Для отладки
             if (key === 'r') {
                 initGame();
             }
@@ -2233,7 +2256,6 @@
             gameState.mouseX = e.clientX - rect.left;
             gameState.mouseY = e.clientY - rect.top;
             
-            // Обновляем позицию прицела
             crosshair.style.left = gameState.mouseX + 'px';
             crosshair.style.top = gameState.mouseY + 'px';
         });
@@ -2259,10 +2281,15 @@
         
         window.addEventListener('load', initGame);
         
-        // Фокус на canvas для управления
         canvas.tabIndex = 0;
         canvas.focus();
         canvas.addEventListener('click', () => canvas.focus());
+        
+        // Инициализация позиции мыши по центру
+        gameState.mouseX = canvas.width / 2;
+        gameState.mouseY = canvas.height / 2;
+        crosshair.style.left = gameState.mouseX + 'px';
+        crosshair.style.top = gameState.mouseY + 'px';
     </script>
 </body>
 </html>
