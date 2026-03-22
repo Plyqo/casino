@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Баланс и статус (с редактированием)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 1.5rem;
+        }
+
+        .card {
+            max-width: 650px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border-radius: 2rem;
+            padding: 2rem;
+            box-shadow: 0 25px 45px -12px rgba(0, 0, 0, 0.4);
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(120deg, #e0e7ff, #a5f3fc);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .sub {
+            color: #94a3b8;
+            margin-bottom: 1.5rem;
+            font-size: 0.9rem;
+            border-left: 3px solid #38bdf8;
+            padding-left: 0.75rem;
+        }
+
+        .token-area {
+            background: #0f172a;
+            border-radius: 1rem;
+            padding: 0.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .token-row {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .token-row input {
+            flex: 1;
+            background: #1e293b;
+            border: 1px solid #334155;
+            padding: 0.6rem 1rem;
+            border-radius: 1rem;
+            color: #f1f5f9;
+        }
+
+        button {
+            background: #3b82f6;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 1rem;
+            font-weight: 500;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        button.small {
+            padding: 0.4rem 0.8rem;
+            font-size: 0.8rem;
+        }
+        button.danger {
+            background: #dc2626;
+        }
+        button.success {
+            background: #10b981;
+        }
+        button:hover {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+
+        .search-area {
+            margin: 1.5rem 0;
+        }
+
+        .search-box {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .search-box input {
+            flex: 1;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 0.8rem 1rem;
+            border-radius: 1.5rem;
+            color: #f1f5f9;
+            font-size: 1rem;
+        }
+
+        .result-card {
+            background: #02061770;
+            border-radius: 1.25rem;
+            padding: 1.2rem;
+            margin: 1rem 0;
+        }
+
+        .info-line {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #334155;
+        }
+        .info-line:last-child {
+            border-bottom: none;
+        }
+        .label {
+            color: #94a3b8;
+        }
+        .value {
+            font-weight: 700;
+            font-size: 1.3rem;
+            color: #facc15;
+        }
+        .status-badge {
+            background: #1e293b;
+            padding: 0.2rem 0.8rem;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.8rem;
+            margin-top: 1rem;
+            justify-content: center;
+        }
+
+        .add-form {
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid #334155;
+        }
+        .add-form h3 {
+            color: #cbd5e6;
+            margin-bottom: 0.8rem;
+        }
+        .add-fields {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 0.8rem;
+        }
+        .add-fields input {
+            flex: 1;
+            min-width: 100px;
+            background: #0f172a;
+            border: 1px solid #334155;
+            padding: 0.6rem;
+            border-radius: 1rem;
+            color: white;
+        }
+
+        .message {
+            margin: 1rem 0;
+            padding: 0.5rem;
+            border-radius: 0.5rem;
+            font-size: 0.85rem;
+        }
+        .error {
+            background: rgba(220, 38, 38, 0.2);
+            color: #f87171;
+            border-left: 3px solid #ef4444;
+        }
+        .success {
+            background: rgba(16, 185, 129, 0.2);
+            color: #4ade80;
+            border-left: 3px solid #22c55e;
+        }
+        .loader {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.6s linear infinite;
+            margin-right: 6px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1>💰 Баланс и статус</h1>
+    <div class="sub">ID → баланс, статус. Изменения сохраняются в GitHub.</div>
+
+    <div class="token-area">
+        <div class="token-row">
+            <input type="password" id="githubToken" placeholder="GitHub Personal Access Token (public_repo)">
+            <button id="saveTokenBtn">💾 Сохранить</button>
+            <button id="clearTokenBtn" class="danger">🗑️ Очистить</button>
+        </div>
+        <div style="font-size:0.7rem; margin-top:0.4rem; color:#6b7280;">
+            Токен нужен для записи. <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=bd_manager" target="_blank" style="color:#3b82f6;">Создать</a>
+        </div>
+    </div>
+
+    <div class="search-area">
+        <div class="search-box">
+            <input type="text" id="userIdInput" placeholder="Введите ID пользователя" autocomplete="off">
+            <button id="searchBtn">🔍 Найти</button>
+        </div>
+        <div id="messageArea"></div>
+        <div id="resultContainer"></div>
+    </div>
+
+    <div class="add-form">
+        <h3>➕ Добавить нового пользователя</h3>
+        <div class="add-fields">
+            <input type="text" id="newId" placeholder="ID">
+            <input type="number" id="newBalance" placeholder="Баланс">
+            <input type="text" id="newStatus" placeholder="Статус">
+        </div>
+        <button id="addUserBtn" class="success">Добавить</button>
+    </div>
+</div>
+
+<script>
+    // Конфигурация репозитория
+    const REPO_OWNER = 'exyyl';
+    const REPO_NAME = 'taskgreot';
+    const FILE_PATH = 'bd.txt';
+    
+    let users = [];        // массив объектов { id, balance, status }
+    let currentSha = null; // SHA файла для обновления
+    let lastSearchedId = null; // для кнопок редактирования
+
+    // DOM элементы
+    const tokenInput = document.getElementById('githubToken');
+    const saveTokenBtn = document.getElementById('saveTokenBtn');
+    const clearTokenBtn = document.getElementById('clearTokenBtn');
+    const searchBtn = document.getElementById('searchBtn');
+    const userIdInput = document.getElementById('userIdInput');
+    const resultContainer = document.getElementById('resultContainer');
+    const messageArea = document.getElementById('messageArea');
+    const addUserBtn = document.getElementById('addUserBtn');
+    const newIdInput = document.getElementById('newId');
+    const newBalanceInput = document.getElementById('newBalance');
+    const newStatusInput = document.getElementById('newStatus');
+
+    // ========== Работа с токеном ==========
+    function loadStoredToken() {
+        const token = localStorage.getItem('github_token');
+        if (token) tokenInput.value = token;
+    }
+    function saveToken() {
+        const token = tokenInput.value.trim();
+        if (token) {
+            localStorage.setItem('github_token', token);
+            showMessage('Токен сохранён', 'success');
+        } else {
+            localStorage.removeItem('github_token');
+            showMessage('Токен удалён', 'success');
+        }
+    }
+    function clearToken() {
+        localStorage.removeItem('github_token');
+        tokenInput.value = '';
+        showMessage('Токен очищен', 'success');
+    }
+
+    // ========== Загрузка данных с GitHub ==========
+    async function loadDataFromGitHub() {
+        const token = localStorage.getItem('github_token');
+        if (!token) {
+            showMessage('❌ Необходимо ввести и сохранить GitHub токен', 'error');
+            return false;
+        }
+        showMessage('<div class="loader"></div> Загрузка данных...', 'info');
+        try {
+            const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json'
+                }
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            const content = atob(data.content);
+            currentSha = data.sha;
+            users = parseContent(content);
+            showMessage(`✅ Загружено ${users.length} пользователей`, 'success');
+            return true;
+        } catch (err) {
+            showMessage(`Ошибка загрузки: ${err.message}`, 'error');
+            return false;
+        }
+    }
+
+    function parseContent(text) {
+        const lines = text.split(/\r?\n/);
+        const result = [];
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed) continue;
+            const parts = trimmed.split(/\s*-\s*/);
+            if (parts.length === 3) {
+                result.push({
+                    id: parts[0],
+                    balance: parts[1],
+                    status: parts[2]
+                });
+            }
+        }
+        return result;
+    }
+
+    function formatFileContent(usersArray) {
+        return usersArray.map(u => `${u.id} - ${u.balance} - ${u.status}`).join('\n');
+    }
+
+    // ========== Сохранение на GitHub ==========
+    async function saveToGitHub(commitMessage) {
+        const token = localStorage.getItem('github_token');
+        if (!token) {
+            showMessage('Токен не найден', 'error');
+            return false;
+        }
+        const newContent = formatFileContent(users);
+        // Корректное кодирование UTF-8 в base64
+        const encoded = btoa(unescape(encodeURIComponent(newContent)));
+        const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
+        const body = {
+            message: commitMessage,
+            content: encoded,
+            sha: currentSha,
+            branch: 'main'
+        };
+        try {
+            const response = await fetch(url, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `token ${token}`,
+                    'Accept': 'application/vnd.github.v3+json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(body)
+            });
+            if (!response.ok) {
+                const errData = await response.json();
+                throw new Error(errData.message || `HTTP ${response.status}`);
+            }
+            const result = await response.json();
+            currentSha = result.content.sha;
+            showMessage('✅ Изменения сохранены на GitHub', 'success');
+            return true;
+        } catch (err) {
+            showMessage(`Ошибка сохранения: ${err.message}`, 'error');
+            return false;
+        }
+    }
+
+    // ========== Поиск и отображение ==========
+    function findUserById(id) {
+        return users.find(u => u.id === id);
+    }
+
+    function renderUserCard(user) {
+        if (!user) {
+            resultContainer.innerHTML = `<div class="result-card" style="border-left-color:#ef4444;">❌ Пользователь не найден</div>`;
+            return;
+        }
+        lastSearchedId = user.id;
+        const balanceFormatted = isNaN(user.balance) ? user.balance : Number(user.balance).toLocaleString('ru-RU');
+        resultContainer.innerHTML = `
+            <div class="result-card">
+                <div class="info-line"><span class="label">🆔 ID</span><span class="value">${escapeHtml(user.id)}</span></div>
+                <div class="info-line"><span class="label">💰 Баланс</span><span class="value">${escapeHtml(balanceFormatted)} ₽</span></div>
+                <div class="info-line"><span class="label">⭐ Статус</span><span class="status-badge">${escapeHtml(user.status)}</span></div>
+                <div class="action-buttons">
+                    <button id="editBalanceBtn" class="small">✏️ Изменить баланс</button>
+                    <button id="editStatusBtn" class="small">✏️ Изменить статус</button>
+                </div>
+            </div>
+        `;
+        document.getElementById('editBalanceBtn')?.addEventListener('click', () => editField('balance'));
+        document.getElementById('editStatusBtn')?.addEventListener('click', () => editField('status'));
+    }
+
+    function editField(field) {
+        if (!lastSearchedId) return;
+        const user = findUserById(lastSearchedId);
+        if (!user) return;
+        let newValue = prompt(`Введите новый ${field === 'balance' ? 'баланс' : 'статус'} для ID ${user.id}:`, user[field]);
+        if (newValue === null || newValue.trim() === '') return;
+        newValue = newValue.trim();
+        // Обновляем локально
+        user[field] = newValue;
+        // Сохраняем на GitHub
+        saveToGitHub(`Изменён ${field} для ID ${user.id}`).then(success => {
+            if (success) {
+                renderUserCard(user); // обновляем отображение
+                showMessage('Данные обновлены', 'success');
+            } else {
+                // откат: перезагрузить данные
+                loadDataFromGitHub().then(() => {
+                    const refreshed = findUserById(lastSearchedId);
+                    renderUserCard(refreshed);
+                });
+            }
+        });
+    }
+
+    // ========== Добавление пользователя ==========
+    async function addNewUser() {
+        const id = newIdInput.value.trim();
+        const balance = newBalanceInput.value.trim();
+        const status = newStatusInput.value.trim();
+        if (!id || !balance || !status) {
+            showMessage('Заполните все поля', 'error');
+            return;
+        }
+        if (users.some(u => u.id === id)) {
+            showMessage(`Пользователь с ID ${id} уже существует`, 'error');
+            return;
+        }
+        users.push({ id, balance, status });
+        const success = await saveToGitHub(`Добавлен пользователь ${id}`);
+        if (success) {
+            newIdInput.value = '';
+            newBalanceInput.value = '';
+            newStatusInput.value = '';
+            showMessage(`Пользователь ${id} добавлен`, 'success');
+            // если этот ID сейчас отображается, обновим карточку
+            if (lastSearchedId === id) renderUserCard(findUserById(id));
+        } else {
+            // откат
+            users = users.filter(u => u.id !== id);
+            await loadDataFromGitHub(); // перезагрузка на всякий случай
+        }
+    }
+
+    // ========== Поиск по кнопке / Enter ==========
+    async function performSearch() {
+        const id = userIdInput.value.trim();
+        if (!id) {
+            resultContainer.innerHTML = '';
+            showMessage('Введите ID', 'error');
+            return;
+        }
+        // Гарантируем, что данные загружены
+        if (users.length === 0) {
+            const loaded = await loadDataFromGitHub();
+            if (!loaded) return;
+        }
+        const user = findUserById(id);
+        renderUserCard(user);
+        if (!user) showMessage(`ID ${id} не найден`, 'error');
+        else showMessage('', '');
+    }
+
+    function showMessage(text, type) {
+        messageArea.innerHTML = `<div class="message ${type}">${text}</div>`;
+        if (type !== 'info') setTimeout(() => { if (messageArea.innerHTML === `<div class="message ${type}">${text}</div>`) messageArea.innerHTML = ''; }, 3000);
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+
+    // ========== Инициализация ==========
+    function init() {
+        loadStoredToken();
+        saveTokenBtn.addEventListener('click', saveToken);
+        clearTokenBtn.addEventListener('click', clearToken);
+        searchBtn.addEventListener('click', performSearch);
+        userIdInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') performSearch(); });
+        addUserBtn.addEventListener('click', addNewUser);
+        // предварительная загрузка данных, если есть токен
+        if (localStorage.getItem('github_token')) {
+            loadDataFromGitHub();
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>
