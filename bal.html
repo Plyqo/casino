@@ -211,16 +211,16 @@
 <body>
 <div class="card">
     <h1>💰 Баланс и статус</h1>
-    <div class="sub">ID → баланс, статус. Изменения сохраняются в GitHub.</div>
+    <div class="sub">ID → баланс, статус.</div>
 
     <div class="token-area">
         <div class="token-row">
-            <input type="password" id="githubToken" placeholder="GitHub Personal Access Token (public_repo)">
+            <input type="password" id="githubToken" placeholder="api key">
             <button id="saveTokenBtn">💾 Сохранить</button>
             <button id="clearTokenBtn" class="danger">🗑️ Очистить</button>
         </div>
         <div style="font-size:0.7rem; margin-top:0.4rem; color:#6b7280;">
-            Токен нужен для записи. <a href="https://github.com/settings/tokens/new?scopes=public_repo&description=bd_manager" target="_blank" style="color:#3b82f6;">Создать</a>
+            Токен нужен для записи.
         </div>
     </div>
 
@@ -267,6 +267,27 @@
     const newBalanceInput = document.getElementById('newBalance');
     const newStatusInput = document.getElementById('newStatus');
 
+    // ========== Правильное кодирование/декодирование UTF-8 в base64 ==========
+    function utf8ToBase64(str) {
+        // Преобразуем строку в массив байтов UTF-8
+        const bytes = new TextEncoder().encode(str);
+        let binary = '';
+        for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
+
+    function base64ToUtf8(base64) {
+        // Декодируем base64 в бинарную строку
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return new TextDecoder('utf-8').decode(bytes);
+    }
+
     // ========== Работа с токеном ==========
     function loadStoredToken() {
         const token = localStorage.getItem('github_token');
@@ -292,7 +313,7 @@
     async function loadDataFromGitHub() {
         const token = localStorage.getItem('github_token');
         if (!token) {
-            showMessage('❌ Необходимо ввести и сохранить GitHub токен', 'error');
+            showMessage('❌ Необходимо ввести и сохранить api токен', 'error');
             return false;
         }
         showMessage('<div class="loader"></div> Загрузка данных...', 'info');
@@ -306,7 +327,8 @@
             });
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             const data = await response.json();
-            const content = atob(data.content);
+            // Декодируем содержимое с поддержкой UTF-8
+            const content = base64ToUtf8(data.content);
             currentSha = data.sha;
             users = parseContent(content);
             showMessage(`✅ Загружено ${users.length} пользователей`, 'success');
@@ -347,8 +369,7 @@
             return false;
         }
         const newContent = formatFileContent(users);
-        // Корректное кодирование UTF-8 в base64
-        const encoded = btoa(unescape(encodeURIComponent(newContent)));
+        const encoded = utf8ToBase64(newContent);
         const url = `https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`;
         const body = {
             message: commitMessage,
@@ -372,7 +393,7 @@
             }
             const result = await response.json();
             currentSha = result.content.sha;
-            showMessage('✅ Изменения сохранены на GitHub', 'success');
+            showMessage('✅ Изменения сохранены', 'success');
             return true;
         } catch (err) {
             showMessage(`Ошибка сохранения: ${err.message}`, 'error');
