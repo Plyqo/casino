@@ -1,1 +1,720 @@
-ХОСТИНГ НЕ ПРОПЛАЧЕН
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Cashew — билет с QR</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* 
+      Управление через CSS-переменные:
+      --header-h    : высота верхнего заголовка (za.jpg)
+      --qr-size     : размер блока с QR
+      --bottom-h    : высота нижнего блока (niz.jpg)
+      --bottom-gap  : отступ между основным блоком и нижним изображением
+      --bleed-w     : «вылет» нижнего блока за ширину viewport (можно менять в vw или px)
+      Изменяйте значения в :root для тонкой настройки.
+    */
+
+    :root{
+      --bg: #f2f5f7;
+      --card: #fff;
+      --muted: #6b6b6b;
+      --radius: 14px;
+
+      /* Верхний заголовок (za.jpg) - УВЕЛИЧЕН */
+      --header-h: clamp(130px, 13vw, 220px);
+      --header-pos: center;
+
+      /* QR */
+      --qr-size: clamp(280px, 36vw, 380px);
+      --qr-pos: center;
+      --qr-max-w: 520px;
+
+      /* Нижний блок */
+      --bottom-h: clamp(100px, 14vh, 150px);
+      --bottom-pos: center;
+      /* Отступ увеличен до среднего расстояния */
+      --bottom-gap: clamp(70px, 10vw, 140px);
+
+      /* bleed: на сколько нижний блок шире viewport (можно задать в vw или px) */
+      --bleed-w: 10vw; /* например 10vw = нижний блок шире viewport на 10% */
+    }
+
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;padding:0}
+    body{
+      font-family:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial;
+      color:#111;
+      -webkit-font-smoothing:antialiased;
+      -moz-osx-font-smoothing:grayscale;
+      background:linear-gradient(180deg,var(--bg),#e9eef2 60%);
+      padding-bottom:24px;
+      overflow-x:visible; /* разрешаем видимый выход нижнего блока за экран */
+    }
+
+    /* ---- СТАРТОВАЯ СТРАНИЦА ---- */
+    .start-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+    
+    .start-page h1 {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 36px;
+      margin-bottom: 30px; /* Уменьшен отступ */
+      text-align: center;
+      color: #333;
+      line-height: 1.2; /* Более плотный */
+    }
+    
+    .garage-form {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 25px; /* Уменьшен padding */
+      box-shadow: 0 6px 16px rgba(35,47,52,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+      border: 1px solid rgba(20,30,40,0.03);
+      width: 100%;
+      max-width: 400px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px; /* Уменьшен отступ */
+    }
+    
+    .form-group label {
+      display: block;
+      margin-bottom: 8px; /* Уменьшен отступ */
+      font-weight: 600; /* Жирнее */
+      color: #555;
+      font-size: 20px;
+      line-height: 1.2; /* Более плотный */
+    }
+    
+    .form-group input {
+      width: 100%;
+      padding: 14px 16px; /* Немного уменьшен */
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 20px;
+      transition: border-color 0.3s;
+      font-weight: 500; /* Жирнее */
+    }
+    
+    .form-group input:focus {
+      outline: none;
+      border-color: #4a90e2;
+      box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.2);
+    }
+    
+    .submit-btn {
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      padding: 14px 20px; /* Немного уменьшен */
+      font-size: 20px;
+      font-weight: 600; /* Жирнее */
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s;
+      line-height: 1.2; /* Более плотный */
+    }
+    
+    .submit-btn:hover {
+      background: #3a7bc8;
+    }
+
+    /* ---- СТРАНИЦА СКАНЕРА ---- */
+    .scanner-page {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #000;
+      position: relative;
+    }
+    
+    .scanner-container {
+      width: 100%;
+      height: 100vh;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    #scannerVideo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+    
+    .scanner-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    
+    .scanner-frame {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: calc(var(--qr-size) * 0.8);
+      height: calc(var(--qr-size) * 0.8);
+      max-width: calc(var(--qr-max-w) * 0.8);
+      background: rgba(128, 128, 128, 0.1);
+      border: 2px solid #006400;
+    }
+    
+    .scanner-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 3px;
+      background: #006400;
+      animation: scan 2s linear infinite;
+    }
+    
+    @keyframes scan {
+      0% { top: 0; }
+      100% { top: 100%; }
+    }
+    
+    .scanner-corners {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    
+    .corner {
+      position: absolute;
+      width: 30px;
+      height: 30px;
+      border-color: #006400;
+      border-style: solid;
+      border-width: 5px;
+    }
+    
+    .corner-tl {
+      top: -2px;
+      left: -2px;
+      border-right: none;
+      border-bottom: none;
+    }
+    
+    .corner-tr {
+      top: -2px;
+      right: -2px;
+      border-left: none;
+      border-bottom: none;
+    }
+    
+    .corner-bl {
+      bottom: -2px;
+      left: -2px;
+      border-right: none;
+      border-top: none;
+    }
+    
+    .corner-br {
+      bottom: -2px;
+      right: -2px;
+      border-left: none;
+      border-top: none;
+    }
+    
+    .scanner-text {
+      position: absolute;
+      top: calc(50% - calc(var(--qr-size) * 0.8) / 2 - 50px); /* Ближе к сканеру */
+      left: 0;
+      width: 100%;
+      color: white;
+      text-align: center;
+      font-family: 'Inter', sans-serif;
+      font-size: 22px;
+      font-weight: 600; /* Жирнее */
+      line-height: 1.2; /* Более плотный */
+    }
+    
+    .bi-button {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #4a90e2;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 20px;
+      font-weight: 700; /* Жирнее */
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      transition: all 0.3s ease;
+      z-index: 1000;
+      line-height: 1; /* Более плотный */
+    }
+    
+    .bi-button:hover {
+      background: #3a7bc8;
+      transform: scale(1.1);
+    }
+
+    /* ---- Верхний заголовок (za.jpg) ---- */
+    .header{
+      width:100%;
+      background:var(--card);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:6px 12px;
+      box-shadow:0 2px 0 rgba(0,0,0,0.06);
+      position:sticky;
+      top:0;
+      z-index:20;
+    }
+    .header img{
+      height:var(--header-h);
+      max-width:94%;
+      width:auto;
+      object-fit:contain;
+      object-position:var(--header-pos);
+      display:block;
+    }
+
+    /* ---- Контейнер и карточка ---- */
+    .wrap{
+      max-width:880px;
+      margin:18px auto;
+      padding:0 16px;
+    }
+    .card{
+      background:var(--card);
+      border-radius:calc(var(--radius));
+      padding:24px 18px 16px; /* Уменьшен padding */
+      box-shadow:0 6px 16px rgba(35,47,52,0.08), inset 0 1px 0 rgba(255,255,255,0.6);
+      border:1px solid rgba(20,30,40,0.03);
+    }
+
+    /* ---- QR ВИДЕО ---- */
+    .qr-wrap{display:flex;justify-content:center;padding:6px 0 14px} /* Уменьшен padding */
+    .qr{
+      width:var(--qr-size);
+      height:var(--qr-size);
+      max-width:var(--qr-max-w);
+      border-radius:8px;
+      position:relative;
+      box-shadow:0 6px 18px rgba(20,30,40,0.06);
+      background:linear-gradient(180deg,#fff,#fafbfc);
+      overflow:hidden;
+      display:block;
+    }
+    .qr-video{
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      object-position:var(--qr-pos);
+      display:block;
+    }
+
+    /* ---- Детали ---- */
+    .details{padding:4px 2px 0;color:var(--muted)} /* Уменьшен padding */
+    .details .label{
+      font-size:20px;
+      color:#6f6f6f;
+      margin-top:12px; /* Уменьшен отступ */
+      margin-bottom: 4px; /* Ближе к значению */
+      font-weight:600; /* Жирнее */
+      font-family: 'Inter', sans-serif;
+      line-height: 1.2; /* Более плотный */
+    }
+    .details .value{
+      font-family:'Inter',sans-serif;
+      font-size:19px;
+      color:#111;
+      margin-top:0; /* Убран отступ сверху */
+      margin-bottom: 8px; /* Отступ снизу */
+      line-height:1.3; /* Более плотный */
+      font-weight:500; /* Жирнее */
+    }
+    .row{margin-bottom:10px} /* Уменьшен отступ между рядами */
+
+    /* Специальный стиль для цены */
+    .price-value {
+      font-size:22px !important;
+      font-weight:600 !important; /* Жирнее */
+      color:#111 !important;
+      line-height: 1.2; /* Более плотный */
+    }
+
+    /* ---- Нижний полно-ширинный блок с центровкой и bleed ---- */
+    .bottom{
+      width:100%;
+      margin-top:var(--bottom-gap);
+      position:relative;
+      overflow:visible;
+      pointer-events:none;
+    }
+    .bottom .full{
+      position:relative;
+      left:50%;
+      transform:translateX(-50%);
+      width: calc(100vw + var(--bleed-w));
+      max-width: none;
+      height:var(--bottom-h);
+      object-fit:cover;
+      object-position:var(--bottom-pos);
+      display:block;
+      box-shadow: 0 -6px 18px rgba(0,0,0,0.06);
+      pointer-events:auto;
+    }
+
+    /* ---- Адаптивные настройки (под разные экраны) ---- */
+    @media (max-width:480px){
+      :root{
+        --header-h: clamp(100px, 18vw, 160px);
+        --qr-size: clamp(220px, 62vw, 300px);
+        --bottom-h: clamp(90px, 18vh, 120px);
+        --bottom-gap: clamp(60px, 12vw, 100px);
+        --bleed-w: 20vw;
+      }
+      .card{padding:18px 12px}
+      .details .label{font-size:18px}
+      .details .value{font-size:17px}
+      .price-value{font-size:20px !important}
+      .garage-form {
+        padding: 20px;
+      }
+      .start-page h1 {
+        font-size: 28px;
+        margin-bottom: 25px;
+      }
+      .form-group label {
+        font-size: 18px;
+        margin-bottom: 6px;
+      }
+      .form-group input {
+        font-size: 18px;
+        padding: 12px 14px;
+      }
+      .submit-btn {
+        font-size: 18px;
+        padding: 12px 20px;
+      }
+      .bi-button {
+        bottom: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+      }
+      .scanner-text {
+        top: calc(50% - calc(var(--qr-size) * 0.8) / 2 - 40px); /* Ближе к сканеру */
+        font-size: 20px;
+      }
+      .corner {
+        width: 25px;
+        height: 25px;
+        border-width: 4px;
+      }
+      .scanner-frame {
+        border-width: 2px;
+      }
+      .row{margin-bottom:8px}
+    }
+
+    @media (min-width:540px){
+      :root{
+        --header-h: clamp(120px, 13vw, 180px);
+        --qr-size: clamp(300px, 36vw, 380px);
+        --bottom-h: clamp(110px, 18vh, 150px);
+        --bottom-gap: clamp(80px, 12vw, 150px);
+        --bleed-w: 10vw;
+      }
+      .wrap{max-width:920px}
+      .card{padding:24px 20px 16px}
+      .details .label{font-size:20px}
+      .details .value{font-size:19px}
+      .price-value{font-size:22px !important}
+    }
+
+    @media (min-width:1200px){
+      :root{
+        --header-h: clamp(150px, 11vw, 240px);
+        --qr-size: clamp(320px, 30vw, 420px);
+        --bottom-h: 160px;
+        --bottom-gap: clamp(100px, 14vw, 160px);
+        --bleed-w: 10vw;
+      }
+      .wrap{max-width:1100px}
+      .card{padding:28px 24px 18px}
+      .details .label{font-size:21px}
+      .details .value{font-size:20px}
+      .price-value{font-size:24px !important}
+    }
+
+    /* печать: убираем тень и делаем изображение адаптивным для печати */
+    @media print{
+      .header, .bottom{box-shadow:none}
+      .header img, .bottom .full{object-fit:contain}
+    }
+
+    /* Скрытие элементов */
+    .hidden {
+      display: none;
+    }
+
+  </style>
+</head>
+<body>
+  <!-- СТАРТОВАЯ СТРАНИЦА -->
+  <div id="startPage" class="start-page">
+    <h1>Введите гаража номер</h1>
+    <div class="garage-form">
+      <div class="form-group">
+        <label for="garageNumber">Гаража номер:</label>
+        <input type="text" id="garageNumber" placeholder="Введите номер гаража">
+      </div>
+      <button class="submit-btn" id="submitBtn">Продолжить</button>
+    </div>
+  </div>
+
+  <!-- СТРАНИЦА СКАНЕРА -->
+  <div id="scannerPage" class="scanner-page hidden">
+    <div class="scanner-container">
+      <video id="scannerVideo" autoplay playsinline></video>
+      <div class="scanner-overlay">
+        <div class="scanner-frame">
+          <div class="scanner-line"></div>
+          <div class="scanner-corners">
+            <div class="corner corner-tl"></div>
+            <div class="corner corner-tr"></div>
+            <div class="corner corner-bl"></div>
+            <div class="corner corner-br"></div>
+          </div>
+        </div>
+        <div class="scanner-text">Наведите на QR-код</div>
+      </div>
+    </div>
+    <button class="bi-button" id="biButton">БИ</button>
+  </div>
+
+  <!-- ОСНОВНАЯ СТРАНИЦА -->
+  <div id="mainPage" class="hidden">
+    <!-- Верхний заголовок: поместите za.jpg рядом с этим файлом -->
+    <header class="header">
+      <img src="za.jpg" alt="cashew header — za.jpg">
+    </header>
+
+    <main class="wrap">
+      <section class="card">
+        <div class="qr-wrap">
+          <div class="qr" role="img" aria-label="QR видео">
+            <video id="qrVideo" class="qr-video" muted playsinline loop autoplay>
+              <source src="qrvid.mp4" type="video/mp4">
+              Ваш браузер не поддерживает видео.
+            </video>
+          </div>
+        </div>
+
+        <div class="details">
+          <div class="row">
+            <div class="label">Получатель:</div>
+            <div class="value" id="recipientText">Оплата проезда в автобусе, гар. номер 332<br>г. Бобруйск<br>Бобруйский ф‑л Автобусный парк №2 ОАО "Могилевоблавтотранс"</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Активен с:</div>
+            <div class="value" id="activeFrom">06.11.2025 21:41</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Активен до:</div>
+            <div class="value" id="activeTo">06.11.2025 22:41</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Описание:</div>
+            <div class="value">#2ac7402c8858770f#</div>
+          </div>
+
+          <div class="row">
+            <div class="label">Цена:</div>
+            <div class="value price-value">1.05 BYN</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Нижний блок: поместите niz.jpg рядом с этим файлом.
+           Он центрируется относительно viewport и выходит за рамки контейнера (bleed). -->
+      <div class="bottom" aria-hidden>
+        <img class="full" src="niz.jpg" alt="нижний блок — niz.jpg">
+      </div>
+    </main>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const startPage = document.getElementById('startPage');
+      const scannerPage = document.getElementById('scannerPage');
+      const mainPage = document.getElementById('mainPage');
+      const garageNumberInput = document.getElementById('garageNumber');
+      const submitBtn = document.getElementById('submitBtn');
+      const biButton = document.getElementById('biButton');
+      const scannerVideo = document.getElementById('scannerVideo');
+      const qrVideo = document.getElementById('qrVideo');
+      const recipientText = document.getElementById('recipientText');
+      const activeFrom = document.getElementById('activeFrom');
+      const activeTo = document.getElementById('activeTo');
+      const priceValue = document.querySelector('.price-value');
+      
+      let stream = null;
+
+      // Функция для форматирования даты
+      function formatDate(date) {
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        
+        return `${day}.${month}.${year} ${hours}:${minutes}`;
+      }
+      
+      // Функция для установки дат
+      function setDates() {
+        const now = new Date();
+        const fromDate = formatDate(now);
+        
+        // Добавляем 1 час к текущей дате
+        const toDate = new Date(now.getTime() + 60 * 60 * 1000);
+        const toDateFormatted = formatDate(toDate);
+        
+        activeFrom.textContent = fromDate;
+        activeTo.textContent = toDateFormatted;
+      }
+      
+      // Функция для запуска камеры
+      async function startCamera() {
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+              facingMode: 'environment',
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            } 
+          });
+          scannerVideo.srcObject = stream;
+        } catch (err) {
+          console.error('Ошибка доступа к камере:', err);
+          // Если камера недоступна, показываем заглушку
+          scannerVideo.style.backgroundColor = '#333';
+        }
+      }
+      
+      // Функция для остановки камеры
+      function stopCamera() {
+        if (stream) {
+          stream.getTracks().forEach(track => track.stop());
+          stream = null;
+        }
+      }
+
+      // Функция для настройки QR видео
+      function setupQRVideo() {
+        if (qrVideo) {
+          // Убедимся, что видео зацикливается и автоматически воспроизводится
+          qrVideo.loop = true;
+          qrVideo.muted = true;
+          qrVideo.playsInline = true;
+          
+          // Принудительно запускаем видео
+          qrVideo.play().catch(function(error) {
+            console.log('Автовоспроизведение заблокировано:', error);
+          });
+          
+          // Обработчик для гарантии зацикливания - немедленный перезапуск
+          qrVideo.addEventListener('timeupdate', function() {
+            // Если видео приближается к концу (последние 0.1 секунды), перезапускаем
+            if (qrVideo.duration > 0 && qrVideo.currentTime >= qrVideo.duration - 0.1) {
+              qrVideo.currentTime = 0;
+              qrVideo.play().catch(function(error) {
+                console.log('Ошибка перезапуска:', error);
+              });
+            }
+          });
+
+          // Дополнительная гарантия через событие ended
+          qrVideo.addEventListener('ended', function() {
+            console.log('3-секундное видео закончилось, немедленный перезапуск...');
+            qrVideo.currentTime = 0;
+            setTimeout(function() {
+              qrVideo.play().catch(function(error) {
+                console.log('Ошибка перезапуска:', error);
+              });
+            }, 10);
+          });
+        }
+      }
+      
+      // Обработчик нажатия кнопки на стартовой странице
+      submitBtn.addEventListener('click', function() {
+        const garageNumber = garageNumberInput.value.trim();
+        
+        if (garageNumber) {
+          // Обновляем текст получателя с введенным номером гаража
+          recipientText.innerHTML = `Оплата проезда в автобусе, гар. номер ${garageNumber}<br>г. Бобруйск<br>Бобруйский ф‑л Автобусный парк №2 ОАО "Могилевоблавтотранс"`;
+          
+          // Переключаем на страницу сканера
+          startPage.classList.add('hidden');
+          scannerPage.classList.remove('hidden');
+          
+          // Запускаем камеру
+          startCamera();
+        } else {
+          alert('Пожалуйста, введите номер гаража');
+        }
+      });
+      
+      // Обработчик кнопки БИ
+      biButton.addEventListener('click', function() {
+        // Останавливаем камеру
+        stopCamera();
+        
+        // Устанавливаем даты
+        setDates();
+        
+        // Настраиваем QR видео
+        setupQRVideo();
+        
+        // Переключаем на основную страницу
+        scannerPage.classList.add('hidden');
+        mainPage.classList.remove('hidden');
+      });
+      
+      // Обработчик нажатия Enter в поле ввода
+      garageNumberInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+          submitBtn.click();
+        }
+      });
+
+      // Настраиваем QR видео при загрузке страницы
+      setupQRVideo();
+    });
+  </script>
+</body>
+</html>
